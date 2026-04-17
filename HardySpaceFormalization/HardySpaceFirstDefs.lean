@@ -31,7 +31,7 @@ The finite-exponent radial Hardy quantity on the circle of radius `r`.
 For finite nonzero `p : ℝ≥0∞`, this is the normalized interval integral of
 `‖f (r * exp(iθ))‖^p`, raised to the power `1 / p`.
 -/
-def hardyRadialFinite {E : Type*} [NormedAddCommGroup E]
+def hardyRadial {E : Type*} [NormedAddCommGroup E]
     (f : ℂ → E) (p : ℝ≥0∞) (r : ℝ) : ℝ≥0∞ :=
   ENNReal.ofReal (
     Real.rpow
@@ -40,30 +40,22 @@ def hardyRadialFinite {E : Type*} [NormedAddCommGroup E]
           Real.rpow ‖f (radialPoint r θ)‖ p.toReal)
       (1 / p.toReal))
 
-/-- The supremum-style radial Hardy quantity for the `p = ∞` case. -/
-def hardyRadialSup {E : Type*} [NormedAddCommGroup E] (f : ℂ → E) (r : ℝ) : ℝ≥0∞ :=
-  ⨆ θ : ℝ, ENNReal.ofReal ‖f (radialPoint r θ)‖
-
 /--
-The unified radial Hardy quantity on the circle of radius `r`.
+The Hardy norm quantity on the unit disc.
 
-It returns `0` at `p = 0`, uses a supremum along the circle at `p = ∞`, and otherwise uses the
-classical normalized interval-integral expression.
+For `p = ∞`, this is the supremum norm on the disc. For finite nonzero `p`, this is the
+supremum of the finite radial quantities over `0 < r < 1`.
 -/
-def hardyRadial {E : Type*} [NormedAddCommGroup E]
-    (f : ℂ → E) (p : ℝ≥0∞) (r : ℝ) : ℝ≥0∞ :=
+def hardyNorm {E : Type*} [NormedAddCommGroup E]
+    (f : ℂ → E) (p : ℝ≥0∞) : ℝ≥0∞ :=
   if p = 0 then
     0
   else if p = ∞ then
-    hardyRadialSup f r
+    ⨆ (z : ℂ) (_ : z ∈ unitDisc), ENNReal.ofReal ‖f z‖
   else
-    hardyRadialFinite f p r
+    ⨆ (r : ℝ) (_ : 0 < r ∧ r < 1), hardyRadial f p r
 
-def hardyNorm {E : Type*} [NormedAddCommGroup E]
-    (f : ℂ → E) (p : ℝ≥0∞) : ℝ≥0∞ :=
-  ⨆ (r : ℝ) (_ : 0 < r ∧ r < 1), hardyRadial f p r
-
-/-- Membership in the Hardy space `H^p` on the unit disc via uniformly bounded radial quantities. -/
+/-- Membership in the Hardy space `H^p` on the unit disc. -/
 def MemHpDisc {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
     (p : ℝ≥0∞) (f : ℂ → E) : Prop :=
   p ≠ 0 ∧

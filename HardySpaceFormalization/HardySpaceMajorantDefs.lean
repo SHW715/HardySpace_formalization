@@ -43,11 +43,61 @@ def MemHp
         HasHarmonicMajorant Ω (fun z => Real.rpow ‖f z‖ (ENNReal.toReal p))
 
 
+-- ## Equivalence between `MemHp` and `MemHpDisc` over unit disc
+
+lemma radialPoint_mem_unitDisc {r θ : ℝ} (hr0 : 0 < r) (hr1 : r < 1) :
+    radialPoint r θ ∈ unitDisc := by
+  rw [unitDisc, Metric.mem_ball, dist_zero_right]
+  calc
+    ‖radialPoint r θ‖ = |r| := by
+      simp [radialPoint, Complex.norm_exp_ofReal_mul_I]
+    _ = r := abs_of_nonneg hr0.le
+    _ < 1 := hr1
+
+/-- The `p = ∞` case of the equivalence between hardy space definitions over unit disc. -/
+lemma memHpDisc_iff_memHp_onDisc_top
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [CompleteSpace E]
+    {f : ℂ → E} :
+    MemHpDisc ∞ f ↔ MemHp unitDisc ∞ f := by
+  constructor
+  · intro hdisc
+    rcases hdisc with ⟨_hp, han, C, hCfin, hC⟩
+    refine ⟨by simp, han, ENNReal.toReal C, ENNReal.toReal_nonneg, ?_⟩
+    intro z hz
+    have hpoint : ENNReal.ofReal ‖f z‖ ≤ hardyNorm f ∞ := by
+      unfold hardyNorm
+      simp only [ENNReal.top_ne_zero, ↓reduceIte]
+      change ENNReal.ofReal ‖f z‖ ≤
+        ⨆ (w : ℂ) (_ : w ∈ unitDisc), ENNReal.ofReal ‖f w‖
+      exact le_iSup₂_of_le z hz le_rfl
+    have hle : ENNReal.ofReal ‖f z‖ ≤ C := hpoint.trans hC
+    exact (ENNReal.ofReal_le_iff_le_toReal (ne_of_lt hCfin)).mp hle
+  · intro hmaj
+    rcases hmaj with ⟨_hpos, han, C, _hC0, hC⟩
+    refine ⟨by simp, han, ⟨ENNReal.ofReal C, ENNReal.ofReal_lt_top, ?_⟩⟩
+    unfold hardyNorm
+    simp only [ENNReal.top_ne_zero, ↓reduceIte]
+    apply iSup_le
+    intro z
+    apply iSup_le
+    intro hz
+    exact ENNReal.ofReal_le_ofReal (hC z hz)
+
+/-- The finite-exponent case of the equivalence between hardy space definitions over disc. -/
+lemma memHpDisc_iff_memHp_onDisc_of_ne_top
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [CompleteSpace E]
+    {p : ℝ≥0∞} (hp0 : p ≠ 0) (hpTop : p ≠ ∞) {f : ℂ → E} :
+    MemHpDisc p f ↔ MemHp unitDisc p f := by
+  sorry
+
 /-- The equivalence between the classical and generalized definitions on the unit disc. -/
 theorem memHpDisc_iff_memHp_onDisc
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [CompleteSpace E]
     {p : ℝ≥0∞} (hp0 : p ≠ 0) {f : ℂ → E} :
     MemHpDisc p f ↔ MemHp unitDisc p f := by
-  sorry
+  by_cases hpTop : p = ∞
+  · simpa [hpTop] using
+      (memHpDisc_iff_memHp_onDisc_top (E := E) (f := f))
+  · exact memHpDisc_iff_memHp_onDisc_of_ne_top (E := E) hp0 hpTop (f := f)
 
 end HardySpace
