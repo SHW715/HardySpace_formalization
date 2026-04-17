@@ -4,6 +4,12 @@ import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Mathlib.Data.ENNReal.Real
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 
+/-!
+# Classical Hardy space `H^p` on unit disc in ℂ
+
+
+-/
+
 
 noncomputable section
 
@@ -58,14 +64,14 @@ def hardyNorm {E : Type*} [NormedAddCommGroup E]
   ⨆ (r : ℝ) (_ : 0 < r ∧ r < 1), hardyRadial f p r
 
 /-- Membership in the Hardy space `H^p` on the unit disc via uniformly bounded radial quantities. -/
-def MemHp {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
+def MemHpDisc {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
     (p : ℝ≥0∞) (f : ℂ → E) : Prop :=
   p ≠ 0 ∧
     AnalyticOn ℂ f unitDisc ∧
     ∃ C : ℝ≥0∞, C < ∞ ∧ hardyNorm f p ≤ C
 
 /-- Membership in `H^∞`, as the `p = ∞` case of the unified Hardy-space predicate. -/
-abbrev MemHInfinity {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] (f : ℂ → E) : Prop :=
-  MemHp ∞ f
+abbrev MemHInfinityDisc {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] (f : ℂ → E) : Prop :=
+  MemHpDisc ∞ f
 
 end HardySpace

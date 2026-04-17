@@ -1,6 +1,13 @@
+import HardySpaceFormalization.HardySpaceFirstDefs
 import Mathlib.Analysis.Analytic.Basic
 import Mathlib.Analysis.InnerProductSpace.Harmonic.Basic
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
+
+
+/-!
+# Generalized Hardy space `H^p(Ω)` on general domain in ℂ^n
+
+-/
 
 noncomputable section
 
@@ -34,5 +41,13 @@ def MemHp
         ∃ C : ℝ, 0 ≤ C ∧ ∀ z ∈ Ω, ‖f z‖ ≤ C
     | _ =>
         HasHarmonicMajorant Ω (fun z => Real.rpow ‖f z‖ (ENNReal.toReal p))
+
+
+/-- The equivalence between the classical and generalized definitions on the unit disc. -/
+theorem memHpDisc_iff_memHp_onDisc
+    {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E] [CompleteSpace E]
+    {p : ℝ≥0∞} (hp0 : p ≠ 0) {f : ℂ → E} :
+    MemHpDisc p f ↔ MemHp unitDisc p f := by
+  sorry
 
 end HardySpace
