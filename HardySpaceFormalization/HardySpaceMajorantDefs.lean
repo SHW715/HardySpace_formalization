@@ -52,22 +52,6 @@ lemma memHpDisc_iff_memHp_onDisc_top
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
     {f : ℂ → E} :
     MemHpDisc ∞ f ↔ MemHp unitDisc ∞ f := by sorry
-  /-constructor
-  · rintro ⟨han, hfin⟩
-    refine ⟨by simp, han, ENNReal.toReal (hardyNorm f ∞), ENNReal.toReal_nonneg, ?_⟩
-    intro z hz
-    have hpoint : ENNReal.ofReal ‖f z‖ ≤ hardyNorm f ∞ := by
-      rw [hardyNorm_top_eq_Sup_norm]
-      exact le_iSup_of_le ⟨z, hz⟩ le_rfl
-    exact (ENNReal.ofReal_le_iff_le_toReal (ne_of_lt hfin)).mp hpoint
-  · rintro ⟨_hpos, han, C, _hC0, hC⟩
-    refine ⟨han, ?_⟩
-    have hbound : hardyNorm f ∞ ≤ ENNReal.ofReal C := by
-      rw [hardyNorm_top_eq_Sup_norm]
-      refine iSup_le ?_
-      intro z
-      exact ENNReal.ofReal_le_ofReal (hC z.1 z.2)
-    exact hbound.trans_lt ENNReal.ofReal_lt_top-/
 
 /-- The finite-exponent case of the equivalence between hardy space definitions over disc. -/
 lemma memHpDisc_iff_memHp_onDisc_of_ne_top
