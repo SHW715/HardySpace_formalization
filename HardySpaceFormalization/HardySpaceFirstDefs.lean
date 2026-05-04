@@ -112,7 +112,17 @@ def HpDisc (p : ℝ≥0∞) : Submodule ℂ (unitDisc → E) where
                intro z
                exact add_le_add (le_iSup (fun z : unitDisc => ‖a z‖ₑ) z)
                  (le_iSup (fun z : unitDisc => ‖b z‖ₑ) z)
-         . simp [hi] at *; sorry
+         . simp [hi] at ha_norm hb_norm ⊢ ; by_cases hp1 : 1 ≤ p
+           . have hmin : min p.toReal 1 = 1 := by
+                refine min_eq_right ?_
+                exact (ENNReal.toReal_le_toReal (by simp) hi).2 hp1
+             simp [hmin] at *
+             sorry
+           . have hmin : min p.toReal 1 = p.toReal := by
+                refine min_eq_left ?_
+                exact (ENNReal.toReal_le_toReal hi (by simp)).2 (le_of_not_ge hp1)
+             simp [hmin] at *
+             sorry
   zero_mem' := by
     rw [Set.mem_setOf_eq]
     unfold MemHpDisc
@@ -146,7 +156,17 @@ def HpDisc (p : ℝ≥0∞) : Submodule ℂ (unitDisc → E) where
        by_cases hp : p = 0
        . simp [hp]
        . simp [hp] at *; by_cases hi : p = ∞
-         . simp [hi] at *; sorry
+         . simp [hi] at *
+           -- fill in using codex
+           have hc_top : ‖c‖ₑ < ∞ := ENNReal.coe_lt_top
+           refine lt_of_le_of_lt ?_ (ENNReal.mul_lt_top hc_top hf_norm)
+           calc
+             (⨆ z : unitDisc, ‖c • f z‖ₑ) = ⨆ z : unitDisc, ‖c‖ₑ * ‖f z‖ₑ := by
+               congr with z; simp [enorm_smul]
+             _ ≤ ‖c‖ₑ * ⨆ z : unitDisc, ‖f z‖ₑ := by
+               refine iSup_le ?_
+               intro z
+               simpa using mul_le_mul_right (le_iSup (fun z : unitDisc => ‖f z‖ₑ) z) ‖c‖ₑ
          . simp [hi] at *; sorry
 
 
@@ -213,7 +233,29 @@ lemma norm_add_le (p : ℝ≥0∞)
    by_cases hp : p = 0
    . simp [hp]
    . simp [hp]; by_cases hi : p = ∞
-     . simp [hi]; sorry
+     . simp [hi]
+       -- fill in using codex
+       have hf_fin : (⨆ z : unitDisc, ‖f.1 z‖ₑ) < ∞ := by
+         rcases f.2 with ⟨_, hf_norm⟩
+         simpa [hardyNorm, hp, hi] using hf_norm
+       have hg_fin : (⨆ z : unitDisc, ‖g.1 z‖ₑ) < ∞ := by
+         rcases g.2 with ⟨_, hg_norm⟩
+         simpa [hardyNorm, hp, hi] using hg_norm
+       refine ENNReal.toReal_le_add ?_ hf_fin.ne hg_fin.ne
+       calc
+         (⨆ z : unitDisc, ‖f.1 z + g.1 z‖ₑ) ≤ ⨆ z : unitDisc, (‖f.1 z‖ₑ + ‖g.1 z‖ₑ) := by
+           refine iSup_le ?_
+           intro z
+           have hz' : (‖f.1 z + g.1 z‖₊ : ℝ≥0∞) ≤ (‖f.1 z‖₊ : ℝ≥0∞) + (‖g.1 z‖₊ : ℝ≥0∞) := by
+             exact_mod_cast (nnnorm_add_le (f.1 z) (g.1 z))
+           have hz : ‖f.1 z + g.1 z‖ₑ ≤ ‖f.1 z‖ₑ + ‖g.1 z‖ₑ := by
+             simpa using hz'
+           exact hz.trans (le_iSup (fun z : unitDisc => ‖f.1 z‖ₑ + ‖g.1 z‖ₑ) z)
+         _ ≤ (⨆ z : unitDisc, ‖f.1 z‖ₑ) + ⨆ z : unitDisc, ‖g.1 z‖ₑ := by
+           refine iSup_le ?_
+           intro z
+           exact add_le_add (le_iSup (fun z : unitDisc => ‖f.1 z‖ₑ) z)
+             (le_iSup (fun z : unitDisc => ‖g.1 z‖ₑ) z)
      . simp [hi]; sorry
 
 

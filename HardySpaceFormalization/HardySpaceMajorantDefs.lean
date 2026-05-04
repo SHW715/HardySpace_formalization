@@ -22,8 +22,8 @@ by a real-valued function that is harmonic in a neighborhood of `Ω`.
 -/
 def HasHarmonicMajorant
     {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V] [FiniteDimensional ℝ V]
-    (Ω : Set V) (g : V → ℝ) : Prop :=
-  ∃ u : V → ℝ, InnerProductSpace.HarmonicOnNhd u Ω ∧ ∀ z ∈ Ω, g z ≤ u z
+    (Ω : Set V) (g : Ω → ℝ) : Prop :=
+  ∃ u : V → ℝ, InnerProductSpace.HarmonicOnNhd u Ω ∧ ∀ z : Ω, g z ≤ u z.1
 
 /--
 Membership in generalized `p`-Hardy class on an unbundled domain `Ω`.
@@ -35,11 +35,11 @@ def MemHp
     {V E : Type*}
     [NormedAddCommGroup V] [NormedSpace ℂ V] [InnerProductSpace ℝ V] [FiniteDimensional ℝ V]
     [NormedAddCommGroup E] [NormedSpace ℂ E]
-    (Ω : Set V) (p : ℝ≥0∞) (f : V → E) : Prop :=
-  0 < p ∧ AnalyticOn ℂ f Ω ∧
+    (Ω : Set V) (p : ℝ≥0∞) (f : Ω → E) : Prop :=
+  0 < p ∧ ∃ F : V → E, AnalyticOn ℂ F Ω ∧ ∀ z : Ω, F z.1 = f z ∧
     match p with
     | ∞ =>
-        ∃ C : ℝ, 0 ≤ C ∧ ∀ z ∈ Ω, ‖f z‖ ≤ C
+        ∃ C : ℝ, 0 ≤ C ∧ ∀ z : Ω, ‖f z‖ ≤ C
     | _ =>
         HasHarmonicMajorant Ω fun z => ‖f z‖ ^ ENNReal.toReal p
 
@@ -50,20 +50,20 @@ def MemHp
 /-- The `p = ∞` case of the equivalence between hardy space definitions over unit disc. -/
 lemma memHpDisc_iff_memHp_onDisc_top
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
-    {f : ℂ → E} :
+    {f : unitDisc → E} :
     MemHpDisc ∞ f ↔ MemHp unitDisc ∞ f := by sorry
 
 /-- The finite-exponent case of the equivalence between hardy space definitions over disc. -/
 lemma memHpDisc_iff_memHp_onDisc_of_ne_top
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
-    {p : ℝ≥0∞} (hp0 : p ≠ 0) (hpTop : p ≠ ∞) {f : ℂ → E} :
+    {p : ℝ≥0∞} (hp0 : p ≠ 0) (hpTop : p ≠ ∞) {f : unitDisc → E} :
     MemHpDisc p f ↔ MemHp unitDisc p f := by
   sorry
 
 /-- The equivalence between the classical and generalized definitions on the unit disc. -/
 theorem memHpDisc_iff_memHp_onDisc
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
-    {p : ℝ≥0∞} (hp0 : p ≠ 0) {f : ℂ → E} :
+    {p : ℝ≥0∞} (hp0 : p ≠ 0) {f : unitDisc → E} :
     MemHpDisc p f ↔ MemHp unitDisc p f := by
   by_cases hpTop : p = ∞
   · simpa [hpTop] using

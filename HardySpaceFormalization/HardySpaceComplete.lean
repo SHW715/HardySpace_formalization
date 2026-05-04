@@ -1,5 +1,12 @@
 import HardySpaceFormalization.HardySpaceFirstDefs
 
+
+/-!
+# Completeness of Hardy Space over unit disc in ℂ
+
+-/
+
+
 noncomputable section
 
 open scoped Real ENNReal
@@ -10,12 +17,6 @@ variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
 
 namespace HardySpace
 namespace HpDisc
-
-
-
-
-
-
 
 
 /-- `H^p` on unit disc is complete for `1 ≤ p`. -/
