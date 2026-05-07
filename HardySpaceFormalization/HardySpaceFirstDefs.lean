@@ -7,6 +7,7 @@ import Mathlib.MeasureTheory.Function.LpSeminorm.Defs
 import Mathlib.Analysis.Analytic.Constructions
 
 
+--# This file is no longer useful at the moment as I'm changing the definition of `hardyNorm`
 
 /-!
 # Classical Hardy space `H^p` on unit disc in ℂ
@@ -29,16 +30,18 @@ def unitDisc : Set ℂ :=
 
 namespace HardySpace
 
+def eLpNormFixed {α ε : Type*} [ENorm ε] {_ : MeasurableSpace α}
+    (f : α → ε) (p : ℝ≥0∞) (μ : Measure α := by volume_tac) : ℝ≥0∞ :=
+  if p ∈ Set.Ioo 0 1 then (eLpNorm f p μ) ^ p.toReal else eLpNorm f p μ
+
 
 /-- The Hardy `p`-norm on the unit disc. -/
 def hardyNorm2 {E : Type*} [NormedAddCommGroup E]
     (f : ℂ → E) (p : ℝ≥0∞) : ℝ≥0∞ :=
-  if p = 0 then 0
-  else if p = ∞ then ⨆ z : unitDisc, ENNReal.ofReal ‖f z.1‖
-  else ⨆ (r : ℝ) (_ : 0 < r ∧ r < 1),
-    eLpNorm (fun (θ : ℝ) ↦ f (r * exp (I * θ))) p
+   ⨆ (r : ℝ) (_ : 0 < r ∧ r < 1),
+    eLpNormFixed (fun (θ : ℝ) ↦ f (r * exp (I * θ))) p
    (ENNReal.ofReal (1 / (2 * π)) • volume.restrict (Set.Ico 0 (2 * π)))
-     ^ min p.toReal 1
+
 
 -- I think it will be nice to split the case of `p = ∞` as otherwise, `∞.toReal = 0`
 -- and we will have `hardyNorm f ∞` to be meaningless.
@@ -94,7 +97,8 @@ def HpDisc (p : ℝ≥0∞) : Submodule ℂ (unitDisc → E) where
      . unfold hardyNorm at *
        by_cases hp : p = 0
        . simp [hp] at *
-       . simp [hp] at *; by_cases hi : p = ∞
+       . simp [hp] at ha_norm hb_norm ⊢
+         by_cases hi : p = ∞
          . -- this part is partly given by codex
            simp [hi] at *
            refine lt_of_le_of_lt ?_ (ENNReal.add_lt_top.2 ⟨ha_norm, hb_norm⟩)
@@ -117,12 +121,194 @@ def HpDisc (p : ℝ≥0∞) : Submodule ℂ (unitDisc → E) where
                 refine min_eq_right ?_
                 exact (ENNReal.toReal_le_toReal (by simp) hi).2 hp1
              simp [hmin] at *
-             sorry
+             -- the rest is given by codex and I haven't review it yet
+             let μ : Measure ℝ :=
+               (ENNReal.ofReal (π⁻¹ * 2⁻¹)) • volume.restrict (Set.Ico 0 (2 * π))
+             change
+              (⨆ (r : ℝ) (hr : 0 < r ∧ r < 1), eLpNorm _ p μ) < ∞ at ⊢ ha_norm hb_norm
+             refine lt_of_le_of_lt ?_ (ENNReal.add_lt_top.2 ⟨ha_norm, hb_norm⟩)
+             refine iSup_le ?_; intro r
+             refine iSup_le ?_; intro hr
+             have ha_meas :
+                 AEStronglyMeasurable
+                   (fun θ : ℝ =>
+                     a ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩) μ := by
+               have hcont : Continuous (fun θ : ℝ => Fa (r * exp (I * θ))) := by
+                 simpa [Function.comp_def] using
+                   hFa_ana.continuousOn.comp_continuous (by fun_prop)
+                     (fun θ => mul_cexp_I_mul_mem_unitDisc hr.1 hr.2)
+               have h_eq :
+                   (fun θ : ℝ =>
+                     a ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩) =
+                     fun θ : ℝ => Fa (r * exp (I * θ)) := by
+                 funext θ
+                 exact (hFa_ext (r * exp (I * θ))
+                   (mul_cexp_I_mul_mem_unitDisc hr.1 hr.2)).symm
+               simpa [h_eq] using hcont.aestronglyMeasurable
+             have hb_meas :
+                 AEStronglyMeasurable
+                   (fun θ : ℝ =>
+                     b ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩) μ := by
+               have hcont : Continuous (fun θ : ℝ => Fb (r * exp (I * θ))) := by
+                 simpa [Function.comp_def] using
+                   hFb_ana.continuousOn.comp_continuous (by fun_prop)
+                     (fun θ => mul_cexp_I_mul_mem_unitDisc hr.1 hr.2)
+               have h_eq :
+                   (fun θ : ℝ =>
+                     b ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩) =
+                     fun θ : ℝ => Fb (r * exp (I * θ)) := by
+                 funext θ
+                 exact (hFb_ext (r * exp (I * θ))
+                   (mul_cexp_I_mul_mem_unitDisc hr.1 hr.2)).symm
+               simpa [h_eq] using hcont.aestronglyMeasurable
+             calc
+               eLpNorm _ p μ ≤ eLpNorm _ p μ + eLpNorm _ p μ := by
+                     simpa [Pi.add_apply] using eLpNorm_add_le ha_meas hb_meas hp1
+               _ ≤ (⨆ (r : ℝ) (hr : 0 < r ∧ r < 1), eLpNorm _ p μ) +
+                   ⨆ (r : ℝ) (hr : 0 < r ∧ r < 1), eLpNorm _ p μ := by
+                exact add_le_add
+                  ((le_iSup (fun hr : 0 < r ∧ r < 1 => eLpNorm _ p μ) hr).trans
+                   (le_iSup (fun r : ℝ => ⨆ (hr : 0 < r ∧ r < 1), eLpNorm _ p μ) r))
+                   ((le_iSup (fun hr : 0 < r ∧ r < 1 => eLpNorm _ p μ) hr).trans
+                     (le_iSup (fun r : ℝ => ⨆ (hr : 0 < r ∧ r < 1), eLpNorm _ p μ) r))
+
            . have hmin : min p.toReal 1 = p.toReal := by
                 refine min_eq_left ?_
                 exact (ENNReal.toReal_le_toReal hi (by simp)).2 (le_of_not_ge hp1)
              simp [hmin] at *
-             sorry
+             -- the rest is given by codex and I haven't review it yet
+             let μ : Measure ℝ := (ENNReal.ofReal (π⁻¹ * 2⁻¹)) • volume.restrict (Set.Ico 0 (2 * π))
+             change (⨆ (r : ℝ) (hr : 0 < r ∧ r < 1), eLpNorm _ p μ ^ p.toReal) < ∞
+                  at ⊢ ha_norm hb_norm
+             have hqpos : 0 < p.toReal := by
+                 rw [ENNReal.toReal_pos_iff]
+                 exact ⟨pos_iff_ne_zero.mpr hp, lt_top_iff_ne_top.mpr hi⟩
+             let A : ℝ≥0∞ :=
+                 ⨆ (r : ℝ) (hr : 0 < r ∧ r < 1),
+                   eLpNorm
+                     (fun θ : ℝ =>
+                       a ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                     p μ ^ p.toReal
+             let B : ℝ≥0∞ :=
+                 ⨆ (r : ℝ) (hr : 0 < r ∧ r < 1),
+                   eLpNorm
+                     (fun θ : ℝ =>
+                       b ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                     p μ ^ p.toReal
+             let C : ℝ≥0∞ := LpAddConst p
+             let M : ℝ≥0∞ := (C * (A ^ p.toReal⁻¹ + B ^ p.toReal⁻¹)) ^ p.toReal
+             have hA_top : A < ∞ := by simpa [A] using ha_norm
+             have hB_top : B < ∞ := by simpa [B] using hb_norm
+             have hM_top : M < ∞ := by
+                 refine ENNReal.rpow_lt_top_of_nonneg ENNReal.toReal_nonneg ?_
+                 refine ne_of_lt (ENNReal.mul_lt_top (LpAddConst_lt_top p) ?_)
+                 exact ENNReal.add_lt_top.2
+                   ⟨ENNReal.rpow_lt_top_of_nonneg (by positivity) hA_top.ne,
+                    ENNReal.rpow_lt_top_of_nonneg (by positivity) hB_top.ne⟩
+             refine lt_of_le_of_lt ?_ hM_top
+             refine iSup_le ?_
+             intro r
+             refine iSup_le ?_
+             intro hr
+             have ha_meas :
+                   AEStronglyMeasurable
+                     (fun θ : ℝ =>
+                       a ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩) μ := by
+                 have hcont : Continuous (fun θ : ℝ => Fa (r * exp (I * θ))) := by
+                   simpa [Function.comp_def] using
+                     hFa_ana.continuousOn.comp_continuous (by fun_prop)
+                       (fun θ => mul_cexp_I_mul_mem_unitDisc hr.1 hr.2)
+                 have h_eq :
+                     (fun θ : ℝ =>
+                       a ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩) =
+                       fun θ : ℝ => Fa (r * exp (I * θ)) := by
+                   funext θ
+                   exact (hFa_ext (r * exp (I * θ))
+                     (mul_cexp_I_mul_mem_unitDisc hr.1 hr.2)).symm
+                 simpa [h_eq] using hcont.aestronglyMeasurable
+             have hb_meas :
+                   AEStronglyMeasurable
+                     (fun θ : ℝ =>
+                       b ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩) μ := by
+                 have hcont : Continuous (fun θ : ℝ => Fb (r * exp (I * θ))) := by
+                   simpa [Function.comp_def] using
+                     hFb_ana.continuousOn.comp_continuous (by fun_prop)
+                       (fun θ => mul_cexp_I_mul_mem_unitDisc hr.1 hr.2)
+                 have h_eq :
+                     (fun θ : ℝ =>
+                       b ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩) =
+                       fun θ : ℝ => Fb (r * exp (I * θ)) := by
+                   funext θ
+                   exact (hFb_ext (r * exp (I * θ))
+                     (mul_cexp_I_mul_mem_unitDisc hr.1 hr.2)).symm
+                 simpa [h_eq] using hcont.aestronglyMeasurable
+             have ha_le :
+                   eLpNorm
+                       (fun θ : ℝ =>
+                         a ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                       p μ ≤ A ^ p.toReal⁻¹ := by
+                 refine (ENNReal.le_rpow_inv_iff hqpos).2 ?_
+                 exact (le_iSup
+                   (fun hr : 0 < r ∧ r < 1 =>
+                     eLpNorm
+                       (fun θ : ℝ =>
+                         a ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                       p μ ^ p.toReal)
+                   hr).trans
+                   (le_iSup
+                     (fun r : ℝ =>
+                       ⨆ (hr : 0 < r ∧ r < 1),
+                         eLpNorm
+                           (fun θ : ℝ =>
+                             a ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                           p μ ^ p.toReal)
+                     r)
+             have hb_le :
+                   eLpNorm
+                       (fun θ : ℝ =>
+                         b ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                       p μ ≤ B ^ p.toReal⁻¹ := by
+                 refine (ENNReal.le_rpow_inv_iff hqpos).2 ?_
+                 exact (le_iSup
+                   (fun hr : 0 < r ∧ r < 1 =>
+                     eLpNorm
+                       (fun θ : ℝ =>
+                         b ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                       p μ ^ p.toReal)
+                   hr).trans
+                   (le_iSup
+                     (fun r : ℝ =>
+                       ⨆ (hr : 0 < r ∧ r < 1),
+                         eLpNorm
+                           (fun θ : ℝ =>
+                             b ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                           p μ ^ p.toReal)
+                     r)
+             have hsum_le :
+                   eLpNorm
+                       (fun θ : ℝ =>
+                         a ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩ +
+                           b ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                       p μ ≤ C * (A ^ p.toReal⁻¹ + B ^ p.toReal⁻¹) := by
+                 calc
+                   eLpNorm
+                       (fun θ : ℝ =>
+                         a ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩ +
+                           b ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                       p μ
+                       ≤ C *
+                         (eLpNorm
+                             (fun θ : ℝ =>
+                               a ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                             p μ +
+                           eLpNorm
+                             (fun θ : ℝ =>
+                               b ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                             p μ) := by
+                     simpa [C, Pi.add_apply] using eLpNorm_add_le' ha_meas hb_meas p
+                   _ ≤ C * (A ^ p.toReal⁻¹ + B ^ p.toReal⁻¹) := by
+                     exact mul_le_mul_right (add_le_add ha_le hb_le) C
+             exact ENNReal.rpow_le_rpow hsum_le ENNReal.toReal_nonneg
   zero_mem' := by
     rw [Set.mem_setOf_eq]
     unfold MemHpDisc
@@ -155,8 +341,8 @@ def HpDisc (p : ℝ≥0∞) : Submodule ℂ (unitDisc → E) where
      . unfold hardyNorm at *
        by_cases hp : p = 0
        . simp [hp]
-       . simp [hp] at *; by_cases hi : p = ∞
-         . simp [hi] at *
+       . simp [hp] at hf_norm ⊢; by_cases hi : p = ∞
+         . simp [hi] at hf_norm ⊢
            -- fill in using codex
            have hc_top : ‖c‖ₑ < ∞ := ENNReal.coe_lt_top
            refine lt_of_le_of_lt ?_ (ENNReal.mul_lt_top hc_top hf_norm)
@@ -167,7 +353,174 @@ def HpDisc (p : ℝ≥0∞) : Submodule ℂ (unitDisc → E) where
                refine iSup_le ?_
                intro z
                simpa using mul_le_mul_right (le_iSup (fun z : unitDisc => ‖f z‖ₑ) z) ‖c‖ₑ
-         . simp [hi] at *; sorry
+         . simp [hi] at hf_norm ⊢; by_cases hp1 : 1 ≤ p
+           . have hmin : min p.toReal 1 = 1 := by
+                refine min_eq_right ?_
+                exact (ENNReal.toReal_le_toReal (by simp) hi).2 hp1
+             simp [hmin] at *
+             -- the rest is given by codex and I haven't review it yet
+             let μ : Measure ℝ := (ENNReal.ofReal (π⁻¹ * 2⁻¹)) • volume.restrict (Set.Ico 0 (2 * π))
+             change (⨆ (r : ℝ) (hr : 0 < r ∧ r < 1), eLpNorm _ p μ) < ∞ at ⊢ hf_norm
+             have hc_top : ‖c‖ₑ < ∞ := ENNReal.coe_lt_top
+             refine lt_of_le_of_lt ?_ (ENNReal.mul_lt_top hc_top hf_norm)
+             calc
+                 (⨆ (r : ℝ) (hr : 0 < r ∧ r < 1),
+                   eLpNorm
+                     (fun θ : ℝ =>
+                       c • f ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                     p μ)
+                     ≤
+                     ⨆ (r : ℝ) (hr : 0 < r ∧ r < 1),
+                       ‖c‖ₑ *
+                         eLpNorm
+                           (fun θ : ℝ =>
+                             f ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                           p μ := by
+                   refine iSup_le ?_
+                   intro r
+                   refine iSup_le ?_
+                   intro hr
+                   calc
+                     eLpNorm
+                         (fun θ : ℝ =>
+                           c • f ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                         p μ
+                         ≤
+                         ‖c‖ₑ *
+                           eLpNorm
+                             (fun θ : ℝ =>
+                               f ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                             p μ := by
+                       simpa [Pi.smul_apply] using
+                         (le_of_eq
+                           (eLpNorm_const_smul c
+                             (fun θ : ℝ =>
+                               f ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                             p μ))
+                     _ ≤
+                         ⨆ (r : ℝ) (hr : 0 < r ∧ r < 1),
+                           ‖c‖ₑ *
+                             eLpNorm
+                               (fun θ : ℝ =>
+                                 f ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                               p μ :=
+                       (le_iSup
+                         (fun hr : 0 < r ∧ r < 1 =>
+                           ‖c‖ₑ *
+                             eLpNorm
+                               (fun θ : ℝ =>
+                                 f ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                               p μ)
+                         hr).trans
+                         (le_iSup
+                           (fun r : ℝ =>
+                             ⨆ (hr : 0 < r ∧ r < 1),
+                               ‖c‖ₑ *
+                                 eLpNorm
+                                   (fun θ : ℝ =>
+                                     f ⟨r * exp (I * θ),
+                                       mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                                   p μ)
+                           r)
+                 _ ≤
+                     ‖c‖ₑ *
+                       ⨆ (r : ℝ) (hr : 0 < r ∧ r < 1),
+                         eLpNorm
+                           (fun θ : ℝ =>
+                             f ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                           p μ := by
+                   refine iSup_le ?_
+                   intro r
+                   refine iSup_le ?_
+                   intro hr
+                   simpa using mul_le_mul_right
+                     ((le_iSup
+                       (fun hr : 0 < r ∧ r < 1 =>
+                         eLpNorm
+                           (fun θ : ℝ =>
+                             f ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                           p μ)
+                       hr).trans
+                       (le_iSup
+                         (fun r : ℝ =>
+                           ⨆ (hr : 0 < r ∧ r < 1),
+                             eLpNorm
+                               (fun θ : ℝ =>
+                                 f ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                               p μ)
+                         r))
+                     ‖c‖ₑ
+           . have hmin : min p.toReal 1 = p.toReal := by
+                refine min_eq_left ?_
+                exact (ENNReal.toReal_le_toReal hi (by simp)).2 (le_of_not_ge hp1)
+             simp [hmin] at *
+             -- the rest is given by codex and I haven't review it yet
+             let μ : Measure ℝ := (ENNReal.ofReal (π⁻¹ * 2⁻¹)) • volume.restrict (Set.Ico 0 (2 * π))
+             change (⨆ (r : ℝ) (hr : 0 < r ∧ r < 1), eLpNorm _ p μ ^ p.toReal) < ∞ at ⊢ hf_norm
+             have hqpos : 0 < p.toReal := by
+               rw [ENNReal.toReal_pos_iff]
+               exact ⟨pos_iff_ne_zero.mpr hp, lt_top_iff_ne_top.mpr hi⟩
+             let A : ℝ≥0∞ :=
+               ⨆ (r : ℝ) (hr : 0 < r ∧ r < 1),
+                 eLpNorm
+                   (fun θ : ℝ =>
+                     f ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                   p μ ^ p.toReal
+             let M : ℝ≥0∞ := (‖c‖ₑ * A ^ p.toReal⁻¹) ^ p.toReal
+             have hA_top : A < ∞ := by simpa [A] using hf_norm
+             have hM_top : M < ∞ := by
+               refine ENNReal.rpow_lt_top_of_nonneg ENNReal.toReal_nonneg ?_
+               refine ne_of_lt (ENNReal.mul_lt_top ENNReal.coe_lt_top ?_)
+               exact ENNReal.rpow_lt_top_of_nonneg (by positivity) hA_top.ne
+             refine lt_of_le_of_lt ?_ hM_top
+             refine iSup_le ?_
+             intro r
+             refine iSup_le ?_
+             intro hr
+             have hf_le :
+                 eLpNorm
+                     (fun θ : ℝ =>
+                       f ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                     p μ ≤ A ^ p.toReal⁻¹ := by
+               refine (ENNReal.le_rpow_inv_iff hqpos).2 ?_
+               exact (le_iSup
+                 (fun hr : 0 < r ∧ r < 1 =>
+                   eLpNorm
+                     (fun θ : ℝ =>
+                       f ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                     p μ ^ p.toReal)
+                 hr).trans
+                 (le_iSup
+                   (fun r : ℝ =>
+                     ⨆ (hr : 0 < r ∧ r < 1),
+                       eLpNorm
+                         (fun θ : ℝ =>
+                           f ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                         p μ ^ p.toReal)
+                   r)
+             have hsmul_le :
+                 eLpNorm
+                     (fun θ : ℝ =>
+                       c • f ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                     p μ ≤ ‖c‖ₑ * A ^ p.toReal⁻¹ := by
+               calc
+                 eLpNorm
+                     (fun θ : ℝ =>
+                       c • f ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                     p μ
+                     = ‖c‖ₑ *
+                       eLpNorm
+                         (fun θ : ℝ =>
+                           f ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                         p μ := by
+                   simpa [Pi.smul_apply] using
+                     eLpNorm_const_smul c
+                       (fun θ : ℝ =>
+                         f ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                       p μ
+                 _ ≤ ‖c‖ₑ * A ^ p.toReal⁻¹ := by
+                   exact mul_le_mul_right hf_le ‖c‖ₑ
+             exact ENNReal.rpow_le_rpow hsmul_le ENNReal.toReal_nonneg
 
 
 
@@ -256,7 +609,130 @@ lemma norm_add_le (p : ℝ≥0∞)
            intro z
            exact add_le_add (le_iSup (fun z : unitDisc => ‖f.1 z‖ₑ) z)
              (le_iSup (fun z : unitDisc => ‖g.1 z‖ₑ) z)
-     . simp [hi]; sorry
+     . simp [hi]; by_cases hp1 : 1 ≤ p
+       . have hmin : min p.toReal 1 = 1 := by
+                refine min_eq_right ?_
+                exact (ENNReal.toReal_le_toReal (by simp) hi).2 hp1
+         simp [hmin] at *
+         let μ : Measure ℝ := (ENNReal.ofReal (π⁻¹ * 2⁻¹)) • volume.restrict (Set.Ico 0 (2 * π))
+         change (⨆ (r : ℝ) (hr : 0 < r ∧ r < 1), eLpNorm _ p μ).toReal ≤
+             (⨆ (r : ℝ) (hr : 0 < r ∧ r < 1), eLpNorm _ p μ).toReal +
+                  (⨆ (r : ℝ) (hr : 0 < r ∧ r < 1), eLpNorm _ p μ).toReal
+         have hf_fin :
+             (⨆ (r : ℝ) (hr : 0 < r ∧ r < 1),
+               eLpNorm
+                 (fun θ : ℝ =>
+                   f.1 ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                 p μ) < ∞ := by
+           rcases f.2 with ⟨_, hf_norm⟩
+           have hmin' : min p.toReal 1 = 1 := by
+             refine min_eq_right ?_
+             exact (ENNReal.toReal_le_toReal (by simp) hi).2 hp1
+           simpa [hardyNorm, hp, hi, hmin', μ] using hf_norm
+         have hg_fin :
+             (⨆ (r : ℝ) (hr : 0 < r ∧ r < 1),
+               eLpNorm
+                 (fun θ : ℝ =>
+                   g.1 ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                 p μ) < ∞ := by
+           rcases g.2 with ⟨_, hg_norm⟩
+           have hmin' : min p.toReal 1 = 1 := by
+             refine min_eq_right ?_
+             exact (ENNReal.toReal_le_toReal (by simp) hi).2 hp1
+           simpa [hardyNorm, hp, hi, hmin', μ] using hg_norm
+         have hsup_le :
+             (⨆ (r : ℝ) (hr : 0 < r ∧ r < 1),
+               eLpNorm
+                 (fun θ : ℝ =>
+                   f.1 ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩ +
+                     g.1 ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                 p μ)
+                 ≤
+                 (⨆ (r : ℝ) (hr : 0 < r ∧ r < 1),
+                   eLpNorm
+                     (fun θ : ℝ =>
+                       f.1 ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                     p μ) +
+                   ⨆ (r : ℝ) (hr : 0 < r ∧ r < 1),
+                     eLpNorm
+                       (fun θ : ℝ =>
+                         g.1 ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                       p μ := by
+             refine iSup_le ?_
+             intro r
+             refine iSup_le ?_
+             intro hr
+             have hf_meas :
+                 AEStronglyMeasurable
+                   (fun θ : ℝ =>
+                     f.1 ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩) μ := by
+               rcases f.2 with ⟨⟨F, hF_an, hF_ext⟩, _⟩
+               have hcont : Continuous (fun θ : ℝ => F (r * exp (I * θ))) := by
+                 simpa [Function.comp_def] using
+                   hF_an.continuousOn.comp_continuous (by fun_prop)
+                     (fun θ => mul_cexp_I_mul_mem_unitDisc hr.1 hr.2)
+               have h_eq :
+                   (fun θ : ℝ =>
+                     f.1 ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩) =
+                     fun θ : ℝ => F (r * exp (I * θ)) := by
+                 funext θ
+                 exact (hF_ext ⟨r * exp (I * θ),
+                   mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩).symm
+               simpa [h_eq] using hcont.aestronglyMeasurable
+             have hg_meas :
+                 AEStronglyMeasurable
+                   (fun θ : ℝ =>
+                     g.1 ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩) μ := by
+               rcases g.2 with ⟨⟨G, hG_an, hG_ext⟩, _⟩
+               have hcont : Continuous (fun θ : ℝ => G (r * exp (I * θ))) := by
+                 simpa [Function.comp_def] using
+                   hG_an.continuousOn.comp_continuous (by fun_prop)
+                     (fun θ => mul_cexp_I_mul_mem_unitDisc hr.1 hr.2)
+               have h_eq :
+                   (fun θ : ℝ =>
+                     g.1 ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩) =
+                     fun θ : ℝ => G (r * exp (I * θ)) := by
+                 funext θ
+                 exact (hG_ext ⟨r * exp (I * θ),
+                   mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩).symm
+               simpa [h_eq] using hcont.aestronglyMeasurable
+             refine (eLpNorm_add_le hf_meas hg_meas hp1).trans ?_
+             exact add_le_add
+               ((le_iSup
+                 (fun hr : 0 < r ∧ r < 1 =>
+                   eLpNorm
+                     (fun θ : ℝ =>
+                       f.1 ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                     p μ)
+                 hr).trans
+                 (le_iSup
+                   (fun r : ℝ =>
+                     ⨆ (hr : 0 < r ∧ r < 1),
+                       eLpNorm
+                         (fun θ : ℝ =>
+                           f.1 ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                         p μ)
+                   r))
+               ((le_iSup
+                 (fun hr : 0 < r ∧ r < 1 =>
+                   eLpNorm
+                     (fun θ : ℝ =>
+                       g.1 ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                     p μ)
+                 hr).trans
+                 (le_iSup
+                   (fun r : ℝ =>
+                     ⨆ (hr : 0 < r ∧ r < 1),
+                       eLpNorm
+                         (fun θ : ℝ =>
+                           g.1 ⟨r * exp (I * θ), mul_cexp_I_mul_mem_unitDisc hr.1 hr.2⟩)
+                         p μ)
+                   r))
+         exact ENNReal.toReal_le_add hsup_le hf_fin.ne hg_fin.ne
+       . have hmin : min p.toReal 1 = p.toReal := by
+                refine min_eq_left ?_
+                exact (ENNReal.toReal_le_toReal hi (by simp)).2 (le_of_not_ge hp1)
+         simp [hmin] at *; sorry
 
 
 
@@ -281,6 +757,11 @@ lemma eq_zero_of_norm_eq_zero (p : ℝ≥0∞)
      have hz0 : ‖f.1 z‖ₑ = 0 := le_antisymm hzle bot_le
      simpa using hz0
    . simp [hi] at h
+     have hp1 : 1 ≤ p := Fact.out
+     have hmin : min p.toReal 1 = 1 := by
+                refine min_eq_right ?_
+                exact (ENNReal.toReal_le_toReal (by simp) hi).2 hp1
+     simp [hmin] at *
      sorry
 
 

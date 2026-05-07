@@ -25,6 +25,11 @@ def HasHarmonicMajorant
     (Ω : Set V) (g : Ω → ℝ) : Prop :=
   ∃ u : V → ℝ, InnerProductSpace.HarmonicOnNhd u Ω ∧ ∀ z : Ω, g z ≤ u z.1
 
+def IsHarmonicMajorant
+    {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V] [FiniteDimensional ℝ V]
+    (Ω : Set V) (g : Ω → ℝ) (u : V → ℝ) : Prop :=
+    InnerProductSpace.HarmonicOnNhd u Ω ∧ ∀ z : Ω, g z ≤ u z.1
+
 /--
 Membership in generalized `p`-Hardy class on an unbundled domain `Ω`.
 
@@ -42,6 +47,13 @@ def MemHp
         ∃ C : ℝ, 0 ≤ C ∧ ∀ z : Ω, ‖f z‖ ≤ C
     | _ =>
         HasHarmonicMajorant Ω fun z => ‖f z‖ ^ ENNReal.toReal p
+
+def hardyNorm_gen {V E : Type*}
+    [NormedAddCommGroup V] [NormedSpace ℂ V] [InnerProductSpace ℝ V] [FiniteDimensional ℝ V]
+    [NormedAddCommGroup E] [NormedSpace ℂ E]
+    (Ω : Set V) (z0 : Ω) (p : ℝ≥0∞) (f : Ω → E) : ℝ≥0∞ :=
+    sInf { a : ℝ≥0∞ | ∃ u : V → ℝ, IsHarmonicMajorant Ω (fun z => ‖f z‖ ^ ENNReal.toReal p) u
+    ∧  a = ENNReal.ofReal ((u z0.1) ^ (1 / ENNReal.toReal p))}
 
 
 -- ## Equivalence between `MemHp` and `MemHpDisc` over unit disc
