@@ -5,6 +5,9 @@ import Mathlib.Data.ENNReal.Real
 import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 import Mathlib.MeasureTheory.Function.LpSeminorm.Defs
 import Mathlib.MeasureTheory.Function.LpSeminorm.SMul
+import Mathlib.MeasureTheory.Constructions.BorelSpace.Complex
+import Mathlib.MeasureTheory.Measure.Haar.OfBasis
+import Mathlib.LinearAlgebra.Complex.FiniteDimensional
 import Mathlib.Analysis.Analytic.Constructions
 import HardySpaceFormalization.eLpNormFixed
 import HardySpaceFormalization.essSup_lemma
@@ -365,43 +368,27 @@ lemma norm_eq_zero_iff (p : ℝ≥0∞)
              (Ico_subset_closure_interior 0 (2 * π))
         exact hEqOn hθ
       simpa [hz_repr] using hzero
-    have hzero_origin : f.1 0 = 0 := by
-      have h0_mem : (0 : ℂ) ∈ unitDisc := by simp [unitDisc]
-      have hcont0 : ContinuousAt f.1 0 :=
-        f.2.1.continuousOn.continuousAt (Metric.isOpen_ball.mem_nhds h0_mem)
-      let zseq : ℕ → ℂ := fun n => ((1 / ((n : ℝ) + 1) : ℝ) : ℂ)
-      have hzseq_tendsto : Filter.Tendsto zseq Filter.atTop (nhds (0 : ℂ)) := by
-        simpa [zseq] using (tendsto_one_div_add_atTop_nhds_zero_nat (𝕜 := ℂ))
-      have hfseq_tendsto : Filter.Tendsto (fun n => f.1 (zseq n)) Filter.atTop (nhds (f.1 0)) :=
-        hcont0.tendsto.comp hzseq_tendsto
-      have hfseq_zero : (fun n => f.1 (zseq n)) =ᶠ[Filter.atTop] fun _ => 0 := by
-        filter_upwards [Filter.eventually_ge_atTop (1 : ℕ)] with n hn
-        have hz_mem : zseq n ∈ unitDisc := by
-          rw [unitDisc, Metric.mem_ball, dist_zero_right]
-          have hden : 0 < (n : ℝ) + 1 := by positivity
-          have hpos : 0 ≤ 1 / ((n : ℝ) + 1) := by positivity
-          change ‖(((1 / ((n : ℝ) + 1) : ℝ) : ℂ))‖ < 1
-          rw [Complex.norm_of_nonneg hpos]
-          rw [div_lt_one hden]
-          norm_num
-          exact_mod_cast hn
-        have hz_ne : zseq n ≠ 0 := by
-          change (((1 / ((n : ℝ) + 1) : ℝ) : ℂ)) ≠ 0
-          have hden : ((n : ℝ) + 1) ≠ 0 := by positivity
-          exact_mod_cast one_div_ne_zero hden
-        exact hpunctured (zseq n) hz_mem hz_ne
-      have hfseq_tendsto_zero : Filter.Tendsto (fun n => f.1 (zseq n)) Filter.atTop (nhds (0 : E)) :=
-        (tendsto_const_nhds (x := (0 : E))).congr' hfseq_zero.symm
-      exact tendsto_nhds_unique hfseq_tendsto hfseq_tendsto_zero
-    have hunit : ∀ z ∈ unitDisc, f.1 z = 0 := by
-      intro z hz
-      by_cases hz0 : z = 0
-      · simpa [hz0] using hzero_origin
+    have hpunctured' : ∀ z ≠ 0, f.1 z = 0 := by
+      intro z hz0
+      by_cases hz : z ∈ unitDisc
       · exact hpunctured z hz hz0
+      · exact f.2.2.2 z hz
+    have hcont : Continuous f.1 := by
+      rw [continuous_iff_continuousAt]
+      intro z
+      by_cases hz0 : z = 0
+      · subst z
+        have h0_mem : 0 ∈ unitDisc := by simp [unitDisc]
+        exact f.2.1.continuousOn.continuousAt (Metric.isOpen_ball.mem_nhds h0_mem)
+      · have hnear : f.1 =ᶠ[nhds z] fun _ : ℂ => (0 : E) := by
+          filter_upwards [isOpen_ne.mem_nhds hz0] with y hy
+          exact hpunctured' y hy
+        exact continuousAt_const.congr hnear.symm
+    have hf_zero_ae : f.1 =ᵐ[volume] 0 := by
+      filter_upwards [Measure.ae_ne (volume : Measure ℂ) (0 : ℂ)] with z hz
+      exact hpunctured' z hz
     ext z
-    by_cases hz : z ∈ unitDisc
-    · exact hunit z hz
-    · exact f.2.2.2 z hz
+    exact congr_fun (Measure.eq_of_ae_eq hf_zero_ae hcont continuous_const) z
   . intro h; rw [h]; exact norm_zero p
 
 lemma dist_eq_norm (p : ℝ≥0∞) (f g : HpDisc (E := E) p) :
