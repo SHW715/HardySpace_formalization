@@ -37,6 +37,24 @@ theorem eLpNormFixed_const_smul
   · simp [eLpNormFixed, eLpFixedScalar, hp, eLpNorm_const_smul, ENNReal.mul_rpow_of_nonneg]
   · simp [eLpNormFixed, eLpFixedScalar, hp, eLpNorm_const_smul]
 
+theorem eLpNormFixed_eq_zero_iff
+    [TopologicalSpace ε] [ENormedAddMonoid ε]
+    {f : α → ε} (hf : AEStronglyMeasurable f μ) (h0 : p ≠ 0) :
+    eLpNormFixed f p μ = 0 ↔ f =ᵐ[μ] 0 := by
+  by_cases hp : p ∈ Ioo (0 : ℝ≥0∞) 1
+  · have hp_ne_top : p ≠ ∞ := ne_of_lt (hp.2.trans ENNReal.one_lt_top)
+    have hpt : 0 < p.toReal := ENNReal.toReal_pos h0 hp_ne_top
+    simp only [eLpNormFixed, hp, if_true]
+    constructor
+    · intro h
+      have he : eLpNorm f p μ = 0 := (ENNReal.rpow_eq_zero_iff_of_pos hpt).1 h
+      exact (eLpNorm_eq_zero_iff hf h0).1 he
+    · intro h
+      have he : eLpNorm f p μ = 0 := (eLpNorm_eq_zero_iff hf h0).2 h
+      exact (ENNReal.rpow_eq_zero_iff_of_pos hpt).2 he
+  · simp only [eLpNormFixed, hp, if_false]
+    exact eLpNorm_eq_zero_iff hf h0
+
 theorem eLpNormFixed_add_le
     [TopologicalSpace ε] [ESeminormedAddMonoid ε]
     (hf : AEStronglyMeasurable f μ) (hg : AEStronglyMeasurable g μ)

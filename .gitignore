@@ -6,3 +6,5 @@ structure.md
 project_scope.md
 .DS_Store
 /.claude
+HardySpaceMajorantDefs.lean
+HardySpaceFirstDefs.lean

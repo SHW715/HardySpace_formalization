@@ -1,4 +1,4 @@
-import HardySpaceFormalization.HardySpaceFirstDefs
+import HardySpaceFormalization.HardySpaceDisc
 
 
 /-!
