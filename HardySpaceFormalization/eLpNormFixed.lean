@@ -1,5 +1,6 @@
 import Mathlib.MeasureTheory.Function.LpSeminorm.SMul
 import Mathlib.MeasureTheory.Function.LpSeminorm.TriangleInequality
+import Mathlib.MeasureTheory.Function.LpSeminorm.CompareExp
 
 
 noncomputable section
@@ -94,3 +95,19 @@ theorem eLpNormFixed_add_le
             exact ENNReal.rpow_add_le_add_rpow (‖f x‖ₑ) (‖g x‖ₑ) hq_pos.le hq_le_one
       _ = (∫⁻ x, ‖f x‖ₑ ^ p.toReal ∂μ) + ∫⁻ x, ‖g x‖ₑ ^ p.toReal ∂μ := by
         rw [lintegral_add_left' (hf.enorm.pow_const p.toReal)]
+
+theorem eLpNormFixed_le_eLpNormFixed_of_exponent_le
+    [TopologicalSpace ε] [ContinuousENorm ε]
+    {f : α → ε} {p q : ℝ≥0∞} (hpq : p ≤ q) [Fact (1 ≤ p)] [IsProbabilityMeasure μ]
+    (hf : AEStronglyMeasurable f μ) :
+    eLpNormFixed f p μ ≤ eLpNormFixed f q μ := by
+  have hp1 : (1 : ℝ≥0∞) ≤ p := Fact.out
+  have hq1 : (1 : ℝ≥0∞) ≤ q := hp1.trans hpq
+  have hp_not_mem_Ioo : p ∉ Ioo (0 : ℝ≥0∞) 1 := by
+    intro hp
+    exact (not_lt_of_ge hp1) hp.2
+  have hq_not_mem_Ioo : q ∉ Ioo (0 : ℝ≥0∞) 1 := by
+    intro hq
+    exact (not_lt_of_ge hq1) hq.2
+  simpa [eLpNormFixed, hp_not_mem_Ioo, hq_not_mem_Ioo] using
+    eLpNorm_le_eLpNorm_of_exponent_le hpq hf

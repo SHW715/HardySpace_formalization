@@ -8,3 +8,5 @@ project_scope.md
 /.claude
 HardySpaceMajorantDefs.lean
 HardySpaceFirstDefs.lean
+Harmonic_max_complex_case.lean
+Subharmonic_used.lean

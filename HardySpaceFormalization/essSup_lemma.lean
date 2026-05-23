@@ -56,7 +56,7 @@ lemma essSup_restrict_eq_iSup_of_continuous_of_support
     [TopologicalSpace α] [OpensMeasurableSpace α] {s : Set α} {φ : α → ℝ≥0∞}
     (hs : NullMeasurableSet s μ) (hφ : Continuous φ)
     (hsupp : s ⊆ (μ.restrict s).support) :
-    essSup φ (μ.restrict s) = ⨆ x : α, ⨆ (_ : x ∈ s), φ x := by
+    essSup φ (μ.restrict s) = ⨆ x ∈ s, φ x := by
   apply le_antisymm
   · refine essSup_le_of_ae_le (⨆ x : α, ⨆ (_ : x ∈ s), φ x) ?_
     filter_upwards [ae_restrict_mem₀ (s := s) (μ := μ) hs] with x hx
@@ -75,14 +75,9 @@ lemma essSup_restrict_eq_iSup_of_continuous_of_support
         (hsupp hx) {y | essSup φ (μ.restrict s) < φ y} (hopen.mem_nhds hlt)
     exact (ne_of_gt hpos) (meas_essSup_lt (μ := μ.restrict s) (f := φ))
 
-lemma limsup_ae_restrict_Ico_eq_iSup_of_continuous
-    {a b : ℝ} (hab : a < b) {φ : ℝ → ℝ≥0∞}
-    (hφ : Continuous φ) :
-    Filter.limsup φ (ae (volume.restrict (Ico a b)))
-      = ⨆ x : ℝ, ⨆ (_ : x ∈ Ico a b), φ x := by
-  have _ : (Ico a b).Nonempty := ⟨a, ⟨le_rfl, hab⟩⟩
-  change essSup φ (volume.restrict (Ico a b))
-      = ⨆ x : ℝ, ⨆ (_ : x ∈ Ico a b), φ x
+lemma essSup_restrict_Ico_eq_iSup_of_continuous
+    {a b : ℝ} {φ : ℝ → ℝ≥0∞} (hφ : Continuous φ) :
+    essSup φ (volume.restrict (Ico a b)) = ⨆ x ∈ Ico a b, φ x := by
   refine essSup_restrict_eq_iSup_of_continuous_of_support
     measurableSet_Ico.nullMeasurableSet hφ ?_
   have hclosed : IsClosed (volume.restrict (Ico a b)).support :=

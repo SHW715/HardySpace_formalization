@@ -1,78 +1,89 @@
 import Mathlib.MeasureTheory.Constructions.BorelSpace.Real
 import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
-import Mathlib.Topology.Semicontinuous
+import Mathlib.Topology.Semicontinuity.Basic
 import Mathlib.Analysis.InnerProductSpace.Harmonic.Basic
+import Mathlib.Analysis.Complex.MeanValue
+import Mathlib.Analysis.Complex.Harmonic.MeanValue
+import HardySpaceFormalization.Harmonic_max_principle
 
 /-!
 # Subharmonic functions
 
 -/
 
--- # Important: Decide how to formalize `SubharmonicOn`
-/- Remaining tasks:
-  1. Formalize and Prove Lemma: if f is analytic on Ω, then |f|^p is subharmonic on Ω if 0 < p < ∞;
-  2. Formalize Theorem 6.7 in Garnett's book and try to prove it;
-  3. Together with Lemma and Theorem 6.7, prove `memHpDisc_iff_memHp_onDisc_of_ne_top` in `HardySpaceMajorantDefs`.
--/
-
-
-
-open MeasureTheory Metric Set
+open MeasureTheory Metric Set Real Filter
 open scoped ENNReal
 
 noncomputable section
 
+variable {E : Type*} [NormedAddCommGroup E]
 
 
+-- # First, we extend `Real.log` and `Real.exp` to the following functions
 
-/-- The ball mean of an extended-real-valued function over the ball of radius `r` centered at
-`x`. -/
-def ballMean
-    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
-    [FiniteDimensional ℝ E]
-    (u : E → EReal) (x : E) (r : ℝ) : EReal := sorry
-  -- (∫ y in ball x r, u y ∂volume) / volume (ball x r)
+def logNormBot [DecidableEq E] : E → WithBot ℝ := fun z => if z = 0 then ⊥ else (log ‖z‖ : WithBot ℝ)
 
-  /- I don't want to endow [MeasureSpace E] as I want the `volume` to be the canonical volume measure of finite ℝ-v.s.
-   But it seems that there's no such definition in mathlib? I'm not sure.-/
+def expBot : WithBot ℝ → ℝ := fun x => if hx : x = ⊥ then 0 else exp (x.unbot hx)
 
-  /- Another issue is that: ballMean is NOT always well-defined for function `u : E → EReal`, as it might trigger the
-  the issue like (∞ - ∞), which is ill-defined. But `SubharmonicOn` is actually well-defined definition due to
-  semicontinuity -/
+lemma expBot_coe (x : ℝ) : expBot (x : WithBot ℝ) = exp x := by simp [expBot]
 
-  /- Also I found that in other reference books, e.g. Rudin, Real and Complex analysis, it requires u : E → WithBot ℝ ,
-  then mathematically ill-defined issue will be avoided. But I still have no idea how to define it in Lean.
+-- This lemma will be useful later on linking the subharmonicity of `∣f|^p` and `log |f|`:
+lemma exp_mul_logNorm_eq_norm_rpow {p : ℝ} (hp : 0 < p) (z : E) [DecidableEq E] :
+  expBot (p * logNormBot z) = (‖z‖ ^ p : ℝ) := by
+  by_cases hz : z = 0
+  · have hp0 : (p : WithBot ℝ) ≠ 0 := by exact_mod_cast hp.ne'
+    simp [expBot, logNormBot, hz, zero_rpow hp.ne', WithBot.mul_bot hp0]
+  · have hnorm : 0 < ‖z‖ := norm_pos_iff.mpr hz
+    have hlog : logNormBot z = (log ‖z‖ : WithBot ℝ) := by simp [logNormBot, hz]
+    have hprod : p * (log ‖z‖ : WithBot ℝ) = ((p * log ‖z‖ : ℝ) : WithBot ℝ) := by simp
+    rw [rpow_def_of_pos hnorm]
+    rw [hlog, hprod, expBot_coe, mul_comm]
 
-  Also, two definitions are different, as one adopted ball-mean yet another adpoted spherical-mean. But they are actually
-  equivalent, which needs some works to prove.
 
-  I think it will be easier to generalize using Garnett's definition (as I think we might need to introduce measure on
-  sphere when defining spherical-mean? which for me seems to be tricky)
-  -/
+-- # Now we define the subharmonic functions:
 
+variable [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
+variable {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] [FiniteDimensional ℝ F]
 
 /-- A function is subharmonic on a set if it is upper semicontinuous there and satisfies the
 mean inequality with respect to ball averages on every ball contained in the set. -/
 def SubharmonicOn
-    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
-    [MeasurableSpace E] [BorelSpace E]
-    (s : Set E) (u : E → EReal) : Prop :=
+   (u : E → WithBot ℝ) (s : Set E) : Prop :=
   UpperSemicontinuousOn u s ∧ ∀ (x : E) , ∀ (r : ℝ), ∀ (h : E → ℝ),
    closedBall x r ⊆ s → ContinuousOn h (closedBall x r) →
    InnerProductSpace.HarmonicOnNhd h (ball x r) →
    (∀ y ∈ sphere x r, u y ≤ h y) → ∀ y ∈ ball x r, u y ≤ h y
 
 
-/--
-A real-valued scalar function has a harmonic majorant on `Ω` if it is bounded above on `Ω`
-by a real-valued function that is harmonic in a neighborhood of `Ω`.
--/
-def HasHarmonicMajorant
-    {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V] [FiniteDimensional ℝ V]
-    (Ω : Set V) (g : V → ℝ) : Prop :=
-  ∃ u : V → ℝ, InnerProductSpace.HarmonicOnNhd u Ω ∧ ∀ z ∈ Ω, g z ≤ u z
+/-- Every harmonic function on `s: Set ℂ` is subharmonic on `s`. -/
+theorem harmonicOnNhd_subharmonicOn
+  (u : E → ℝ) (s : Set E) (hu : InnerProductSpace.HarmonicOnNhd u s) :
+  SubharmonicOn (fun z => (u z : WithBot ℝ)) s := by sorry
 
--- It's a duplicate definition with the one in `HardySpaceMajorantDefs.lean`
-/- I'm not sure where should I put this `HasHarmonicMajorant` at. It seems not proper to put this here as it does
- not rely on sub-harmonicity. But I can't put this in `HardySpaceMajorantDefs.lean`, as I will import `Subharmonic.lean`
- into `HardySpaceMajorantDefs.lean`, and I have to use this concept here -/
+
+
+
+variable {s : Set E} {u : E → WithBot ℝ}
+
+
+lemma UpperSemicontinuousOn.expBot_mul (hu : UpperSemicontinuousOn u s) :
+  UpperSemicontinuousOn (fun z => expBot (u z)) s := sorry
+
+lemma UpperSemicontinuousOn.const_mul {p : ℝ} (hu : UpperSemicontinuousOn u s) :
+  UpperSemicontinuousOn (fun z => (p : WithBot ℝ) * u z) s := sorry
+
+theorem SubharmonicOn.const_mul {p : ℝ} (hu : SubharmonicOn u s) :
+  SubharmonicOn (fun z => (p : WithBot ℝ) * u z) s := sorry
+
+theorem SubharmonicOn.expBot_mul (hu : SubharmonicOn u s) :
+  SubharmonicOn (fun z => expBot (u z)) s := sorry
+
+
+variable [NormedSpace ℂ E] [NormedSpace ℂ F]
+
+theorem logNormBot_comp_analytic_subharmonicOn_gen [DecidableEq F] {f : E → F}
+  (hs : IsOpen s) (hf : AnalyticOn ℂ f s) : SubharmonicOn (logNormBot.comp f) s := sorry
+
+theorem norm_rpow_comp_analytic_subharmonicOn_gen {f : E → F} {p : ℝ}
+  (hs : IsOpen s) (hf : AnalyticOn ℂ f s) (hp : 0 < p) :
+  SubharmonicOn (fun z => ((‖f z‖ ^ p : ℝ) : WithBot ℝ)) s := sorry
