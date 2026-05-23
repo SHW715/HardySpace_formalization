@@ -327,7 +327,7 @@ theorem harmonic_comparison_principle_on_domain
 /-- Maximum principle on a ball in `ℂ`: if a harmonic function is continuous on the closed ball
 and is bounded above by `M` on the sphere, then it is bounded above by `M` inside the ball. -/
 theorem harmonic_maximum_principle_on_ball
-  {u : ℂ → ℝ} {x : ℂ} {r M : ℝ}
+  {u : E → ℝ} {x : E} {r M : ℝ} [Nontrivial E]
   (hu : InnerProductSpace.HarmonicOnNhd u (ball x r))
   (huc : ContinuousOn u (closedBall x r)):
   (∀ y ∈ sphere x r, u y ≤ M) → ∀ y ∈ ball x r, u y ≤ M := by
@@ -346,7 +346,7 @@ theorem harmonic_maximum_principle_on_ball
 /-- Comparison principle on a ball in `ℂ`: if two harmonic functions are continuous on the closed
 ball and `u ≤ v` on the sphere, then `u ≤ v` inside the ball. -/
 theorem harmonic_comparison_principle_on_ball
-  {u v : ℂ → ℝ} {x : ℂ} {r : ℝ}
+  {u v : E → ℝ} {x : E} {r : ℝ} [Nontrivial E]
   (hu : InnerProductSpace.HarmonicOnNhd u (ball x r))
   (hv : InnerProductSpace.HarmonicOnNhd v (ball x r))
   (huc : ContinuousOn u (closedBall x r))

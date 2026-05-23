@@ -1,17 +1,6 @@
-import Mathlib.Analysis.Complex.CauchyIntegral
-import Mathlib.Analysis.Complex.Exponential
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Data.ENNReal.Real
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
-import Mathlib.MeasureTheory.Function.LpSeminorm.Defs
-import Mathlib.MeasureTheory.Function.LpSeminorm.SMul
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Complex
-import Mathlib.MeasureTheory.Measure.Haar.OfBasis
-import Mathlib.LinearAlgebra.Complex.FiniteDimensional
-import Mathlib.Analysis.Analytic.Constructions
 import HardySpaceFormalization.eLpNormFixed
 import HardySpaceFormalization.essSup_lemma
-import Mathlib.MeasureTheory.Function.LpSeminorm.CompareExp
+import HardySpaceFormalization.Subharmonic
 
 
 
@@ -243,10 +232,7 @@ variable [NormedSpace ℂ E]
 lemma hardyNorm_const_smul (c : ℂ) (f : ℂ → E) (p : ℝ≥0∞):
     hardyNorm (c • f) p = eLpFixedScalar c p * hardyNorm f p := by
   simp [hardyNorm, ENNReal.mul_iSup]
-  congr
-  ext r
-  congr
-  ext hr
+  congr; ext r; congr; ext hr
   simpa [Pi.smul_apply] using
     eLpNormFixed_const_smul c (fun θ : ℝ => f (r * exp (I * θ))) p
       (ENNReal.ofReal (π⁻¹ * 2⁻¹) • volume.restrict (Ico 0 (2 * π)))
@@ -307,23 +293,23 @@ lemma hardyNorm_le_hardyNorm_of_exponent_le {p q : ℝ≥0∞} {f : ℂ → E}
       exact hardyNorm_radial_le f q hr
 
 /-- On each closed subdisc, point evaluations are bounded by the Hardy norm. -/
-lemma norm_eval_le_const_mul_hardyNorm_of_mem_closedBall {p : ℝ≥0∞} {r : ℝ} (hp : 0 < p) (hr : r < 1) :
+lemma norm_eval_le_const_mul_hardyNorm_of_mem_closedBall {p : ℝ≥0∞} {r : ℝ} (hp : 1 ≤ p) (hr : r < 1) :
   ∃ C : ℝ≥0, ∀ f : ℂ → E, ∀ z : ℂ, AnalyticOn ℂ f unitDisc →
     z ∈ closedBall (0 : ℂ) r → ‖f z‖ₑ ≤ C * hardyNorm f p := by
   sorry -- # To prove this, we need ‖f‖^p is subharmonic
 
 /-- Point evaluations inside the disc are bounded by the Hardy norm. -/
-lemma norm_eval_le_const_mul_hardyNorm {p : ℝ≥0∞} {z : ℂ} (hp : 0 < p) (hz : z ∈ unitDisc) :
-  ∃ C : ℝ, 0 ≤ C ∧ ∀ f : ℂ → E, AnalyticOn ℂ f unitDisc →
-      ‖f z‖ ≤ C * (hardyNorm f p).toReal := by
+lemma norm_eval_le_const_mul_hardyNorm {p : ℝ≥0∞} {z : ℂ} (hp : 1 ≤ p) (hz : z ∈ unitDisc) :
+  ∃ C : ℝ≥0, ∀ f : ℂ → E, AnalyticOn ℂ f unitDisc →
+      ‖f z‖ₑ ≤ C * hardyNorm f p := by
   have hz_norm : ‖z‖ < 1 := by simpa [unitDisc, Metric.mem_ball, dist_zero_right] using hz
   let r : ℝ := (‖z‖ + 1) / 2
   have hr_lt : r < 1 := by dsimp [r]; linarith
   have hz_closed : z ∈ Metric.closedBall (0 : ℂ) r := by
     rw [Metric.mem_closedBall, dist_zero_right]; dsimp [r]; linarith
   rcases norm_eval_le_const_mul_hardyNorm_of_mem_closedBall (E := E) (p := p) hp hr_lt with
-    ⟨C, hC_nonneg, hC⟩
-  exact ⟨C, hC_nonneg, fun f hf_an => hC f z hf_an hz_closed⟩
+    ⟨C, hC⟩
+  exact ⟨C, fun f hf_an => hC f z hf_an hz_closed⟩
 
 
 -- # We define Hardy space on unit disc together with its structure of ℂ-vector space.
