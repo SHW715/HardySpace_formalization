@@ -75,6 +75,30 @@ lemma essSup_restrict_eq_iSup_of_continuous_of_support
         (hsupp hx) {y | essSup φ (μ.restrict s) < φ y} (hopen.mem_nhds hlt)
     exact (ne_of_gt hpos) (meas_essSup_lt (μ := μ.restrict s) (f := φ))
 
+lemma essSup_restrict_eq_iSup_of_continuousOn_of_isOpen
+    [TopologicalSpace α] [OpensMeasurableSpace α] {s : Set α} {φ : α → ℝ≥0∞}
+    (hs_open : IsOpen s) (hφ : ContinuousOn φ s)
+    (hsupp : s ⊆ (μ.restrict s).support) :
+    essSup φ (μ.restrict s) = ⨆ x, ⨆ (_ : x ∈ s), φ x := by
+  apply le_antisymm
+  · refine essSup_le_of_ae_le (⨆ x : α, ⨆ (_ : x ∈ s), φ x) ?_
+    filter_upwards [ae_restrict_mem hs_open.measurableSet] with x hx
+    exact (le_iSup (fun hx : x ∈ s => φ x) hx).trans
+      (le_iSup (fun x : α => ⨆ (_ : x ∈ s), φ x) x)
+  · refine iSup_le ?_
+    intro x
+    refine iSup_le ?_
+    intro hx
+    by_contra hle
+    have hlt : essSup φ (μ.restrict s) < φ x := lt_of_not_ge hle
+    have hcontx : ContinuousAt φ x := hφ.continuousAt (hs_open.mem_nhds hx)
+    have hpos :
+        0 < (μ.restrict s) {y | essSup φ (μ.restrict s) < φ y} := by
+      exact (Measure.mem_support_iff_forall (μ := μ.restrict s) x).1
+        (hsupp hx) {y | essSup φ (μ.restrict s) < φ y}
+        (hcontx (isOpen_Ioi.mem_nhds hlt))
+    exact (ne_of_gt hpos) (meas_essSup_lt (μ := μ.restrict s) (f := φ))
+
 lemma essSup_restrict_Ico_eq_iSup_of_continuous
     {a b : ℝ} {φ : ℝ → ℝ≥0∞} (hφ : Continuous φ) :
     essSup φ (volume.restrict (Ico a b)) = ⨆ x ∈ Ico a b, φ x := by

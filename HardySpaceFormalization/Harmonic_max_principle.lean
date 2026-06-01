@@ -58,15 +58,24 @@ lemma eqOn_closure_of_eqOn_of_continuousOn
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
   [MeasurableSpace E] [BorelSpace E]
+variable {F : Type*} [NormedAddCommGroup F] [NormedSpace ℝ F]
 
-def ballAverage (u : E → ℝ) (x : E) (r : ℝ) : ℝ :=
-  (∫ y in ball x r, u y ∂volume) / (volume (ball x r)).toReal
+def ballAverage (u : E → F) (x : E) (r : ℝ) : F :=
+   ((volume (ball x r)).toReal)⁻¹ • ∫ y in ball x r, u y ∂volume
 
 /-- Mean value property for ball averages: a harmonic function on a neighbourhood of the closed
 ball has average over the ball equal to its value at the center. -/
-theorem HarmonicOnNhd.ballAverage_eq {f : E → ℝ} {c : E} {R : ℝ}
+theorem HarmonicOnNhd.ballAverage_eq {f : E → F} {c : E} {R : ℝ}
 (hf : InnerProductSpace.HarmonicOnNhd f (closedBall c |R|)) :
   ballAverage f c R = f c := sorry
+
+/-- A local mean-value property implies harmonicity. This is the converse direction to
+`HarmonicOnNhd.ballAverage_eq`. -/
+theorem HarmonicOnNhd_of_ballAverage_eq {u : E → F} {s : Set E}
+    (hs : IsOpen s) (hcont : ContinuousOn u s)
+    (hmean : ∀ x ∈ s, ∃ ε > 0, ∀ r (_ : 0 < r ∧ r < ε), ballAverage u x r = u x) :
+    InnerProductSpace.HarmonicOnNhd u s := by
+  sorry
 
 /-- If a continuous function is bounded above by `M` on a closed ball and is strictly below `M`
 somewhere in the corresponding open ball, then its ball average is strictly below `M`. -/
@@ -120,7 +129,7 @@ lemma ballAverage_lt_of_forall_le_of_exists_lt
     · exact hu_int
   have hint_lt : ∫ y in ball x r, u y ∂volume < (volume (ball x r)).toReal * M := by
     nlinarith [hdiff_integral_pos, hdiff_integral_eq]
-  rw [ballAverage]
+  rw [ballAverage, smul_eq_mul, inv_mul_eq_div]
   exact (div_lt_iff₀ hball_toReal_pos).mpr (by
     rw [mul_comm]
     exact hint_lt)

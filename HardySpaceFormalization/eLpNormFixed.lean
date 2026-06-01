@@ -1,13 +1,14 @@
 import Mathlib.MeasureTheory.Function.LpSeminorm.SMul
 import Mathlib.MeasureTheory.Function.LpSeminorm.TriangleInequality
 import Mathlib.MeasureTheory.Function.LpSeminorm.CompareExp
+import Mathlib.MeasureTheory.Function.LpSpace.Complete
 
 
 noncomputable section
 
-open scoped NNReal ENNReal
+open scoped NNReal ENNReal Topology
 
-open MeasureTheory Set
+open MeasureTheory Set Filter
 
 variable {α ε ε' E F G 𝕜 : Type*} {m m0 : MeasurableSpace α} {p : ℝ≥0∞} {q : ℝ} {f : α → E}
   [NormedAddCommGroup E] [NormedAddCommGroup F] [NormedAddCommGroup G]
@@ -111,3 +112,67 @@ theorem eLpNormFixed_le_eLpNormFixed_of_exponent_le
     exact (not_lt_of_ge hq1) hq.2
   simpa [eLpNormFixed, hp_not_mem_Ioo, hq_not_mem_Ioo] using
     eLpNorm_le_eLpNorm_of_exponent_le hpq hf
+
+theorem eLpNormFixed_le_of_ae_bound_of_one_le
+    {f : α → E} {C : ℝ} (hp : 1 ≤ p) [IsProbabilityMeasure μ]
+    (hfC : ∀ᵐ x ∂μ, ‖f x‖ ≤ C) :
+    eLpNormFixed f p μ ≤ ENNReal.ofReal C := by
+  have hp_not_mem_Ioo : p ∉ Ioo (0 : ℝ≥0∞) 1 := by
+    intro hp_mem
+    exact (not_lt_of_ge hp) hp_mem.2
+  simpa [eLpNormFixed, hp_not_mem_Ioo, measure_univ] using
+    (eLpNorm_le_of_ae_bound (p := p) (μ := μ) hfC)
+
+/-- Fatou/lower-semicontinuity for `eLpNormFixed`. -/
+theorem eLpNormFixed_lim_le_liminf_eLpNormFixed
+    {u : ℕ → α → E} (hu : ∀ n, AEStronglyMeasurable (u n) μ) (u_lim : α → E)
+    (h_lim : ∀ᵐ x : α ∂μ, Tendsto (fun n => u n x) atTop (𝓝 (u_lim x))) :
+    eLpNormFixed u_lim p μ ≤ atTop.liminf fun n => eLpNormFixed (u n) p μ := by
+  by_cases hp : p ∈ Ioo (0 : ℝ≥0∞) 1
+  · have hp_ne_zero : p ≠ 0 := ne_of_gt hp.1
+    have hp_ne_top : p ≠ ∞ := ne_of_lt (hp.2.trans ENNReal.one_lt_top)
+    have hp_pos : 0 < p.toReal := ENNReal.toReal_pos hp_ne_zero hp_ne_top
+    have hfatou :
+        eLpNorm u_lim p μ ≤ atTop.liminf fun n => eLpNorm (u n) p μ :=
+      Lp.eLpNorm_lim_le_liminf_eLpNorm (p := p) hu u_lim h_lim
+    have hpow_liminf :
+        (atTop.liminf fun n => eLpNorm (u n) p μ) ^ p.toReal =
+          atTop.liminf fun n => (eLpNorm (u n) p μ) ^ p.toReal := by
+      have h_rpow_mono := ENNReal.strictMono_rpow_of_pos hp_pos
+      have h_rpow_surj := (ENNReal.rpow_left_bijective hp_pos.ne.symm).2
+      refine (h_rpow_mono.orderIsoOfSurjective _ h_rpow_surj).liminf_apply ?_ ?_ ?_ ?_
+      all_goals isBoundedDefault
+    simpa [eLpNormFixed, hp, hpow_liminf] using
+      ENNReal.rpow_le_rpow hfatou hp_pos.le
+  · simpa [eLpNormFixed, hp] using
+      (Lp.eLpNorm_lim_le_liminf_eLpNorm (p := p) hu u_lim h_lim)
+
+/-- Fatou/lower-semicontinuity for `eLpNormFixed` along a countably generated filter. -/
+theorem eLpNormFixed_le_liminf_filter
+    {ι : Type*} {l : Filter ι} [NeBot l] [l.IsCountablyGenerated]
+    {u : ι → α → E} (hu : ∀ i, AEStronglyMeasurable (u i) μ) (u_lim : α → E)
+    (h_lim : ∀ᵐ x : α ∂μ, Tendsto (fun i => u i x) l (𝓝 (u_lim x))) :
+    eLpNormFixed u_lim p μ ≤ l.liminf fun i => eLpNormFixed (u i) p μ := by
+  refine le_of_forall_lt_imp_le_of_dense fun c hc => ?_
+  have heventually : ∀ᶠ i in l, c ≤ eLpNormFixed (u i) p μ := by
+    by_contra hnot
+    have hfreq : ∃ᶠ i in l, eLpNormFixed (u i) p μ < c := by
+      simpa [not_le] using hnot
+    rcases Filter.exists_seq_forall_of_frequently hfreq with ⟨v, hv, hv_lt⟩
+    have hseq_lim :
+        ∀ᵐ x : α ∂μ, Tendsto (fun n => u (v n) x) atTop (𝓝 (u_lim x)) :=
+      h_lim.mono fun x hx => hx.comp hv
+    have hseq_fatou :
+        eLpNormFixed u_lim p μ ≤
+          atTop.liminf fun n => eLpNormFixed (u (v n)) p μ :=
+      eLpNormFixed_lim_le_liminf_eLpNormFixed (fun n => hu (v n)) u_lim hseq_lim
+    have hseq_liminf_le :
+        atTop.liminf (fun n => eLpNormFixed (u (v n)) p μ) ≤ c := by
+      refine Filter.liminf_le_of_le
+        (f := atTop) (u := fun n => eLpNormFixed (u (v n)) p μ) (a := c) (h := ?_)
+      intro b hb
+      rcases (hb.and (Eventually.of_forall fun n => (hv_lt n).le)).exists with ⟨n, hbn, hnc⟩
+      exact hbn.trans hnc
+    exact (not_lt_of_ge (hseq_fatou.trans hseq_liminf_le)) hc
+  exact Filter.le_liminf_of_le
+    (f := l) (u := fun i => eLpNormFixed (u i) p μ) (a := c) (h := heventually)

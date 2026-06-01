@@ -4,7 +4,9 @@ import Mathlib.Topology.Semicontinuity.Basic
 import Mathlib.Analysis.InnerProductSpace.Harmonic.Basic
 import Mathlib.Analysis.Complex.MeanValue
 import Mathlib.Analysis.Complex.Harmonic.MeanValue
+import Mathlib.Analysis.Complex.Harmonic.Poisson
 import HardySpaceFormalization.Harmonic_max_principle
+import HardySpaceFormalization.Poisson_lemma
 
 /-!
 # Subharmonic functions
@@ -21,13 +23,16 @@ variable {E : Type*} [NormedAddCommGroup E]
 
 -- # First, we extend `Real.log` and `Real.exp` to the following functions
 
+/-- The extended logarithm of the norm, with value `⊥` at the origin. -/
 def logNormBot [DecidableEq E] : E → WithBot ℝ := fun z => if z = 0 then ⊥ else (log ‖z‖ : WithBot ℝ)
 
+/-- The exponential map on `WithBot ℝ`, extended by sending `⊥` to `0`. -/
 def expBot : WithBot ℝ → ℝ := fun x => if hx : x = ⊥ then 0 else exp (x.unbot hx)
 
 lemma expBot_coe (x : ℝ) : expBot (x : WithBot ℝ) = exp x := by simp [expBot]
 
--- This lemma will be useful later on linking the subharmonicity of `∣f|^p` and `log |f|`:
+/-- Exponentiating `p * log ‖z‖`, with `logNormBot 0 = ⊥` and `expBot ⊥ = 0`,
+recovers `‖z‖ ^ p`. -/
 lemma exp_mul_logNorm_eq_norm_rpow {p : ℝ} (hp : 0 < p) (z : E) [DecidableEq E] :
   expBot (p * logNormBot z) = (‖z‖ ^ p : ℝ) := by
   by_cases hz : z = 0
@@ -39,9 +44,10 @@ lemma exp_mul_logNorm_eq_norm_rpow {p : ℝ} (hp : 0 < p) (z : E) [DecidableEq E
     rw [rpow_def_of_pos hnorm]
     rw [hlog, hprod, expBot_coe, mul_comm]
 
--- Here are two lemmas that will be later useful to show subharmonicity of `exp u` and `p * u` for subharmonic function `u`:
 variable {s : Set E} {u : E → WithBot ℝ}
 
+/-- Applying `expBot` to an upper semicontinuous `WithBot ℝ`-valued function preserves upper
+semicontinuity. -/
 lemma UpperSemicontinuousOn.expBot_mul (hu : UpperSemicontinuousOn u s) :
   UpperSemicontinuousOn (fun z => expBot (u z)) s := by
   intro x hx a hlt
@@ -64,6 +70,8 @@ lemma UpperSemicontinuousOn.expBot_mul (hu : UpperSemicontinuousOn u s) :
   exact hlog_expBot (u y) hy
 
 
+/-- Multiplication by a nonnegative real constant preserves upper semicontinuity for `WithBot ℝ`-
+valued functions. -/
 lemma UpperSemicontinuousOn.const_mul {p : ℝ} (hp : 0 ≤ p)
     (hu : UpperSemicontinuousOn u s) :
   UpperSemicontinuousOn (fun z => (p : WithBot ℝ) * u z) s := by
@@ -99,10 +107,10 @@ lemma UpperSemicontinuousOn.const_mul {p : ℝ} (hp : 0 ≤ p)
 -- # Now we define the subharmonic functions:
 
 variable [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
-variable {F : Type*} [NormedAddCommGroup F] [InnerProductSpace ℝ F] [FiniteDimensional ℝ F]
+variable {F : Type*} [NormedAddCommGroup F]
 
 /-- A function is subharmonic on a set if it is upper semicontinuous there and satisfies the
-mean inequality with respect to ball averages on every ball contained in the set. -/
+harmonic comparison principle on every closed ball contained in the set. -/
 def SubharmonicOn
    (u : E → WithBot ℝ) (s : Set E) : Prop :=
   UpperSemicontinuousOn u s ∧ ∀ (x : E) , ∀ (r : ℝ), ∀ (h : E → ℝ),
@@ -124,26 +132,19 @@ theorem harmonicOnNhd_subharmonicOn
       filter_upwards [(hu.continuousOn x hx) (Iio_mem_nhds hlt_real)] with x' hx'
       exact WithBot.coe_lt_coe.mpr hx'
   · intro x r h hclosed hcont hharm hbd y hy
+    refine WithBot.coe_le_coe.mpr ?_
     have hu_ball : InnerProductSpace.HarmonicOnNhd u (ball x r) :=
       hu.mono fun z hz => hclosed (ball_subset_closedBall hz)
     have hu_cont_closed : ContinuousOn u (closedBall x r) :=
       hu.continuousOn.mono hclosed
     have hbd_real : ∀ z ∈ sphere x r, u z ≤ h z := by
-      intro z hz
-      exact WithBot.coe_le_coe.mp (hbd z hz)
-    have hball : ∀ z ∈ ball x r, u z ≤ h z :=
-      harmonic_comparison_principle_on_ball
-        (u := u) (v := h) (x := x) (r := r)
-        hu_ball hharm hu_cont_closed hcont hbd_real
-    exact WithBot.coe_le_coe.mpr (hball y hy)
+      intro z hz; exact WithBot.coe_le_coe.mp (hbd z hz)
+    exact harmonic_comparison_principle_on_ball (u := u) (v := h) (x := x) (r := r)
+      hu_ball hharm hu_cont_closed hcont hbd_real y hy
 
 
 
-
-
-
-
-
+/-- A nonnegative constant multiple of a subharmonic function is subharmonic. -/
 theorem SubharmonicOn.const_mul [Nontrivial E] {p : ℝ} (hp : 0 ≤ p) (hu : SubharmonicOn u s) :
   SubharmonicOn (fun z => (p : WithBot ℝ) * u z) s := by
   constructor
@@ -193,9 +194,32 @@ theorem SubharmonicOn.const_mul [Nontrivial E] {p : ℝ} (hp : 0 ≤ p) (hu : Su
           exact (le_div_iff₀' hp_pos).mp hle_scaled
         simpa [huy] using WithBot.coe_le_coe.mpr hle
 
+/-- Applying `expBot` to a subharmonic `WithBot ℝ`-valued function preserves subharmonicity. -/
 theorem SubharmonicOn.expBot_mul (hu : SubharmonicOn u s) :
   SubharmonicOn (fun z => expBot (u z)) s := sorry
 
+
+
+-- # The following lemma will be useful for estimating function e.g. |f|^p
+/-- A real-valued subharmonic function is bounded above by the Poisson integral of its boundary
+values on a disk. -/
+theorem SubharmonicOn.le_circleAverage_poissonKernel_smul
+    {u : ℂ → ℝ} {s : Set ℂ} {c w : ℂ} {R : ℝ}
+    (hu : SubharmonicOn (fun z => (u z : WithBot ℝ)) s)
+    (hu_cont : ContinuousOn u (sphere c R))
+    (hclosed : closedBall c R ⊆ s) (hw : w ∈ ball c R) :
+    u w ≤ circleAverage (fun z => poissonKernel c w z * u z) c R  := by
+  rcases poissonIntegral_continuousOn_closedBall_eq_boundary
+    (c := c) (R := R) hu_cont with
+    ⟨h, hcont, hharm, hPoisson, hboundary⟩
+  have hbd : ∀ y ∈ sphere c R, (u y : WithBot ℝ) ≤ h y := by
+    intro y hy; rw [hboundary y hy]
+  have hle : (u w : WithBot ℝ) ≤ h w := hu.2 c R h hclosed hcont hharm hbd w hw
+  have hle_real : u w ≤ h w := WithBot.coe_le_coe.mp hle
+  rw [hPoisson w hw] at hle_real
+  exact hle_real
+-- Note actually I don't need continuity condition but the proof might be tough (using sequence
+-- to approach then translate the inequality)
 
 variable [NormedSpace ℂ E] [NormedSpace ℂ F]
 
