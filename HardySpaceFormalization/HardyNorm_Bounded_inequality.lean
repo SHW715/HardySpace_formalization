@@ -66,6 +66,7 @@ lemma circleAverage_norm_rpow_eq_eLpNormFixed_toReal_rpow
       (eLpNormFixed (fun θ : ℝ => f (R * exp (I * θ))) p
         (ENNReal.ofReal (1 / (2 * π)) • volume.restrict (Ico 0 (2 * π)))).toReal ^
           p.toReal := by
+  -- codex without review
   let μ : Measure ℝ := ENNReal.ofReal (1 / (2 * π)) • volume.restrict (Ico 0 (2 * π))
   have hp_ne_zero : p ≠ 0 := ne_of_gt (zero_lt_one.trans_le hp)
   have hp_not_small : p ∉ Ioo (0 : ℝ≥0∞) 1 := by
@@ -150,20 +151,14 @@ lemma ofReal_circleAverage_norm_rpow_le_hardyNorm_rpow
     (hR : 0 < R ∧ R < 1) {f : ℂ → E} (hf_cont : ContinuousOn f unitDisc) :
     ENNReal.ofReal (circleAverage (fun z : ℂ => ‖f z‖ ^ p.toReal) 0 R) ≤
       (hardyNorm f p) ^ p.toReal := by
-  have hcircle :=
-    circleAverage_norm_rpow_eq_eLpNormFixed_toReal_rpow
-      (E := E) hp hp_ne_top hR hf_cont
-  rw [hcircle]
-  have hrad_le :
-      eLpNormFixed (fun θ : ℝ => f (R * exp (I * θ))) p
-        (ENNReal.ofReal (1 / (2 * π)) • volume.restrict (Ico 0 (2 * π))) ≤
-          hardyNorm f p := by
-    exact hardyNorm_radial_le f p hR
-  have hpow_le :
-      (eLpNormFixed (fun θ : ℝ => f (R * exp (I * θ))) p
-        (ENNReal.ofReal (1 / (2 * π)) • volume.restrict (Ico 0 (2 * π)))) ^ p.toReal ≤
-          (hardyNorm f p) ^ p.toReal :=
-    ENNReal.rpow_le_rpow hrad_le ENNReal.toReal_nonneg
+  -- codex without review
+  rw [circleAverage_norm_rpow_eq_eLpNormFixed_toReal_rpow
+      (E := E) hp hp_ne_top hR hf_cont]
+  let μ : Measure ℝ := ENNReal.ofReal (1 / (2 * π)) • volume.restrict (Ico 0 (2 * π))
+  have hrad_le : eLpNormFixed (fun θ : ℝ => f (R * exp (I * θ))) p μ ≤ hardyNorm f p :=
+     hardyNorm_radial_le f p hR
+  have hpow_le : (eLpNormFixed (fun θ : ℝ => f (R * exp (I * θ))) p μ ) ^ p.toReal ≤
+    (hardyNorm f p) ^ p.toReal := ENNReal.rpow_le_rpow hrad_le ENNReal.toReal_nonneg
   rw [← ENNReal.ofReal_rpow_of_nonneg ENNReal.toReal_nonneg ENNReal.toReal_nonneg]
   refine (ENNReal.rpow_le_rpow ?_ ENNReal.toReal_nonneg).trans hpow_le
   exact ENNReal.ofReal_toReal_le
@@ -199,13 +194,11 @@ lemma norm_eval_le_const_mul_hardyNorm_of_mem_closedBall {p : ℝ≥0∞} {r : �
   have hrR : r < R := by dsimp [R]; linarith
   have hR : 0 < R ∧ R < 1 := ⟨hR_pos, hR_lt_one⟩
   let K : ℝ := (R + r) / (R - r)
-  have hK_nonneg : 0 ≤ K := by
-    dsimp [K]
-    exact div_nonneg (add_nonneg hR_pos.le hr_nonneg) (sub_nonneg.mpr hrR.le)
+  have hK_nonneg : 0 ≤ K := div_nonneg (add_nonneg hR_pos.le hr_nonneg) (sub_nonneg.mpr hrR.le)
   let q : ℝ := p.toReal
   have hq_pos : 0 < q := ENNReal.toReal_pos (ne_of_gt (zero_lt_one.trans_le hp)) hp_top
   let C : ℝ≥0 := ⟨K ^ q⁻¹, Real.rpow_nonneg hK_nonneg _⟩
-  refine ⟨C, ?_⟩
+  use C
   intro f z hf_an hz
   have hz_closed_R : z ∈ closedBall (0 : ℂ) R := by
     rw [Metric.mem_closedBall, dist_zero_right] at hz ⊢
@@ -215,26 +208,19 @@ lemma norm_eval_le_const_mul_hardyNorm_of_mem_closedBall {p : ℝ≥0∞} {r : �
     have hz_norm : ‖z‖ ≤ r := by
       simpa [Metric.mem_closedBall, dist_zero_right] using hz
     exact hz_norm.trans_lt hrR
-  have hkernel_bound :
-      ∀ ξ ∈ sphere (0 : ℂ) R, poissonKernel 0 z ξ ≤ K := by
+  have hkernel_bound : ∀ ξ ∈ sphere (0 : ℂ) R, poissonKernel 0 z ξ ≤ K := by
     intro ξ hξ
     exact poissonKernel_le_of_norm_le (R := R) (r := r) (w := z) (ξ := ξ) hξ hz hrR
-  have hsubharmonic :
-      SubharmonicOn (fun w : ℂ => ((‖f w‖ ^ q : ℝ) : WithBot ℝ)) unitDisc := by
-    exact norm_rpow_comp_analytic_subharmonicOn_banach
-      (s := unitDisc) Metric.isOpen_ball hf_an hq_pos
-  have hpoisson :
-      ‖f z‖ ^ q ≤
-        circleAverage (fun ξ : ℂ => poissonKernel 0 z ξ * ‖f ξ‖ ^ q) 0 R := by
-    exact SubharmonicOn.le_circleAverage_poissonKernel_smul
+  have hsubharmonic : SubharmonicOn (fun w : ℂ => ((‖f w‖ ^ q : ℝ) : WithBot ℝ)) unitDisc :=
+   norm_rpow_comp_analytic_subharmonicOn_banach (s := unitDisc) Metric.isOpen_ball hf_an hq_pos
+  have hpoisson : ‖f z‖ ^ q ≤ circleAverage (fun ξ : ℂ => poissonKernel 0 z ξ * ‖f ξ‖ ^ q) 0 R := by
+    refine SubharmonicOn.le_circleAverage_poissonKernel_smul
       (u := fun w : ℂ => ‖f w‖ ^ q) hsubharmonic
       (continuousOn_norm_rpow_of_continuousOn_unitDisc hq_pos.le hR_lt_one hf_an.continuousOn)
-      (by
-        intro w hw
-        have hw_norm : ‖w‖ ≤ R := by
-          simpa [Metric.mem_closedBall, dist_zero_right] using hw
-        simpa [unitDisc, Metric.mem_ball, dist_zero_right] using hw_norm.trans_lt hR_lt_one)
-      hz_ball_R
+      ?_ hz_ball_R
+    intro w hw
+    have hw_norm : ‖w‖ ≤ R := by simpa [Metric.mem_closedBall, dist_zero_right] using hw
+    simpa [unitDisc, Metric.mem_ball, dist_zero_right] using hw_norm.trans_lt hR_lt_one
   have hbase : CircleIntegrable (fun ξ : ℂ => ‖f ξ‖ ^ q) 0 R :=
     (continuousOn_norm_rpow_of_continuousOn_unitDisc hq_pos.le hR_lt_one
       hf_an.continuousOn).circleIntegrable hR_pos.le
@@ -244,8 +230,7 @@ lemma norm_eval_le_const_mul_hardyNorm_of_mem_closedBall {p : ℝ≥0∞} {r : �
     have hkernel_cont : ContinuousOn (fun ξ : ℂ => poissonKernel 0 z ξ) (sphere (0 : ℂ) R) :=
       continuousOn_poissonKernel_of_mem_closedBall hz hrR
     exact (hkernel_cont.mul hnormpow_cont).circleIntegrable hR_pos.le
-  have hkernel_average :
-      circleAverage (fun ξ : ℂ => poissonKernel 0 z ξ * ‖f ξ‖ ^ q) 0 R ≤
+  have hkernel_average : circleAverage (fun ξ : ℂ => poissonKernel 0 z ξ * ‖f ξ‖ ^ q) 0 R ≤
         K * circleAverage (fun ξ : ℂ => ‖f ξ‖ ^ q) 0 R := by
     exact circleAverage_kernel_mul_le_const_mul_circleAverage
       (R := ⟨R, hR_pos.le⟩) (K := K)
@@ -254,8 +239,7 @@ lemma norm_eval_le_const_mul_hardyNorm_of_mem_closedBall {p : ℝ≥0∞} {r : �
       hbase hweighted
       (fun ξ hξ => Real.rpow_nonneg (norm_nonneg _) _)
       (by simpa using hkernel_bound)
-  have hcircle_hardy :
-      ENNReal.ofReal (circleAverage (fun ξ : ℂ => ‖f ξ‖ ^ q) 0 R) ≤
+  have hcircle_hardy : ENNReal.ofReal (circleAverage (fun ξ : ℂ => ‖f ξ‖ ^ q) 0 R) ≤
         (hardyNorm f p) ^ q := by
     simpa [q] using ofReal_circleAverage_norm_rpow_le_hardyNorm_rpow
       (E := E) hp hp_top hR hf_an.continuousOn

@@ -195,7 +195,7 @@ theorem SubharmonicOn.const_mul [Nontrivial E] {p : ℝ} (hp : 0 ≤ p) (hu : Su
         simpa [huy] using WithBot.coe_le_coe.mpr hle
 
 /-- Applying `expBot` to a subharmonic `WithBot ℝ`-valued function preserves subharmonicity. -/
-theorem SubharmonicOn.expBot_mul (hu : SubharmonicOn u s) :
+theorem SubharmonicOn.expBot_comp (hu : SubharmonicOn u s) :
   SubharmonicOn (fun z => expBot (u z)) s := sorry
 
 
@@ -243,4 +243,4 @@ theorem norm_rpow_comp_analytic_subharmonicOn_banach [DecidableEq F] {f : ℂ �
   (hs : IsOpen s) (hf : AnalyticOn ℂ f s) (hp : 0 < p) :
   SubharmonicOn (fun z => ((‖f z‖ ^ p : ℝ) : WithBot ℝ)) s := by
   simpa [Function.comp_def, exp_mul_logNorm_eq_norm_rpow hp] using
-    ((logNormBot_comp_analytic_subharmonicOn_banach hs hf).const_mul hp.le).expBot_mul
+    ((logNormBot_comp_analytic_subharmonicOn_banach hs hf).const_mul hp.le).expBot_comp

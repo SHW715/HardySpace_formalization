@@ -126,32 +126,6 @@ instance instNormedAddCommGroup (p : ℝ≥0∞) [Fact (1 ≤ p)] :
     NormedAddCommGroup (HpDisc (E := E) p) where
   dist_eq := fun _ _ => rfl
 
--- Here are two properties of Hardy `∞`-norm and distance:
-
-
-lemma norm_eval_le_norm_top
-    (f : HpDisc (E := E) ∞) {z : ℂ} (hz : z ∈ unitDisc) :
-    ‖f.1 z‖ ≤ ‖f‖ := by
-  rw [norm_def]
-  have hle_enorm : ‖f.1 z‖ₑ ≤ hardyNorm f.1 ∞ := by
-    rw [hardyNorm_top_eq_Sup_norm f.2.1.continuousOn]
-    exact le_iSup (fun w : unitDisc => ‖f.1 w.1‖ₑ) ⟨z, hz⟩
-  have hfin : hardyNorm f.1 ∞ ≠ ∞ := ne_of_lt f.2.2.1
-  calc
-    ‖f.1 z‖ = (‖f.1 z‖ₑ).toReal := by simp
-    _ ≤ (hardyNorm f.1 ∞).toReal := ENNReal.toReal_mono hfin hle_enorm
-
-lemma norm_sub_eval_le_dist_top
-    (f g : HpDisc (E := E) ∞) {z : ℂ} (hz : z ∈ unitDisc) :
-    ‖f.1 z - g.1 z‖ ≤ dist f g := by
-  rw [dist_eq_norm]
-  calc
-    ‖f.1 z - g.1 z‖ = ‖(-g + f : HpDisc ∞).1 z‖ := by
-      simp [Pi.add_apply, sub_eq_add_neg, add_comm]
-    _ ≤ ‖(-f + g : HpDisc ∞)‖ := by
-      grw [norm_eval_le_norm_top (-g + f) hz]
-      apply le_of_eq
-      simpa [neg_add, add_comm] using (norm_neg ∞ (-f + g))
 
 
 -- # Now we'd like to prove the completeness of `H^p`:
@@ -159,9 +133,6 @@ lemma norm_sub_eval_le_dist_top
 
 
 -- First, we need some helper lemmas:
-
-
-
 omit [NormedAddCommGroup E] [NormedSpace ℂ E] in
 /-- Along a nontrivial filter `l`, if points `x a` tend to `x₀` and are eventually strictly within
 distance `C` of a fixed point `y`, then the limit point is within distance `C` of `y`. -/
@@ -185,43 +156,7 @@ lemma dist_limit_eval_le_of_eventually_bound
   refine dist_limit_le_of_eventually_dist_lt hlim_z ?_
   rw [eventually_map]; exact hqg
 
-
-lemma dist_limit_eval_le_of_eventually_dist_ne_top
-    {p : ℝ≥0∞} [Fact (1 ≤ p)]
-    {f : Filter (HpDisc (E := E) p)} [NeBot f] {F : ℂ → E}
-    (hF : map (fun g : HpDisc (E := E) p => g.1) f ≤ 𝓝 F)
-    {A : Set (HpDisc (E := E) p)} (hA : A ∈ f)
-    {g : HpDisc (E := E) p} (hgA : g ∈ A)
-    {C ε : ℝ} (hC_nonneg : 0 ≤ C) {δ : ℝ}
-    (hδ_bound : C * δ < ε) (hAdist : ∀ q ∈ A, ∀ r ∈ A, dist q r < δ)
-    {z : ℂ} (hEval : ∀ q : HpDisc (E := E) p,
-    dist (q.1 z) (g.1 z) ≤ C * dist q g) : dist (F z) (g.1 z) ≤ ε := by
-  refine dist_limit_eval_le_of_eventually_bound hF ?_
-  filter_upwards [hA] with q hqA
-  have hqz : dist (q.1 z) (g.1 z) ≤ C * dist q g := hEval q
-  have hmul : C * dist q g ≤ C * δ :=
-    mul_le_mul_of_nonneg_left (le_of_lt (hAdist q hqA g hgA)) hC_nonneg
-  exact lt_of_le_of_lt (hqz.trans hmul) hδ_bound
-
-
-/-- In `H∞`, a Hardy-distance diameter bound on an eventual set passes to pointwise distances
-between the ambient limit and any member of that set. -/
-lemma dist_limit_eval_le_of_eventually_dist_top
-    {f : Filter (HpDisc (E := E) ∞)} [NeBot f] {F : ℂ → E}
-    (hF : map (fun g : HpDisc ∞ => g.1) f ≤ 𝓝 F)
-    {A : Set (HpDisc ∞)} (hA : A ∈ f)
-    {g : HpDisc ∞} (hgA : g ∈ A) {C : ℝ}
-    (hAdist : ∀ q ∈ A, ∀ r ∈ A, dist q r < C)
-    {z : ℂ} (hz : z ∈ unitDisc) : dist (F z) (g.1 z) ≤ C := by
-  refine dist_limit_eval_le_of_eventually_bound hF ?_
-  filter_upwards [hA] with q hqA
-  have hqz : dist (q.1 z) (g.1 z) ≤ dist q g := by
-    rw [dist_eq_norm_sub]; exact norm_sub_eval_le_dist_top q g hz
-  exact lt_of_le_of_lt hqz (hAdist q hqA g hgA)
-
-
-
-
+/-- On each closed subdisc, point evaluations are Lipschitz with respect to the Hardy distance. -/
 lemma exists_dist_eval_le_const_mul_dist_of_mem_closedBall
   {p : ℝ≥0∞} {r : ℝ} (hp : 1 ≤ p) (hr : r < 1)  :
   ∃ C : ℝ≥0, ∀ g h : HpDisc (E := E) p, ∀ z ∈ closedBall (0 : ℂ) r,
@@ -238,6 +173,8 @@ lemma exists_dist_eval_le_const_mul_dist_of_mem_closedBall
     ENNReal.mul_ne_top ENNReal.coe_ne_top (ne_of_lt u.2.2.1)
   simpa [ENNReal.toReal_mul] using ENNReal.toReal_mono hprod_ne_top hpoint
 
+/-- At each point of the unit disc, point evaluation is Lipschitz with respect to the Hardy
+distance. -/
 lemma exists_dist_eval_le_const_mul_dist {p : ℝ≥0∞} (hp : 1 ≤ p)
     {z : ℂ} (hz : z ∈ unitDisc) :
     ∃ C : ℝ≥0, ∀ g h : HpDisc (E := E) p,
@@ -254,9 +191,7 @@ lemma exists_dist_eval_le_const_mul_dist {p : ℝ≥0∞} (hp : 1 ≤ p)
     ENNReal.mul_ne_top ENNReal.coe_ne_top (ne_of_lt u.2.2.1)
   simpa [ENNReal.toReal_mul] using ENNReal.toReal_mono hprod_ne_top hpoint
 
-
-/-- Point evaluation at a fixed point is Lipschitz for the Hardy-norm metric on `HpDisc`.
-Outside the unit disc this is the zero map, since `HpDisc` functions are zero there. -/
+/-- Point evaluation at a fixed point is Lipschitz for the Hardy-norm metric on `HpDisc`.-/
 lemma lipschitz_eval (p : ℝ≥0∞) [Fact (1 ≤ p)] (z : ℂ) :
     ∃ C : ℝ≥0, LipschitzWith C (fun g : HpDisc (E := E) p => g.1 z) := by
   by_cases hz : z ∈ unitDisc
@@ -275,16 +210,14 @@ lemma uniformContinuous_coe (p : ℝ≥0∞) [Fact (1 ≤ p)]  :
   rcases lipschitz_eval (E := E) p z with ⟨C, hC⟩
   exact hC.uniformContinuous
 
-
 /-- A Hardy-norm Cauchy filter whose ambient functions converge to `F` converges to `F`
 locally uniformly on the unit disc. -/
 lemma tendstoLocallyUniformlyOn_of_cauchy_tendsto
     (p : ℝ≥0∞) [Fact (1 ≤ p)]
     {f : Filter (HpDisc (E := E) p)} {F : ℂ → E} (hf : Cauchy f)
-    (hFfun : map (fun g : HpDisc (E := E) p => g.1) f ≤ 𝓝 F) :
-    TendstoLocallyUniformlyOn
-      (fun g : HpDisc (E := E) p => g.1) F f unitDisc := by
-  -- codex without review
+    (hF : map (fun g : HpDisc (E := E) p => g.1) f ≤ 𝓝 F) :
+    TendstoLocallyUniformlyOn (fun g : HpDisc p => g.1) F f unitDisc := by
+  -- codex after review
   rw [Metric.tendstoLocallyUniformlyOn_iff]
   intro ε hε x hx
   have hx_norm : ‖x‖ < 1 := by
@@ -295,23 +228,18 @@ lemma tendstoLocallyUniformlyOn_of_cauchy_tendsto
   let η : ℝ := (R - ‖x‖) / 2
   have hη_pos : 0 < η := by dsimp [η]; linarith
   rcases exists_dist_eval_le_const_mul_dist_of_mem_closedBall
-      (E := E) (p := p) (Fact.out : (1 : ℝ≥0∞) ≤ p) hR_lt with
-    ⟨C, hEval_closed⟩
-  have hC_nonneg : 0 ≤ (C : ℝ) := C.2
+      (E := E) (p := p) (Fact.out : (1 : ℝ≥0∞) ≤ p) hR_lt with ⟨C, hEval_closed⟩
   let K : ℝ := max C 1
   have hK_pos : 0 < K := lt_of_lt_of_le zero_lt_one (le_max_right C 1)
   let δ : ℝ := ε / (4 * K)
-  have hδ_pos : 0 < δ := by
-    dsimp [δ]
-    positivity
+  have hδ_pos : 0 < δ := by dsimp [δ]; positivity
   have hCδ_lt : C * δ < ε / 2 := by
-    have hC_le_K : C ≤ K := le_max_left C 1
-    have hδ_nonneg : 0 ≤ δ := le_of_lt hδ_pos
     calc
-      C * δ ≤ K * δ := mul_le_mul_of_nonneg_right hC_le_K hδ_nonneg
-      _ = ε / 4 := by
-        dsimp [δ]
-        field_simp [hK_pos.ne']
+      C * δ ≤ K * δ := by
+        refine mul_le_mul_of_nonneg_right ?_ ?_
+        . exact le_max_left C 1
+        . exact le_of_lt hδ_pos
+      _ = ε / 4 := by dsimp [δ]; field_simp [hK_pos.ne']
       _ < ε / 2 := by linarith
   rcases Metric.cauchy_iff.1 hf with ⟨hf_NeBot, hf_Cauchy⟩
   rcases hf_Cauchy δ hδ_pos with ⟨A, hA, hAdist⟩
@@ -319,30 +247,128 @@ lemma tendstoLocallyUniformlyOn_of_cauchy_tendsto
   filter_upwards [hA] with g hgA
   intro y hy
   have hy_closed : y ∈ Metric.closedBall (0 : ℂ) R := by
-    have hy_dist : dist y x < η := by
-      simpa [Metric.mem_ball] using hy
-    have hynorm_le : ‖y‖ ≤ dist y x + ‖x‖ := by
-      calc
-        ‖y‖ = dist y 0 := by simp
-        _ ≤ dist y x + dist x 0 := _root_.dist_triangle y x 0
-        _ = dist y x + ‖x‖ := by simp [dist_zero_right]
-    have hynorm_lt : ‖y‖ < R := by
-      calc
-        ‖y‖ ≤ dist y x + ‖x‖ := hynorm_le
-        _ < η + ‖x‖ := by
-          simpa [add_comm, add_left_comm, add_assoc] using add_lt_add_right hy_dist ‖x‖
-        _ < R := by dsimp [η]; linarith
-    simpa [Metric.mem_closedBall, dist_zero_right] using le_of_lt hynorm_lt
+    have hy_dist : dist y x ≤  η := by
+      apply le_of_lt; simpa [Metric.mem_ball] using hy
+    rw [Metric.mem_closedBall]
+    grw [_root_.dist_triangle y x 0, hy_dist]
+    rw [dist_zero_right]
+    dsimp [η]; linarith
   have hle : dist (F y) (g.1 y) ≤ ε / 2 := by
-    haveI : NeBot f := hf_NeBot
-    exact dist_limit_eval_le_of_eventually_dist_ne_top
-      (E := E) (p := p) hFfun hA hgA hC_nonneg hCδ_lt hAdist
-      (z := y) (fun q => hEval_closed q g y hy_closed)
+    refine dist_limit_eval_le_of_eventually_bound hF ?_
+    filter_upwards [hA] with q hqA
+    grw [hEval_closed q g y hy_closed]
+    have hmul : C * dist q g ≤ C * δ :=
+      mul_le_mul_of_nonneg_left (le_of_lt (hAdist q hqA g hgA)) C.2
+    exact lt_of_le_of_lt hmul hCδ_lt
   exact lt_of_le_of_lt hle (by linarith)
 
+/-- If a Hardy-Cauchy filter is eventually `δ`-small around `g`, then the ambient limit is
+`δ`-close to `g` in Hardy norm. -/
+lemma hardyNorm_sub_limit_le_of_eventually_dist_lt
+    (p : ℝ≥0∞) [Fact (1 ≤ p)] {f : Filter (HpDisc (E := E) p)} {F : ℂ → E}
+    (hf : Cauchy f) (hF : map (fun g : HpDisc p => g.1) f ≤ 𝓝 F)
+    (hFanalytic : AnalyticOn ℂ F unitDisc)
+    {δ : ℝ} (hδ_pos : 0 < δ)
+    {g : HpDisc p} (hg_eventually : ∀ᶠ h in f, dist h g < δ) :
+    hardyNorm (F - g.1) p ≤ ENNReal.ofReal δ := by
+  -- codex with review
+  rcases Metric.cauchy_iff.1 hf with ⟨hf_NeBot, hf_Cauchy⟩
+  unfold hardyNorm
+  let μ : Measure ℝ := ENNReal.ofReal (1 / (2 * π)) • volume.restrict (Ico 0 (2 * π))
+  haveI : IsProbabilityMeasure μ := circle_measure_isProbabilityMeasure
+  refine iSup_le ?_
+  intro r
+  refine iSup_le ?_
+  intro hr
+  have hslice_le_alpha : ∀ α : ℝ, 0 < α → eLpNormFixed (fun θ : ℝ => (F - g.1) (r * exp (I * θ))) p μ
+   ≤ ENNReal.ofReal (δ + α) := by
+    intro α hα
+    rcases exists_dist_eval_le_const_mul_dist_of_mem_closedBall
+      (E := E) (p := p) (Fact.out) hr.2 with ⟨C, hEval_closed⟩
+    let K : ℝ := max C 1
+    have hK_pos : 0 < K := lt_of_lt_of_le zero_lt_one (le_max_right C 1)
+    let η : ℝ := α / (2 * K)
+    have hη_pos : 0 < η := by dsimp [η]; positivity
+    have hCη_lt : C * η < α := by
+      calc
+        C * η ≤ K * η := mul_le_mul_of_nonneg_right (le_max_left C 1) (le_of_lt hη_pos)
+        _ = α / 2 := by dsimp [η]; field_simp [hK_pos.ne']
+        _ < α := by linarith
+    rcases hf_Cauchy η hη_pos with ⟨B, hB, hBdist⟩
+    rcases hf_NeBot.nonempty_of_mem (inter_mem hg_eventually hB) with ⟨q, hq_close, hqB⟩
+    have hFq_bound : eLpNormFixed (fun θ : ℝ => (F - q.1) (r * exp (I * θ))) p μ ≤
+        ENNReal.ofReal α := by
+      refine eLpNormFixed_le_of_ae_bound_of_one_le (p := p) (μ := μ) (Fact.out) ?_
+      apply Eventually.of_forall
+      intro θ
+      let z : ℂ := r * exp (I * θ)
+      have hz_closed : z ∈ Metric.closedBall (0 : ℂ) r := by
+        rw [Metric.mem_closedBall, dist_zero_right, ← abs_of_pos hr.1]
+        dsimp [z]; simp
+      have hdist : dist (F z) (q.1 z) ≤ α := by
+        refine dist_limit_eval_le_of_eventually_bound hF ?_
+        filter_upwards [hB] with s hsB
+        grw [hEval_closed s q z hz_closed]
+        refine lt_of_le_of_lt ?_ hCη_lt
+        exact mul_le_mul_of_nonneg_left (le_of_lt (hBdist s hsB q hqB)) C.2
+      simpa [z, Pi.sub_apply, dist_eq_norm_sub] using hdist
+    have hqg_bound : eLpNormFixed (fun θ : ℝ => (q.1 - g.1) (r * exp (I * θ))) p μ
+      ≤ ENNReal.ofReal δ := by
+      calc
+        eLpNormFixed (fun θ : ℝ => (q.1 - g.1) (r * exp (I * θ))) p μ
+          = eLpNormFixed (fun θ : ℝ => -(((-q + g : HpDisc p).1)
+          (r * exp (I * θ)))) p μ := by
+          congr 1; funext θ; simp [Pi.sub_apply, sub_eq_add_neg, add_comm]
+        _ = eLpNormFixed (fun θ : ℝ => ((-q + g : HpDisc p).1) (r * exp (I * θ))) p μ :=
+          eLpNormFixed_neg (fun θ : ℝ => ((-q + g : HpDisc p).1) (r * exp (I * θ))) p μ
+        _ ≤ hardyNorm (E := E) ((-q + g : HpDisc p).1) p :=
+          hardyNorm_radial_le ((-q + g : HpDisc p).1) p hr
+        _ ≤ ENNReal.ofReal δ := by
+          refine le_of_lt ((ENNReal.lt_ofReal_iff_toReal_lt ?_).2 ?_)
+          . exact ne_of_lt (-q + g : HpDisc p).2.2.1
+          . simpa [dist_eq_norm, norm_def] using hq_close
+    calc
+      eLpNormFixed (fun θ : ℝ => (F - g.1) (r * exp (I * θ))) p μ
+        = eLpNormFixed ((fun θ : ℝ => (F - q.1) (r * exp (I * θ)))
+        + (fun θ : ℝ => (q.1 - g.1) (r * exp (I * θ)))) p μ := by
+        congr 1; funext θ; simp [Pi.add_apply, sub_eq_add_neg, add_assoc]
+      _ ≤ eLpNormFixed (fun θ : ℝ => (F - q.1) (r * exp (I * θ))) p μ +
+        eLpNormFixed (fun θ : ℝ => (q.1 - g.1) (r * exp (I * θ))) p μ := by
+        refine eLpNormFixed_add_le ?_ ?_
+        . exact radial_aestronglyMeasurable (hFanalytic.sub q.2.1).continuousOn hr μ
+        . exact radial_aestronglyMeasurable (q.2.1.sub g.2.1).continuousOn hr μ
+      _ ≤ ENNReal.ofReal α + ENNReal.ofReal δ := add_le_add hFq_bound hqg_bound
+      _ = ENNReal.ofReal (δ + α) := by
+        rw [← ENNReal.ofReal_add (le_of_lt hα) (le_of_lt hδ_pos)]; ring_nf
+  rw [← ENNReal.ofReal_toReal (ne_top_of_le_ne_top
+    ENNReal.ofReal_ne_top (hslice_le_alpha 1 zero_lt_one))]
+  apply ENNReal.ofReal_le_ofReal
+  apply le_of_forall_pos_le_add
+  intro α hα
+  have htoReal := ENNReal.toReal_mono ENNReal.ofReal_ne_top (hslice_le_alpha α hα)
+  have hsum_nonneg : 0 ≤ δ + α := le_of_lt (add_pos hδ_pos hα)
+  simpa [ENNReal.toReal_ofReal hsum_nonneg] using htoReal
 
-
-
+/-- An ambient-function limit of a Hardy-Cauchy filter has finite Hardy norm. -/
+theorem hardyNorm_lt_top_of_tendsto_coe_cauchy
+    (p : ℝ≥0∞) [Fact (1 ≤ p)]
+    {f : Filter (HpDisc (E := E) p)} {F : ℂ → E}
+    (hf : Cauchy f) (hF : map (fun g : HpDisc p => g.1) f ≤ 𝓝 F)
+    (hFanalytic : AnalyticOn ℂ F unitDisc) : hardyNorm F p < ∞ := by
+  rcases Metric.cauchy_iff.1 hf with ⟨hf_NeBot, hf_Cauchy⟩
+  rcases hf_Cauchy 1 zero_lt_one with ⟨A, hA, hAdist⟩
+  rcases hf_NeBot.nonempty_of_mem hA with ⟨g, hgA⟩
+  have hdiff_le : hardyNorm (F - g.1) p ≤ ENNReal.ofReal 1 := by
+    have hg_eventually : ∀ᶠ h in f, dist h g < 1 := by
+      filter_upwards [hA] with h hhA
+      exact hAdist h hhA g hgA
+    simpa using hardyNorm_sub_limit_le_of_eventually_dist_lt (E := E) p
+      hf hF hFanalytic (δ := 1) zero_lt_one hg_eventually
+  calc
+    hardyNorm F p = hardyNorm ((F - g.1) + g.1) p := by
+      congr 1; ext z; simp [Pi.add_apply, sub_eq_add_neg, add_assoc]
+    _ ≤ hardyNorm (F - g.1) p + hardyNorm g.1 p := hardyNorm_add_le (hFanalytic.sub g.2.1) g.2.1
+    _ < ∞ := ENNReal.add_lt_top.2 ⟨lt_of_le_of_lt hdiff_le ENNReal.ofReal_lt_top, g.2.2.1⟩
 
 /-- A limit of Hardy `p`-functions still vanishes outside the unit disc.-/
 lemma zero_off_unitDisc_of_tendsto_coe {p : ℝ≥0∞}
@@ -360,208 +386,16 @@ lemma zero_off_unitDisc_of_tendsto_coe {p : ℝ≥0∞}
     exact Filter.Eventually.of_forall fun g => (g.2.2.2 z hz).symm
   exact tendsto_nhds_unique hlim_z hlim_zero
 
-/-- If a Hardy-Cauchy filter is eventually `δ`-small around `g`, then the ambient limit is
-`2 * δ`-close to `g` in Hardy norm. -/
-lemma hardyNorm_sub_limit_le_of_eventually_dist_lt
-    (p : ℝ≥0∞) [Fact (1 ≤ p)] (_hp_ne_top : p ≠ ∞)
-    {f : Filter (HpDisc (E := E) p)} {F : ℂ → E}
-    (hf : Cauchy f) (hF : map (fun g : HpDisc p => g.1) f ≤ 𝓝 F)
-    (hFanalytic : AnalyticOn ℂ F unitDisc)
-    {δ : ℝ} (hδ_pos : 0 < δ)
-    {A : Set (HpDisc (E := E) p)} (hA : A ∈ f)
-    (hAdist : ∀ q ∈ A, ∀ r ∈ A, dist q r < δ)
-    {g : HpDisc (E := E) p} (hgA : g ∈ A) :
-    hardyNorm (E := E) (F - g.1) p ≤ ENNReal.ofReal (2 * δ) := by
-  -- codex without review
-  rcases Metric.cauchy_iff.1 hf with ⟨hf_NeBot, hf_Cauchy⟩
-  unfold hardyNorm
-  let μ : Measure ℝ := ENNReal.ofReal (1 / (2 * π)) • volume.restrict (Ico 0 (2 * π))
-  haveI : IsProbabilityMeasure μ := circle_measure_isProbabilityMeasure
-  refine iSup_le ?_
-  intro r
-  refine iSup_le ?_
-  intro hr
-  rcases exists_dist_eval_le_const_mul_dist_of_mem_closedBall
-      (E := E) (p := p) (Fact.out : (1 : ℝ≥0∞) ≤ p) hr.2 with
-    ⟨C, hEval_closed⟩
-  have hC_nonneg : 0 ≤ (C : ℝ) := C.2
-  let K : ℝ := max C 1
-  have hK_pos : 0 < K := lt_of_lt_of_le zero_lt_one (le_max_right C 1)
-  let η : ℝ := δ / (2 * K)
-  have hη_pos : 0 < η := by
-    dsimp [η]
-    positivity
-  have hCη_lt : C * η < δ := by
-    have hC_le_K : C ≤ K := le_max_left C 1
-    have hη_nonneg : 0 ≤ η := le_of_lt hη_pos
-    calc
-      C * η ≤ K * η := mul_le_mul_of_nonneg_right hC_le_K hη_nonneg
-      _ = δ / 2 := by
-        dsimp [η]
-        field_simp [hK_pos.ne']
-      _ < δ := by linarith
-  rcases hf_Cauchy η hη_pos with ⟨B, hB, hBdist⟩
-  rcases hf_NeBot.nonempty_of_mem (inter_mem hA hB) with ⟨q, hqA, hqB⟩
-  have hFq_bound :
-      eLpNormFixed (fun θ : ℝ => (F - q.1) (r * exp (I * θ))) p μ ≤
-        ENNReal.ofReal δ := by
-    refine eLpNormFixed_le_of_ae_bound_of_one_le
-      (p := p) (μ := μ) (Fact.out : (1 : ℝ≥0∞) ≤ p) ?_
-    exact Eventually.of_forall fun θ => by
-      let z : ℂ := r * exp (I * θ)
-      have hz_closed : z ∈ Metric.closedBall (0 : ℂ) r := by
-        have hnorm : ‖z‖ = |r| := by
-          dsimp [z]
-          simp
-        rw [Metric.mem_closedBall, dist_zero_right, hnorm, abs_of_pos hr.1]
-      have hdist : dist (F z) (q.1 z) ≤ δ :=
-        dist_limit_eval_le_of_eventually_dist_ne_top
-          (E := E) (p := p) hF hB hqB hC_nonneg hCη_lt hBdist
-          (z := z) (fun s => hEval_closed s q z hz_closed)
-      simpa [z, Pi.sub_apply, dist_eq_norm_sub] using hdist
-  have hqg_bound :
-      eLpNormFixed (fun θ : ℝ => (q.1 - g.1) (r * exp (I * θ))) p μ ≤
-        ENNReal.ofReal δ := by
-    have hradial_le :
-        eLpNormFixed (fun θ : ℝ => ((-q + g : HpDisc (E := E) p).1)
-            (r * exp (I * θ))) p μ ≤
-          hardyNorm (E := E) ((-q + g : HpDisc (E := E) p).1) p :=
-      hardyNorm_radial_le ((-q + g : HpDisc (E := E) p).1) p hr
-    have hhardy_le :
-        hardyNorm (E := E) ((-q + g : HpDisc (E := E) p).1) p ≤
-          ENNReal.ofReal δ := by
-      have hdist_lt : dist q g < δ := hAdist q hqA g hgA
-      have hfin :
-          hardyNorm (E := E) ((-q + g : HpDisc (E := E) p).1) p ≠ ∞ :=
-        ne_of_lt (-q + g : HpDisc (E := E) p).2.2.1
-      have htoReal :
-          (hardyNorm (E := E) ((-q + g : HpDisc (E := E) p).1) p).toReal < δ := by
-        simpa [dist_eq_norm, norm_def] using hdist_lt
-      exact le_of_lt ((ENNReal.lt_ofReal_iff_toReal_lt hfin).2 htoReal)
-    calc
-      eLpNormFixed (fun θ : ℝ => (q.1 - g.1) (r * exp (I * θ))) p μ
-          = eLpNormFixed (fun θ : ℝ => -(((-q + g : HpDisc (E := E) p).1)
-              (r * exp (I * θ)))) p μ := by
-            congr 1
-            funext θ
-            simp [Pi.sub_apply, sub_eq_add_neg, add_comm]
-      _ = eLpNormFixed (fun θ : ℝ => ((-q + g : HpDisc (E := E) p).1)
-              (r * exp (I * θ))) p μ := by
-            exact eLpNormFixed_neg
-              (fun θ : ℝ => ((-q + g : HpDisc (E := E) p).1) (r * exp (I * θ))) p μ
-      _ ≤ ENNReal.ofReal δ := hradial_le.trans hhardy_le
-  have hFq_meas : AEStronglyMeasurable
-      (fun θ : ℝ => (F - q.1) (r * exp (I * θ))) μ :=
-    radial_aestronglyMeasurable (hFanalytic.sub q.2.1).continuousOn hr μ
-  have hqg_meas : AEStronglyMeasurable
-      (fun θ : ℝ => (q.1 - g.1) (r * exp (I * θ))) μ :=
-    radial_aestronglyMeasurable (q.2.1.sub g.2.1).continuousOn hr μ
-  calc
-    eLpNormFixed (fun θ : ℝ => (F - g.1) (r * exp (I * θ))) p μ
-        = eLpNormFixed
-            ((fun θ : ℝ => (F - q.1) (r * exp (I * θ))) +
-              (fun θ : ℝ => (q.1 - g.1) (r * exp (I * θ)))) p μ := by
-          congr 1
-          funext θ
-          simp [Pi.add_apply, sub_eq_add_neg, add_assoc]
-    _ ≤ eLpNormFixed (fun θ : ℝ => (F - q.1) (r * exp (I * θ))) p μ +
-          eLpNormFixed (fun θ : ℝ => (q.1 - g.1) (r * exp (I * θ))) p μ :=
-        eLpNormFixed_add_le hFq_meas hqg_meas
-    _ ≤ ENNReal.ofReal δ + ENNReal.ofReal δ := add_le_add hFq_bound hqg_bound
-    _ = ENNReal.ofReal (2 * δ) := by
-      rw [← ENNReal.ofReal_add (le_of_lt hδ_pos) (le_of_lt hδ_pos)]
-      ring_nf
-
-/-- The ambient-function limit of a Hardy-Cauchy filter has finite Hardy `p`-norm for
-`1 ≤ p < ∞`. -/
-lemma hardyNorm_lt_top_of_tendsto_coe_cauchy_ne_top
-    (p : ℝ≥0∞) [Fact (1 ≤ p)] (hp_ne_top : p ≠ ∞)
-    {f : Filter (HpDisc (E := E) p)} {F : ℂ → E}
-    (hf : Cauchy f) (hF : map (fun g : HpDisc p => g.1) f ≤ 𝓝 F)
-    (hFanalytic : AnalyticOn ℂ F unitDisc) : hardyNorm F p < ∞ := by
-  rcases Metric.cauchy_iff.1 hf with ⟨hf_NeBot, hf_Cauchy⟩
-  rcases hf_Cauchy 1 zero_lt_one with ⟨A, hA, hAdist⟩
-  rcases hf_NeBot.nonempty_of_mem hA with ⟨g, hgA⟩
-  have hdiff_le : hardyNorm (F - g.1) p ≤ ENNReal.ofReal 2 := by
-    simpa using hardyNorm_sub_limit_le_of_eventually_dist_lt (E := E) p
-     hp_ne_top hf hF hFanalytic (δ := 1) zero_lt_one hA hAdist hgA
-  calc
-    hardyNorm F p = hardyNorm ((F - g.1) + g.1) p := by
-      congr 1; ext z; simp [Pi.add_apply, sub_eq_add_neg, add_assoc]
-    _ ≤ hardyNorm (F - g.1) p + hardyNorm g.1 p := hardyNorm_add_le (hFanalytic.sub g.2.1) g.2.1
-    _ < ∞ := ENNReal.add_lt_top.2 ⟨lt_of_le_of_lt hdiff_le ENNReal.ofReal_lt_top, g.2.2.1⟩
-
-/-- In the `H∞` case, an ambient-function limit of a Hardy-Cauchy filter has finite Hardy norm. -/
-lemma hardyNorm_lt_top_of_tendsto_coe_cauchy_top
-    {f : Filter (HpDisc (E := E) ∞)} {F : ℂ → E}
-    (hf : Cauchy f) (hF : map (fun g : HpDisc ∞ => g.1) f ≤ 𝓝 F)
-    (hFanalytic : AnalyticOn ℂ F unitDisc) : hardyNorm F ∞ < ∞ := by
-  -- after review
-  rw [hardyNorm_top_eq_Sup_norm hFanalytic.continuousOn]
-  rcases Metric.cauchy_iff.1 hf with ⟨hf_NeBot, hf_Cauchy⟩
-  rcases hf_Cauchy 1 zero_lt_one with ⟨A, hA, hAdist⟩
-  rcases hf.1.nonempty_of_mem hA with ⟨g, hgA⟩
-  rw [iSup_lt_iff]
-  refine ⟨ENNReal.ofReal (‖g‖ + 1), ENNReal.ofReal_lt_top, ?_⟩
-  intro z
-  rw [← ofReal_norm_eq_enorm]
-  refine ENNReal.ofReal_le_ofReal ?_
-  have hdist_le : dist (F z.1) (g.1 z.1) ≤ 1 :=
-    dist_limit_eval_le_of_eventually_dist_top hF hA hgA hAdist z.2
-  grw [norm_le_norm_add_const_of_dist_le hdist_le]
-  grw [norm_eval_le_norm_top g z.2]
-
-/-- An ambient-function limit of a Hardy-Cauchy filter has finite Hardy norm. -/
-theorem hardyNorm_lt_top_of_tendsto_coe_cauchy
+/-- Ambient-function convergence of a Hardy-Cauchy filter upgrades to convergence in the Hardy
+metric, once the ambient limit has been shown to lie in `HpDisc p`. -/
+theorem tendsto_hpDisc_of_tendsto_coe_cauchy
     (p : ℝ≥0∞) [Fact (1 ≤ p)]
-    {f : Filter (HpDisc (E := E) p)} {F : ℂ → E}
-    (hf : Cauchy f)
-    (hF : map (fun g : HpDisc (E := E) p => g.1) f ≤ 𝓝 F)
-    (hFanalytic : AnalyticOn ℂ F unitDisc) :
-    hardyNorm (E := E) F p < ∞ := by
-  by_cases hp_top : p = ∞
-  · subst p
-    exact hardyNorm_lt_top_of_tendsto_coe_cauchy_top hf hF hFanalytic
-  · exact hardyNorm_lt_top_of_tendsto_coe_cauchy_ne_top p hp_top hf hF hFanalytic
-
-/-- For `1 ≤ p < ∞`, let `f` be a Cauchy filter in `H^p`. If the underlying
-functions of elements of `f` converge to a function `F`, and if `F` itself belongs
-to `H^p`, then `f` converges to `F` in the `H^p` metric. -/
-lemma tendsto_hpDisc_of_tendsto_coe_cauchy_ne_top
-    (p : ℝ≥0∞) [Fact (1 ≤ p)] (hp_ne_top : p ≠ ∞)
     {f : Filter (HpDisc (E := E) p)} {F : ℂ → E}
     (hf : Cauchy f) (hF : map (fun g : HpDisc p => g.1) f ≤ 𝓝 F)
     (hFmem : MemHpDisc p F) : f ≤ 𝓝 (⟨F, hFmem⟩ : HpDisc p) := by
-  -- after review
   let F : HpDisc (E := E) p := ⟨F, hFmem⟩
   haveI : NeBot f := hf.1
   show Tendsto (fun g : HpDisc (E := E) p => g) f (𝓝 F)
-  rw [Metric.tendsto_nhds]
-  intro ε hε
-  let δ : ℝ := ε / 3
-  have hδpos : 0 < δ := by positivity
-  have h2δlt : 2 * δ < ε := by dsimp [δ]; linarith
-  rcases (Metric.cauchy_iff.1 hf).2 δ hδpos with ⟨A, hA, hAdist⟩
-  filter_upwards [hA] with g hgA
-  refine lt_of_le_of_lt ?_ h2δlt
-  rw [dist_eq_norm]
-  rw [← ENNReal.toReal_ofReal (mul_nonneg zero_le_two hδpos.le)]
-  refine ENNReal.toReal_mono ENNReal.ofReal_ne_top ?_
-  have hhardy_le : hardyNorm (E := E) (F - g.1) p ≤ ENNReal.ofReal (2 * δ) :=
-    hardyNorm_sub_limit_le_of_eventually_dist_lt p hp_ne_top hf hF hFmem.1
-      hδpos hA hAdist hgA
-  simpa [F, Pi.add_apply, sub_eq_add_neg, add_comm] using hhardy_le
-
-/-- In the `H∞` case, ambient-function convergence of a Hardy-Cauchy filter upgrades to
-convergence in the Hardy metric. -/
-lemma tendsto_hpDisc_of_tendsto_coe_cauchy_top
-    {f : Filter (HpDisc (E := E) ∞)} {F : ℂ → E}
-    (hf : Cauchy f) (hF : map (fun g : HpDisc ∞ => g.1) f ≤ 𝓝 F)
-    (hFmem : MemHpDisc ∞ F) : f ≤ 𝓝 (⟨F, hFmem⟩ : HpDisc ∞) := by
-  -- after review
-  let F : HpDisc (E := E) ∞ := ⟨F, hFmem⟩
-  haveI : NeBot f := hf.1
-  show Tendsto (fun g : HpDisc ∞ => g) f (𝓝 F)
   rw [Metric.tendsto_nhds]
   intro ε hε
   let δ : ℝ := ε / 2
@@ -570,33 +404,16 @@ lemma tendsto_hpDisc_of_tendsto_coe_cauchy_top
   rcases (Metric.cauchy_iff.1 hf).2 δ hδpos with ⟨A, hA, hAdist⟩
   filter_upwards [hA] with g hgA
   refine lt_of_le_of_lt ?_ hδlt
+  rw [dist_eq_norm]
   rw [← ENNReal.toReal_ofReal hδpos.le]
-  rw [dist_eq_norm, norm_def]
   refine ENNReal.toReal_mono ENNReal.ofReal_ne_top ?_
-  rw [hardyNorm_top_eq_Sup_norm (-g + F).2.1.continuousOn]
-  refine iSup_le ?_
-  intro z
-  rw [← ofReal_norm_eq_enorm]
-  apply ENNReal.ofReal_le_ofReal
-  have hpoint_dist : dist (F.1 z.1) (g.1 z.1) ≤ δ :=
-    dist_limit_eval_le_of_eventually_dist_top hF hA hgA hAdist z.2
-  have hnorm : ‖F.1 z.1 - g.1 z.1‖ ≤ δ := by
-    simpa [dist_eq_norm_sub] using hpoint_dist
-  simpa [F, Pi.add_apply, sub_eq_add_neg, add_comm] using hnorm
-
-
-
-/-- Ambient-function convergence of a Hardy-Cauchy filter upgrades to convergence in the Hardy
-metric, once the ambient limit has been shown to lie in `HpDisc p`. -/
-theorem tendsto_hpDisc_of_tendsto_coe_cauchy
-    (p : ℝ≥0∞) [Fact (1 ≤ p)]
-    {f : Filter (HpDisc (E := E) p)} {F : ℂ → E}
-    (hf : Cauchy f) (hF : map (fun g : HpDisc p => g.1) f ≤ 𝓝 F)
-    (hFmem : MemHpDisc p F) : f ≤ 𝓝 (⟨F, hFmem⟩ : HpDisc p) := by
-  by_cases hp_top : p = ∞
-  · subst p
-    exact tendsto_hpDisc_of_tendsto_coe_cauchy_top hf hF hFmem
-  · exact tendsto_hpDisc_of_tendsto_coe_cauchy_ne_top p hp_top hf hF hFmem
+  have hg_eventually : ∀ᶠ h in f, dist h g < δ := by
+    filter_upwards [hA] with h hhA
+    exact hAdist h hhA g hgA
+  have hhardy_le : hardyNorm (E := E) (F - g.1) p ≤ ENNReal.ofReal δ :=
+    hardyNorm_sub_limit_le_of_eventually_dist_lt p hf hF hFmem.1
+      hδpos hg_eventually
+  simpa [F, Pi.add_apply, sub_eq_add_neg, add_comm] using hhardy_le
 
 
 variable [CompleteSpace E]

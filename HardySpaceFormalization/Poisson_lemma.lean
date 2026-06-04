@@ -127,8 +127,7 @@ theorem ballAverage_intervalIntegral_comm
   unfold ballAverage
   conv_rhs => rw [intervalIntegral.integral_smul]
   have hfub := MeasureTheory.intervalIntegral_integral_swap
-    (μ := volume.restrict (ball x r))
-    (f := fun θ w => Φ w θ) hint
+    (μ := volume.restrict (ball x r)) (f := fun θ w => Φ w θ) hint
   rw [hfub]
 
 /-- Interval-integrating a jointly continuous compact-parameter family of harmonic functions
