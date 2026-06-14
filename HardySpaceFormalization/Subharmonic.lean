@@ -8,6 +8,7 @@ import Mathlib.Analysis.Convex.Integral
 import Mathlib.Analysis.Normed.Module.HahnBanach
 import HardySpaceFormalization.Harmonic_max_principle
 import HardySpaceFormalization.Poisson_lemma
+import HardySpaceFormalization.circleMeasure
 
 
 /-!
@@ -19,6 +20,8 @@ open MeasureTheory Metric Set Real Filter
 open scoped ENNReal Topology
 
 noncomputable section
+
+
 
 variable {E : Type*} [NormedAddCommGroup E]
 
@@ -191,10 +194,11 @@ lemma no_positive_superlevel_of_usc_locally_harmonic_withBot
     {c : E} {R : ℝ} {h : E → ℝ}
     (hclosed : closedBall c R ⊆ s)
     (hcont : ContinuousOn h (closedBall c R))
-    (hharm_on_ball : InnerProductSpace.HarmonicOnNhd h (ball c R)):
-    (∀ y ∈ sphere c R, u y ≤ h y) → ∀ ε > 0,
-      {y ∈ ball c R | ((h y + ε : ℝ) : WithBot ℝ) < u y} = ∅ := by
-  intro hbd ε hε
+    (hharm_on_ball : InnerProductSpace.HarmonicOnNhd h (ball c R))
+    (hbd : ∀ y ∈ sphere c R, u y ≤ h y) :
+     ∀ ε > 0, {y ∈ ball c R | ((h y + ε : ℝ) : WithBot ℝ) < u y} = ∅ := by
+  -- technical topological proof, by codex and the code without review
+  intro ε hε
   let V : Set E := {y ∈ ball c R | ((h y + ε : ℝ) : WithBot ℝ) < u y}
   by_contra hV_ne
   have hV_nonempty : V.Nonempty := Set.nonempty_iff_ne_empty.mpr hV_ne
@@ -409,27 +413,24 @@ lemma no_positive_superlevel_of_usc_locally_harmonic_withBot
 
 /-- An upper semicontinuous `WithBot ℝ`-valued function which is locally harmonic at every finite
 point is subharmonic. -/
-theorem subharmonicOn_of_upperSemicontinuousOn_of_harmonicAtWithBot
-    [Nontrivial E]
+theorem subharmonicOn_of_upperSemicontinuousOn_of_harmonicAtWithBot [Nontrivial E]
     {u : E → WithBot ℝ} {s : Set E} (husc : UpperSemicontinuousOn u s)
-    (hharm : ∀ z ∈ s, u z ≠ ⊥ → HarmonicAtWithBot u z) : SubharmonicOn u s := by
+    (hu : ∀ z ∈ s, u z ≠ ⊥ → HarmonicAtWithBot u z) : SubharmonicOn u s := by
   constructor
   · exact husc
-  · intro c R h hclosed hcont hharm_on_ball hbd w hw
+  · intro c R h hclosed hcont hharm hbd w hw
     have hno_superlevel :
-        ∀ ε > 0, {y ∈ ball c R | ((h y + ε : ℝ) : WithBot ℝ) < u y} = ∅ :=
+      ∀ ε > 0, {y ∈ ball c R | ((h y + ε : ℝ) : WithBot ℝ) < u y} = ∅ :=
       no_positive_superlevel_of_usc_locally_harmonic_withBot
-        husc hharm hclosed hcont hharm_on_ball hbd
-    by_contra hle
-    have hlt : (h w : WithBot ℝ) < u w := not_le.mp hle
+        husc hu hclosed hcont hharm hbd
+    by_contra hn; simp at hn
     cases huw : u w with
-    | bot =>
-        simp [huw] at hlt
+    | bot => simp [huw] at hn
     | coe a =>
-        have hlt_real : h w < a := WithBot.coe_lt_coe.mp (by simpa [huw] using hlt)
+        have hn_real : h w < a := WithBot.coe_lt_coe.mp (by simpa [huw] using hn)
         let ε : ℝ := (a - h w) / 2
         have hε : 0 < ε := by dsimp [ε]; linarith
-        have hsuper : ((h w + ε : ℝ) : WithBot ℝ) < u w := by
+        have hsuper : h w + ε < u w := by
           rw [huw]
           apply WithBot.coe_lt_coe.mpr
           dsimp [ε]; linarith
@@ -495,82 +496,30 @@ probability density with respect to `circleAverage`, then applying `exp` after t
 average is bounded by the weighted average after applying `exp`. -/
 lemma exp_weighted_circleAverage_le_circleAverage_weighted_exp
     {c : ℂ} {R : ℝ} {P ψ : ℂ → ℝ}
-    (hR_nonneg : 0 ≤ R)
-    (hP_nonneg : ∀ z ∈ sphere c R, 0 ≤ P z)
+    (hR : 0 ≤ R) (hP_nonneg : ∀ z ∈ sphere c R, 0 ≤ P z)
     (hP_avg : circleAverage P c R = 1)
     (hP_cont : ContinuousOn P (sphere c R))
     (hψ_cont : ContinuousOn ψ (sphere c R)) :
     exp (circleAverage (fun z : ℂ => P z * ψ z) c R)
       ≤ circleAverage (fun z : ℂ => P z * exp (ψ z)) c R := by
-  let A : ℝ := circleAverage (fun z : ℂ => P z * ψ z) c R
-  have hP_int : CircleIntegrable P c R := hP_cont.circleIntegrable hR_nonneg
-  have hψ_int : CircleIntegrable ψ c R := hψ_cont.circleIntegrable hR_nonneg
+  let μP : Measure ℂ := (circleMeasure c R).withDensity fun z => ENNReal.ofReal (P z)
+  have hP_nonneg_ae : ∀ᵐ z ∂circleMeasure c R, 0 ≤ P z :=
+    (ae_mem_sphere_circleMeasure hR).mono fun z hz => hP_nonneg z hz
+  have hP_int : CircleIntegrable P c R := hP_cont.circleIntegrable hR
+  haveI : IsProbabilityMeasure μP :=
+    isProbabilityMeasure_withDensity_circleMeasure hP_nonneg_ae hP_int hP_avg
   have hPψ_int : CircleIntegrable (fun z : ℂ => P z * ψ z) c R :=
-    (hP_cont.mul hψ_cont).circleIntegrable hR_nonneg
-  have hleft_int :
-      CircleIntegrable (fun z : ℂ => P z * (exp A * (ψ z - A + 1))) c R := by
-    have hinner : CircleIntegrable (fun z : ℂ => ψ z - A + 1) c R := by
-      simpa [sub_eq_add_neg, add_assoc] using
-        (hψ_int.add (circleIntegrable_const (-A) c R)).add (circleIntegrable_const 1 c R)
-    exact (hP_cont.mul
-      (continuousOn_const.mul ((hψ_cont.sub continuousOn_const).add continuousOn_const))).circleIntegrable
-        hR_nonneg
-  have hright_int : CircleIntegrable (fun z : ℂ => P z * exp (ψ z)) c R := by
-    have hexpψ_cont : ContinuousOn (fun z : ℂ => exp (ψ z)) (sphere c R) := by
-      fun_prop
-    exact (hP_cont.mul hexpψ_cont).circleIntegrable hR_nonneg
-  have hmono :
-      circleAverage (fun z : ℂ => P z * (exp A * (ψ z - A + 1))) c R ≤
-        circleAverage (fun z : ℂ => P z * exp (ψ z)) c R := by
-    refine circleAverage_mono hleft_int hright_int ?_
-    intro z hz_abs
-    have hz : z ∈ sphere c R := by simpa [abs_of_nonneg hR_nonneg] using hz_abs
-    have htangent : exp A * (ψ z - A + 1) ≤ exp (ψ z) := by
-      have hbase : ψ z - A + 1 ≤ exp (ψ z - A) := by
-        simpa [add_comm] using Real.add_one_le_exp (ψ z - A)
-      calc
-        exp A * (ψ z - A + 1) ≤ exp A * exp (ψ z - A) :=
-          mul_le_mul_of_nonneg_left hbase (exp_nonneg A)
-        _ = exp (ψ z) := by
-          rw [← exp_add]
-          ring_nf
-    exact mul_le_mul_of_nonneg_left htangent (hP_nonneg z hz)
-  have hleft_eq :
-      circleAverage (fun z : ℂ => P z * (exp A * (ψ z - A + 1))) c R = exp A := by
-    have hAP_int : CircleIntegrable (fun z : ℂ => A * P z) c R := by
-      simpa [smul_eq_mul] using (CircleIntegrable.const_fun_smul (a := A) hP_int)
-    have hdiff_int : CircleIntegrable (fun z : ℂ => P z * ψ z - A * P z) c R :=
-      hPψ_int.sub hAP_int
-    have hsum_int : CircleIntegrable (fun z : ℂ => P z * ψ z - A * P z + P z) c R :=
-      hdiff_int.add hP_int
-    have hAP_avg : circleAverage (fun z : ℂ => A * P z) c R = A * circleAverage P c R := by
-      simpa [smul_eq_mul] using
-        (circleAverage_fun_smul (a := A) (f := P) (c := c) (R := R))
-    calc
-      circleAverage (fun z : ℂ => P z * (exp A * (ψ z - A + 1))) c R
-          = exp A *
-              circleAverage (fun z : ℂ => P z * ψ z - A * P z + P z) c R := by
-            change circleAverage (fun z : ℂ => P z * (exp A * (ψ z - A + 1))) c R =
-              (exp A) • circleAverage (fun z : ℂ => P z * ψ z - A * P z + P z) c R
-            rw [← circleAverage_fun_smul
-              (a := exp A) (f := fun z : ℂ => P z * ψ z - A * P z + P z)
-              (c := c) (R := R)]
-            apply circleAverage_congr_sphere
-            intro z _hz
-            simp [smul_eq_mul]
-            ring
-      _ = exp A * ((circleAverage (fun z : ℂ => P z * ψ z) c R -
-              circleAverage (fun z : ℂ => A * P z) c R) + circleAverage P c R) := by
-            rw [circleAverage_fun_add hdiff_int hP_int]
-            rw [circleAverage_fun_sub hPψ_int hAP_int]
-      _ = exp A * ((A - A * 1) + 1) := by
-            rw [hAP_avg, hP_avg]
-      _ = exp A := by ring
-  calc
-    exp (circleAverage (fun z : ℂ => P z * ψ z) c R)
-        = exp A := by rfl
-    _ = circleAverage (fun z : ℂ => P z * (exp A * (ψ z - A + 1))) c R := hleft_eq.symm
-    _ ≤ circleAverage (fun z : ℂ => P z * exp (ψ z)) c R := hmono
+    (hP_cont.mul hψ_cont).circleIntegrable hR
+  have hPexpψ_int : CircleIntegrable (fun z : ℂ => P z * exp (ψ z)) c R :=
+    (hP_cont.mul (by fun_prop)).circleIntegrable hR
+  have hleft : circleAverage (fun z : ℂ => P z * ψ z) c R = ∫ z, ψ z ∂μP :=
+    integral_withDensity_circleMeasure_eq_circleAverage_mul hP_nonneg_ae hPψ_int
+  have hright : circleAverage (fun z : ℂ => P z * exp (ψ z)) c R = ∫ z, exp (ψ z) ∂μP :=
+    integral_withDensity_circleMeasure_eq_circleAverage_mul hP_nonneg_ae hPexpψ_int
+  rw [hleft, hright]
+  refine convexOn_exp.map_integral_le continuousOn_exp isClosed_univ (by simp) ?_ ?_
+  . exact integrable_withDensity_circleMeasure_of_circleIntegrable hP_nonneg_ae hPψ_int
+  . exact integrable_withDensity_circleMeasure_of_circleIntegrable hP_nonneg_ae hPexpψ_int
 
 /-- Jensen's inequality for the Poisson logarithmic barrier. If `h` is positive on the boundary,
 then the exponential of the Poisson extension of `log h` is bounded by `h` inside. -/
@@ -742,22 +691,6 @@ theorem logNormBot_comp_analytic_subharmonicOn_scalar {f : ℂ → ℂ} {s : Set
     simp [logNormBot, v, hy.2]
 
 
-lemma logNormBot_apply_le_of_norm_le_one [DecidableEq F] (ℓ : StrongDual ℂ F)
-    (hℓ : ‖ℓ‖ ≤ 1) (z : F) : logNormBot (ℓ z) ≤ logNormBot z := by
-  by_cases hℓz : ℓ z = 0
-  · simp [logNormBot, hℓz]
-  · have hz : z ≠ 0 := by
-      intro hz
-      exact hℓz (by simp [hz])
-    have hnorm_le : ‖ℓ z‖ ≤ ‖z‖ := by
-      calc
-        ‖ℓ z‖ ≤ ‖ℓ‖ * ‖z‖ := ℓ.le_opNorm z
-        _ ≤ 1 * ‖z‖ := by gcongr
-        _ = ‖z‖ := one_mul _
-    have hlog_le : log ‖ℓ z‖ ≤ log ‖z‖ :=
-      Real.log_le_log (norm_pos_iff.mpr hℓz) hnorm_le
-    simpa [logNormBot, hℓz, hz] using WithBot.coe_le_coe.mpr hlog_le
-
 theorem logNormBot_comp_analytic_subharmonicOn_banach [DecidableEq F] {f : ℂ → F} {s : Set ℂ}
   (hs : IsOpen s) (hf : AnalyticOn ℂ f s) : SubharmonicOn (logNormBot ∘ f) s := by
   constructor
@@ -772,17 +705,22 @@ theorem logNormBot_comp_analytic_subharmonicOn_banach [DecidableEq F] {f : ℂ �
         logNormBot_comp_analytic_subharmonicOn_scalar hs hg_analytic
       have hbd_g : ∀ z ∈ sphere c R, (logNormBot.comp g) z ≤ h z := by
         intro z hz
-        exact (logNormBot_apply_le_of_norm_le_one ℓ hℓ_norm (f z)).trans (hbd z hz)
-      have hle_g : (logNormBot.comp g) w ≤ h w :=
-        hg_sub.2 c R h hclosed hcont hharm hbd_g w hw
+        have hlog_le : logNormBot (ℓ (f z)) ≤ logNormBot (f z) := by
+          by_cases hℓz : ℓ (f z) = 0
+          · simp [logNormBot, hℓz]
+          · have hfz : f z ≠ 0 := by intro hfz; apply hℓz; simp [hfz]
+            have hnorm_le : ‖ℓ (f z)‖ ≤ ‖f z‖ := by
+              grw [ℓ.le_opNorm (f z), hℓ_norm]; simp
+            simp [logNormBot, hℓz, hfz]
+            exact Real.log_le_log (norm_pos_iff.mpr hℓz) hnorm_le
+        exact hlog_le.trans (hbd z hz)
       have hg_eq : (logNormBot.comp g) w = (logNormBot.comp f) w := by
         have hℓfw_ne : ℓ (f w) ≠ 0 := by
           rw [hℓw]
           exact Complex.ofReal_ne_zero.mpr (norm_ne_zero_iff.mpr hfw)
         simp [Function.comp_def, g, logNormBot, hfw, hℓw]
-      change (logNormBot.comp f) w ≤ (h w : WithBot ℝ)
       rw [← hg_eq]
-      exact hle_g
+      exact hg_sub.2 c R h hclosed hcont hharm hbd_g w hw
 
 theorem norm_rpow_comp_analytic_subharmonicOn_banach [DecidableEq F] {f : ℂ → F} {p : ℝ} {s : Set ℂ}
   (hs : IsOpen s) (hf : AnalyticOn ℂ f s) (hp : 0 < p) :
