@@ -130,8 +130,6 @@ instance instNormedAddCommGroup (p : ℝ≥0∞) [Fact (1 ≤ p)] :
 
 -- # Now we'd like to prove the completeness of `H^p`:
 
-
-
 -- First, we need some helper lemmas:
 omit [NormedAddCommGroup E] [NormedSpace ℂ E] in
 /-- Along a nontrivial filter `l`, if points `x a` tend to `x₀` and are eventually strictly within

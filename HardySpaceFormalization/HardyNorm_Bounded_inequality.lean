@@ -116,31 +116,6 @@ lemma continuousOn_norm_rpow_of_continuousOn_unitDisc {q R : ℝ}
   exact (hf_cont.mono hsphere_subset).norm.rpow_const
     (fun _ _ => Or.inr hq_nonneg)
 
-omit [NormedAddCommGroup E] in
-/-- If `z` lies in the closed ball of radius `r` and `r < R`, then the Poisson kernel
-`ξ ↦ poissonKernel 0 z ξ` is continuous on the circle of radius `R`. -/
-lemma continuousOn_poissonKernel_of_mem_closedBall {r R : ℝ} {z : ℂ}
-    (hz : z ∈ closedBall (0 : ℂ) r) (hrR : r < R) :
-    ContinuousOn (fun ξ : ℂ => poissonKernel 0 z ξ) (sphere (0 : ℂ) R) := by
-  simp only [poissonKernel_def, sub_zero]
-  refine ContinuousOn.div ?_ ?_ ?_
-  · fun_prop
-  · fun_prop
-  · intro ξ hξ hden
-    have hξ_eq_z : ξ = z := by
-      exact sub_eq_zero.mp (norm_eq_zero.mp (sq_eq_zero_iff.mp hden))
-    have hz_norm_le : ‖z‖ ≤ r := by
-      simpa [Metric.mem_closedBall, dist_zero_right] using hz
-    have hξ_norm_eq : ‖ξ‖ = R := by
-      simpa [Metric.mem_sphere, dist_zero_right] using hξ
-    have hR_le_r : R ≤ r := by
-      calc
-        R = ‖ξ‖ := hξ_norm_eq.symm
-        _ = ‖z‖ := by rw [hξ_eq_z]
-        _ ≤ r := hz_norm_le
-    exact (not_lt_of_ge hR_le_r) hrR
-
-
 variable [NormedSpace ℂ E]
 
 omit [NormedSpace ℂ E] in
@@ -228,7 +203,7 @@ lemma norm_eval_le_const_mul_hardyNorm_of_mem_closedBall {p : ℝ≥0∞} {r : �
     have hnormpow_cont : ContinuousOn (fun ξ : ℂ => ‖f ξ‖ ^ q) (sphere (0 : ℂ) R) :=
       continuousOn_norm_rpow_of_continuousOn_unitDisc hq_pos.le hR_lt_one hf_an.continuousOn
     have hkernel_cont : ContinuousOn (fun ξ : ℂ => poissonKernel 0 z ξ) (sphere (0 : ℂ) R) :=
-      continuousOn_poissonKernel_of_mem_closedBall hz hrR
+      continuousOn_poissonKernel_right_of_mem_ball (c := 0) (R := R) (w := z) hz_ball_R
     exact (hkernel_cont.mul hnormpow_cont).circleIntegrable hR_pos.le
   have hkernel_average : circleAverage (fun ξ : ℂ => poissonKernel 0 z ξ * ‖f ξ‖ ^ q) 0 R ≤
         K * circleAverage (fun ξ : ℂ => ‖f ξ‖ ^ q) 0 R := by

@@ -47,6 +47,25 @@ theorem harmonicOnNhd_poissonKernel (hw : w ∈ sphere c R) :
     have h := congrFun (poissonKernel_eq_re_herglotzRieszKernel (c := c) (w := x)) w
     simpa [Function.comp_apply] using h
 
+/-- For a fixed interior point `w`, the Poisson kernel is continuous as a function of the
+boundary variable. -/
+theorem continuousOn_poissonKernel_right_of_mem_ball (hw : w ∈ ball c R) :
+    ContinuousOn (fun z : ℂ => poissonKernel c w z) (sphere c R) := by
+  -- codex after review
+  unfold poissonKernel
+  refine ContinuousOn.div ?_ ?_ ?_
+  · fun_prop
+  · fun_prop
+  · intro z hz hden
+    have hz_norm : ‖z - c‖ = R := by simpa [Metric.mem_sphere, dist_eq_norm] using hz
+    have hw_norm : ‖w - c‖ < R := by simpa [Metric.mem_ball, dist_eq_norm] using hw
+    have hzw : z = w := by
+      refine sub_eq_zero.mp (norm_eq_zero.mp ?_)
+      have hnorm_zero : ‖(z - c) - (w - c)‖ = 0 := sq_eq_zero_iff.mp hden
+      simpa [sub_sub_sub_cancel_right] using hnorm_zero
+    rw [← hzw, hz_norm] at hw_norm
+    exact (lt_irrefl R) hw_norm
+
 
 /-- Joint continuity on `s ×ˢ uIcc a b` implies continuity of the compact-parameter interval
 integral in the base variable. -/
