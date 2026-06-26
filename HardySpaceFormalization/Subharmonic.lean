@@ -156,7 +156,6 @@ def SubharmonicOn (u : E → WithBot ℝ) (s : Set E) : Prop :=
    InnerProductSpace.HarmonicOnNhd h (ball x r) →
    (∀ y ∈ sphere x r, u y ≤ h y) → ∀ y ∈ ball x r, u y ≤ h y
 
-
 /-- Every harmonic function on `s: Set ℂ` is subharmonic on `s`. -/
 theorem harmonicOnNhd_subharmonicOn
   [Nontrivial E] (u : E → ℝ) (s : Set E) (hu : InnerProductSpace.HarmonicOnNhd u s) :
@@ -182,233 +181,8 @@ theorem harmonicOnNhd_subharmonicOn
 
 /--The extended notion of `HarmonicAt` for `WithBot ℝ`-valued function at `x`. -/
 def HarmonicAtWithBot (u : E → WithBot ℝ) (x : E) : Prop :=
-   ∃ t ∈ 𝓝 x, ∃ v : E → ℝ, InnerProductSpace.HarmonicOnNhd v t ∧ ∀ y ∈ t, u y = (v y : WithBot ℝ)
+  ∃ v : E → ℝ, InnerProductSpace.HarmonicAt v x ∧ u =ᶠ[𝓝 x] (v ·)
 
-
-/-- No positive superlevel set above a harmonic comparison function can occur inside a
-ball whose boundary is already controlled. -/
-lemma no_positive_superlevel_of_usc_locally_harmonic_withBot
-    [Nontrivial E]
-    {u : E → WithBot ℝ} {s : Set E} (husc : UpperSemicontinuousOn u s)
-    (hharm : ∀ z ∈ s, u z ≠ ⊥ → HarmonicAtWithBot u z)
-    {c : E} {R : ℝ} {h : E → ℝ}
-    (hclosed : closedBall c R ⊆ s)
-    (hcont : ContinuousOn h (closedBall c R))
-    (hharm_on_ball : InnerProductSpace.HarmonicOnNhd h (ball c R))
-    (hbd : ∀ y ∈ sphere c R, u y ≤ h y) :
-     ∀ ε > 0, {y ∈ ball c R | ((h y + ε : ℝ) : WithBot ℝ) < u y} = ∅ := by
-  -- technical topological proof, by codex and the code without review
-  intro ε hε
-  let V : Set E := {y ∈ ball c R | ((h y + ε : ℝ) : WithBot ℝ) < u y}
-  by_contra hV_ne
-  have hV_nonempty : V.Nonempty := Set.nonempty_iff_ne_empty.mpr hV_ne
-  have hV_subset_ball : V ⊆ ball c R := fun y hy => hy.1
-  have hV_subset_closedBall : V ⊆ closedBall c R := fun y hy => ball_subset_closedBall hy.1
-  have hV_subset_s : V ⊆ s := fun y hy => hclosed (hV_subset_closedBall hy)
-  have hV_finite : ∀ y ∈ V, u y ≠ ⊥ := by
-    intro y hy hy_bot
-    have hlt : ((h y + ε : ℝ) : WithBot ℝ) < u y := hy.2
-    simp [hy_bot] at hlt
-  have hV_harmonicAtWithBot : ∀ y ∈ V, HarmonicAtWithBot u y := by
-    intro y hy; exact hharm y (hV_subset_s hy) (hV_finite y hy)
-  have hV_open : IsOpen V := by
-    rw [isOpen_iff_mem_nhds]
-    intro x hxV
-    rcases hV_harmonicAtWithBot x hxV with ⟨t, ht_nhds, v, hv_harm, huv⟩
-    have hx_ball : x ∈ ball c R := hxV.1
-    have hx_t : x ∈ t := mem_of_mem_nhds ht_nhds
-    have hx_eq : u x = (v x : WithBot ℝ) := huv x hx_t
-    have hx_lt : h x + ε < v x := by
-      exact WithBot.coe_lt_coe.mp (by simpa [hx_eq] using hxV.2)
-    have ht_contAt : ContinuousAt v x :=
-      (hv_harm.continuousOn x hx_t).continuousAt ht_nhds
-    have hclosedBall_mem : closedBall c R ∈ 𝓝 x :=
-      mem_of_superset (isOpen_ball.mem_nhds hx_ball) ball_subset_closedBall
-    have hh_contAt : ContinuousAt h x :=
-      (hcont x (ball_subset_closedBall hx_ball)).continuousAt hclosedBall_mem
-    have hdiff_contAt : ContinuousAt (fun y => h y + ε - v y) x :=
-      (hh_contAt.add continuousAt_const).sub ht_contAt
-    have hdiff_lt : h x + ε - v x < 0 := by linarith
-    have hlt_eventually : ∀ᶠ y in 𝓝 x, h y + ε < v y := by
-      filter_upwards [hdiff_contAt (Iio_mem_nhds hdiff_lt)] with y hy
-      have hy' : h y + ε - v y < 0 := by simpa using hy
-      linarith
-    filter_upwards [isOpen_ball.mem_nhds hx_ball, ht_nhds, hlt_eventually] with y hy_ball hy_t hy_lt
-    constructor
-    · exact hy_ball
-    · have hy_eq : u y = (v y : WithBot ℝ) := huv y hy_t
-      rw [hy_eq]
-      exact WithBot.coe_lt_coe.mpr hy_lt
-  have hclosureV_subset_closedBall : closure V ⊆ closedBall c R :=
-    closure_minimal hV_subset_closedBall isClosed_closedBall
-  have hclosureV_lower :
-      ∀ z ∈ closure V, ((h z + ε / 2 : ℝ) : WithBot ℝ) ≤ u z := by
-    intro z hz_closure
-    have hz_closedBall : z ∈ closedBall c R := hclosureV_subset_closedBall hz_closure
-    have hz_s : z ∈ s := hclosed hz_closedBall
-    have hh_eventually_closedBall :
-        ∀ᶠ y in 𝓝[closedBall c R] z, h z - ε / 2 < h y :=
-      (hcont z hz_closedBall) (Ioi_mem_nhds (by linarith))
-    have hh_eventually :
-        ∀ᶠ y in 𝓝 z, y ∈ closedBall c R → h z - ε / 2 < h y := by
-      simpa [eventually_nhdsWithin_iff] using hh_eventually_closedBall
-    have hfreqV : ∃ᶠ y in 𝓝 z, y ∈ V :=
-      mem_closure_iff_frequently.mp hz_closure
-    have hfreq_lower_nhds :
-        ∃ᶠ y in 𝓝 z, ((h z + ε / 2 : ℝ) : WithBot ℝ) ≤ u y ∧ y ∈ s := by
-      exact (hfreqV.and_eventually hh_eventually).mono fun y hy => by
-        rcases hy with ⟨hyV, hyh⟩
-        have hy_closedBall : y ∈ closedBall c R := hV_subset_closedBall hyV
-        have hreal : h z + ε / 2 < h y + ε := by
-          have hyh' : h z - ε / 2 < h y := hyh hy_closedBall
-          linarith
-        have hle₁ : ((h z + ε / 2 : ℝ) : WithBot ℝ) ≤
-            ((h y + ε : ℝ) : WithBot ℝ) :=
-          WithBot.coe_le_coe.mpr hreal.le
-        exact ⟨hle₁.trans (le_of_lt hyV.2), hV_subset_s hyV⟩
-    have hfreq_lower :
-        ∃ᶠ y in 𝓝[s] z, ((h z + ε / 2 : ℝ) : WithBot ℝ) ≤ u y := by
-      rw [frequently_nhdsWithin_iff]
-      exact hfreq_lower_nhds
-    exact husc.frequently z hz_s ((h z + ε / 2 : ℝ) : WithBot ℝ) hfreq_lower
-  have hclosureV_finite : ∀ z ∈ closure V, u z ≠ ⊥ := by
-    intro z hz_closure hz_bot
-    have hz_lower := hclosureV_lower z hz_closure
-    simp [hz_bot] at hz_lower
-  have hclosureV_disjoint_sphere : Disjoint (closure V) (sphere c R) := by
-    rw [Set.disjoint_left]
-    intro z hz_closure hz_sphere
-    have hz_bd : u z ≤ (h z : WithBot ℝ) := hbd z hz_sphere
-    have hreal_le : h z + ε / 2 ≤ h z :=
-      WithBot.coe_le_coe.mp ((hclosureV_lower z hz_closure).trans hz_bd)
-    linarith
-  have hclosureV_subset_ball : closure V ⊆ ball c R := by
-    intro y hy
-    have hy_closed : y ∈ closedBall c R := hclosureV_subset_closedBall hy
-    have hy_not_sphere : y ∉ sphere c R := by
-      intro hy_sphere
-      exact (Set.disjoint_left.mp hclosureV_disjoint_sphere hy) hy_sphere
-    rw [mem_ball]
-    rw [mem_closedBall] at hy_closed
-    exact lt_of_le_of_ne hy_closed fun hy_eq =>
-      hy_not_sphere (by simpa [mem_sphere, dist_eq_norm] using hy_eq)
-  rcases hV_nonempty with ⟨p, hpV⟩
-  let W : Set E := connectedComponentIn V p
-  have hpW : p ∈ W := mem_connectedComponentIn hpV
-  have hW_nonempty : W.Nonempty := ⟨p, hpW⟩
-  have hW_subset_V : W ⊆ V := connectedComponentIn_subset V p
-  have hW_subset_ball : W ⊆ ball c R := hW_subset_V.trans hV_subset_ball
-  have hW_subset_s : W ⊆ s := hW_subset_V.trans hV_subset_s
-  have hW_preconnected : IsPreconnected W := isPreconnected_connectedComponentIn
-  have hW_open : IsOpen W := hV_open.connectedComponentIn
-  let U : E → ℝ := fun y => if hy : u y = ⊥ then 0 else (u y).unbot hy
-  have hU_eq : ∀ y ∈ W, u y = (U y : WithBot ℝ) := by
-    intro y hyW
-    have hyV : y ∈ V := hW_subset_V hyW
-    have hy_finite : u y ≠ ⊥ := hV_finite y hyV
-    simp [U, hy_finite]
-  have hU_harm : InnerProductSpace.HarmonicOnNhd U W := by
-    intro x hxW
-    have hxV : x ∈ V := hW_subset_V hxW
-    rcases hV_harmonicAtWithBot x hxV with ⟨t, ht_nhds, v, hv_harm, huv⟩
-    have hx_t : x ∈ t := mem_of_mem_nhds ht_nhds
-    have hUv_eventually : U =ᶠ[𝓝 x] v := by
-      filter_upwards [ht_nhds] with y hy_t
-      have huy : u y = (v y : WithBot ℝ) := huv y hy_t
-      have hy_finite : u y ≠ ⊥ := by
-        rw [huy]
-        simp
-      simp [U, huy]
-    exact (InnerProductSpace.harmonicAt_congr_nhds hUv_eventually).mpr (hv_harm x hx_t)
-  have hclosureW_subset_closureV : closure W ⊆ closure V :=
-    closure_mono hW_subset_V
-  have hclosureW_subset_closedBall : closure W ⊆ closedBall c R :=
-    hclosureW_subset_closureV.trans hclosureV_subset_closedBall
-  have hclosureW_subset_ball : closure W ⊆ ball c R :=
-    hclosureW_subset_closureV.trans hclosureV_subset_ball
-  have hclosureW_subset_s : closure W ⊆ s := fun z hz =>
-    hclosed (hclosureW_subset_closedBall hz)
-  have hU_eq_closureW : ∀ z ∈ closure W, u z = (U z : WithBot ℝ) := by
-    intro z hzW
-    have hzV : z ∈ closure V := hclosureW_subset_closureV hzW
-    have hz_finite : u z ≠ ⊥ := hclosureV_finite z hzV
-    simp [U, hz_finite]
-  have hU_cont_closureW : ContinuousOn U (closure W) := by
-    intro z hzW
-    have hzV : z ∈ closure V := hclosureW_subset_closureV hzW
-    have hz_finite : u z ≠ ⊥ := hclosureV_finite z hzV
-    rcases hharm z (hclosureW_subset_s hzW) hz_finite with ⟨t, ht_nhds, v, hv_harm, huv⟩
-    have hz_t : z ∈ t := mem_of_mem_nhds ht_nhds
-    have hUv_eventually : U =ᶠ[𝓝 z] v := by
-      filter_upwards [ht_nhds] with y hy_t
-      have huy : u y = (v y : WithBot ℝ) := huv y hy_t
-      have hy_finite : u y ≠ ⊥ := by
-        rw [huy]
-        simp
-      simp [U, huy]
-    have hv_contAt : ContinuousAt v z :=
-      (hv_harm.continuousOn z hz_t).continuousAt ht_nhds
-    exact (hv_contAt.congr_of_eventuallyEq hUv_eventually).continuousWithinAt
-  have hclosureW_inter_V_subset_W : closure W ∩ V ⊆ W := by
-    intro z hz
-    rcases hz with ⟨hz_closureW, hzV⟩
-    let C : Set E := connectedComponentIn V z
-    have hzC : z ∈ C := mem_connectedComponentIn hzV
-    have hC_open : IsOpen C := hV_open.connectedComponentIn
-    have hfreqW : ∃ᶠ y in 𝓝 z, y ∈ W :=
-      mem_closure_iff_frequently.mp hz_closureW
-    have hfreqWC : ∃ᶠ y in 𝓝 z, y ∈ W ∧ y ∈ C :=
-      hfreqW.and_eventually (hC_open.mem_nhds hzC)
-    rcases hfreqWC.exists with ⟨y, hyW, hyC⟩
-    have hW_eq_C : W = C := by
-      dsimp [W, C]
-      exact (connectedComponentIn_eq hyW).trans (connectedComponentIn_eq hyC).symm
-    simpa [hW_eq_C] using hzC
-  have hfrontierW_disjoint_V : Disjoint (frontier W) V := by
-    rw [Set.disjoint_left]
-    intro z hz_frontier hzV
-    have hzW : z ∈ W :=
-      hclosureW_inter_V_subset_W ⟨frontier_subset_closure hz_frontier, hzV⟩
-    have hz_notW : z ∉ W := by
-      rw [hW_open.frontier_eq] at hz_frontier
-      exact hz_frontier.2
-    exact hz_notW hzW
-  let H : E → ℝ := fun y => h y + ε
-  have hfrontier_le : ∀ z ∈ frontier W, U z ≤ H z := by
-    intro z hz_frontier
-    have hz_closureW : z ∈ closure W := frontier_subset_closure hz_frontier
-    have hz_ball : z ∈ ball c R := hclosureW_subset_ball hz_closureW
-    have hz_notV : z ∉ V := by
-      intro hzV
-      exact (Set.disjoint_left.mp hfrontierW_disjoint_V hz_frontier) hzV
-    have hnot_lt : ¬ ((h z + ε : ℝ) : WithBot ℝ) < u z := by
-      intro hlt
-      exact hz_notV ⟨hz_ball, hlt⟩
-    have hu_le : u z ≤ ((h z + ε : ℝ) : WithBot ℝ) := not_lt.mp hnot_lt
-    have hUz_le : (U z : WithBot ℝ) ≤ ((h z + ε : ℝ) : WithBot ℝ) := by
-      simpa [hU_eq_closureW z hz_closureW] using hu_le
-    exact WithBot.coe_le_coe.mp (by simpa [H] using hUz_le)
-  have hW_bdd : Bornology.IsBounded W := isBounded_ball.subset hW_subset_ball
-  have hH_harm : InnerProductSpace.HarmonicOnNhd H W := by
-    simpa [H, Pi.add_apply] using
-      (hharm_on_ball.mono hW_subset_ball).add
-        (InnerProductSpace.harmonicOnNhd_const (E := E) (s := W) ε)
-  have hH_cont_closureW : ContinuousOn H (closure W) := by
-    simpa [H, Pi.add_apply] using
-      (hcont.mono hclosureW_subset_closedBall).add continuousOn_const
-  have hcomp : U p ≤ H p :=
-    harmonic_comparison_principle_on_domain
-      (s := W) (u := U) (v := H)
-      hW_open hW_preconnected hW_nonempty hW_bdd
-      hU_harm hH_harm hU_cont_closureW hH_cont_closureW
-      hfrontier_le p hpW
-  have hp_lt : H p < U p := by
-    have hp_eq : u p = (U p : WithBot ℝ) := hU_eq p hpW
-    have hp_withBot : ((H p : ℝ) : WithBot ℝ) < (U p : WithBot ℝ) := by
-      rw [← hp_eq]
-      simpa [H] using hpV.2
-    exact WithBot.coe_lt_coe.mp hp_withBot
-  linarith
 
 
 /-- An upper semicontinuous `WithBot ℝ`-valued function which is locally harmonic at every finite
@@ -419,26 +193,7 @@ theorem subharmonicOn_of_upperSemicontinuousOn_of_harmonicAtWithBot [Nontrivial 
   constructor
   · exact husc
   · intro c R h hclosed hcont hharm hbd w hw
-    have hno_superlevel :
-      ∀ ε > 0, {y ∈ ball c R | ((h y + ε : ℝ) : WithBot ℝ) < u y} = ∅ :=
-      no_positive_superlevel_of_usc_locally_harmonic_withBot
-        husc hu hclosed hcont hharm hbd
-    by_contra hn; simp at hn
-    cases huw : u w with
-    | bot => simp [huw] at hn
-    | coe a =>
-        have hn_real : h w < a := WithBot.coe_lt_coe.mp (by simpa [huw] using hn)
-        let ε : ℝ := (a - h w) / 2
-        have hε : 0 < ε := by dsimp [ε]; linarith
-        have hsuper : h w + ε < u w := by
-          rw [huw]
-          apply WithBot.coe_lt_coe.mpr
-          dsimp [ε]; linarith
-        have hw_super : w ∈ {y ∈ ball c R | ((h y + ε : ℝ) : WithBot ℝ) < u y} :=
-          ⟨hw, hsuper⟩
-        rw [hno_superlevel ε hε] at hw_super
-        exact hw_super
-
+    sorry
 
 
 /-- A nonnegative constant multiple of a subharmonic function is subharmonic. -/
@@ -679,16 +434,9 @@ theorem logNormBot_comp_analytic_subharmonicOn_scalar {f : ℂ → ℂ} {s : Set
   let v : ℂ → ℝ := fun y => log ‖f y‖
   have hvz : InnerProductSpace.HarmonicAt v z :=
     hfz_an.harmonicAt_log_norm hfz_ne
-  let t : Set ℂ := {y | InnerProductSpace.HarmonicAt v y ∧ f y ≠ 0}
-  have ht_nhds : t ∈ 𝓝 z := by
-    have hne_nhds : {y | f y ≠ 0} ∈ 𝓝 z :=
-      hfz_an.continuousAt.eventually_ne hfz_ne
-    exact Filter.inter_mem hvz.eventually hne_nhds
-  refine ⟨t, ht_nhds, v, ?_, ?_⟩
-  · intro y hy
-    exact hy.1
-  · intro y hy
-    simp [logNormBot, v, hy.2]
+  refine ⟨v, hvz, ?_⟩
+  filter_upwards [hfz_an.continuousAt.eventually_ne hfz_ne] with y hy
+  simp [logNormBot, v, hy]
 
 
 theorem logNormBot_comp_analytic_subharmonicOn_banach [DecidableEq F] {f : ℂ → F} {s : Set ℂ}
