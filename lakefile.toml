@@ -9,7 +9,7 @@ pp.unicode.fun = true # pretty-prints `fun a ↦ b`
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.29.1"
+rev = "b4384330e5b9d7268e11d3136e669205994fa74a"
 
 [[lean_lib]]
 name = "HardySpaceFormalization"

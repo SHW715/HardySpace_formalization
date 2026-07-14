@@ -142,7 +142,8 @@ theorem ballAverage_intervalIntegral_comm
     exact (le_of_lt (by simpa [Metric.mem_ball] using hy)).trans (le_abs_self r)
   have hint : Integrable (Function.uncurry (fun θ w => Φ w θ))
       ((volume.restrict (Set.uIoc a b)).prod (volume.restrict (ball x r))) := by
-    simpa [Function.uncurry, IntegrableOn, Measure.prod_restrict] using hsmall_int
+    rw [Measure.prod_restrict]
+    exact hsmall_int
   unfold ballAverage
   conv_rhs => rw [intervalIntegral.integral_smul]
   have hfub := MeasureTheory.intervalIntegral_integral_swap
@@ -229,9 +230,11 @@ theorem harmonicOnNhd_poissonIntegral (hf : ContinuousOn f (sphere c R)) :
     refine harmonicOnNhd_circleAverage_of_harmonicOnNhd (E := E) (R := R) (c := c)
       (s := ball c R) hR (isOpen_ball) hcont ?_
     intro z hz
-    simpa [Function.comp_apply] using
+    convert
       (harmonicOnNhd_poissonKernel (c := c) (R := R) (w := z) hz).comp_CLM
-        (ContinuousLinearMap.toSpanSingleton ℝ (f z) : ℝ →L[ℝ] E)
+        (ContinuousLinearMap.toSpanSingleton ℝ (f z) : ℝ →L[ℝ] E) using 1
+    ext w
+    simp [Function.comp_apply]
   · intro w hw
     simp at hR
     have hw_dist_lt : dist w c < R := by simpa [Metric.mem_ball] using hw

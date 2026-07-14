@@ -220,7 +220,11 @@ theorem SubharmonicOn.const_mul [Nontrivial E] {p : ℝ} (hp : 0 ≤ p) (hu : Su
       have hscaled_cont : ContinuousOn hscaled (closedBall x r) := by
         simpa [hscaled] using hcont.const_mul p⁻¹
       have hscaled_harm : InnerProductSpace.HarmonicOnNhd hscaled (ball x r) := by
-        simpa [hscaled, Pi.smul_apply, smul_eq_mul] using hharm.const_smul (c := p⁻¹)
+        have hscaled_eq : hscaled = p⁻¹ • h := by
+          funext z
+          simp [hscaled, smul_eq_mul]
+        rw [hscaled_eq]
+        exact hharm.const_smul (c := p⁻¹)
       have hbd_scaled : ∀ z ∈ sphere x r, u z ≤ (hscaled z : WithBot ℝ) := by
         intro z hz
         cases huz : u z with
@@ -323,8 +327,11 @@ lemma exp_poisson_log_le_harmonic {c w : ℂ} {R : ℝ} {h : ℂ → ℝ}
       hR_nonneg hP_nonneg hP_avg hP_cont hψ_cont
   have hH_contcl := InnerProductSpace.HarmonicContOnCl.mk_ball hharm hcont
   have hP_H_avg : circleAverage (fun z : ℂ => P z * h z) c R = h w := by
-    simpa [P, Pi.smul_apply, smul_eq_mul] using
-      InnerProductSpace.HarmonicContOnCl.circleAverage_poissonKernel_smul hH_contcl hw
+    have hfun : (fun z : ℂ => P z * h z) = poissonKernel c w * h := by
+      funext z
+      simp [P]
+    rw [hfun]
+    exact InnerProductSpace.HarmonicContOnCl.circleAverage_poissonKernel_smul hH_contcl hw
   have hright_eq : circleAverage (fun z : ℂ => P z * exp (ψ z)) c R = h w := by
     rw [← hP_H_avg]
     apply circleAverage_congr_sphere
@@ -370,7 +377,11 @@ theorem SubharmonicOn.expBot_comp {u : ℂ → WithBot ℝ} {s : Set ℂ} (hu : 
       rw [hH_poisson w hw]
       refine exp_poisson_log_le_harmonic ?_ ?_ ?_ hw
       . fun_prop
-      . simpa [Pi.add_apply] using hharm.add (InnerProductSpace.harmonicOnNhd_const ε)
+      . have hfun : (fun z => h z + ε) = h + fun _ => ε := by
+          funext z
+          rfl
+        rw [hfun]
+        exact hharm.add (InnerProductSpace.harmonicOnNhd_const ε)
       . intro z hz; linarith [h_nonneg z hz]
     exact WithBot.coe_le_coe.mpr (le_of_forall_pos_le_add hle_add_eps)
 
@@ -486,3 +497,6 @@ theorem logNormBot_comp_analytic_subharmonicOn_gen [DecidableEq F] {f : E → F}
 theorem norm_rpow_comp_analytic_subharmonicOn_gen {f : E → F} {p : ℝ}
   (hs : IsOpen s) (hf : AnalyticOn ℂ f s) (hp : 0 < p) :
   SubharmonicOn (fun z => ((‖f z‖ ^ p : ℝ) : WithBot ℝ)) s := sorry
+
+
+

@@ -18,7 +18,8 @@ Poisson integral. -/
 /-- If a kernel is bounded above by `K` on a circle and `g` is nonnegative there, then
 the circle average of `kernel * g` is bounded by `K` times the circle average of `g`. -/
 lemma circleAverage_kernel_mul_le_const_mul_circleAverage
-    {R : ℝ≥0} {K : ℝ} {kernel g : ℂ → ℝ}
+    {R K : ℝ} {kernel g : ℂ → ℝ}
+    (hR : 0 ≤ R)
     (hg : CircleIntegrable g 0 R)
     (hkg : CircleIntegrable (fun ξ : ℂ => kernel ξ * g ξ) 0 R)
     (hg_nonneg : ∀ ξ ∈ sphere (0 : ℂ) R, 0 ≤ g ξ)
@@ -30,7 +31,7 @@ lemma circleAverage_kernel_mul_le_const_mul_circleAverage
   refine circleAverage_mono hkg ?_ ?_
   . simpa [smul_eq_mul] using (CircleIntegrable.const_fun_smul (a := K) hg)
   . intro z hz
-    have hzR : z ∈ sphere (0 : ℂ) R := by simp_all
+    have hzR : z ∈ sphere (0 : ℂ) R := by simpa [abs_of_nonneg hR] using hz
     exact mul_le_mul_of_nonneg_right (hK z hzR) (hg_nonneg z hzR)
 
 -- Now we give an upper bound for Poisson kernel:
@@ -96,10 +97,13 @@ lemma circleAverage_norm_rpow_eq_eLpNormFixed_toReal_rpow
   have hcoeff : (ENNReal.ofReal (1 / (2 * π))).toReal = 1 / (2 * π) :=
     ENNReal.toReal_ofReal (by positivity)
   rw [hcoeff]
-  ring_nf
-  congr 1
-  refine intervalIntegral.integral_congr fun θ _ => ?_
-  simp [mul_comm]
+  have hintegral :
+      (∫ θ in 0..2 * π, ‖f (R * exp (θ * I))‖ ^ p.toReal) =
+        ∫ θ in 0..2 * π, ‖f (R * exp (I * θ))‖ ^ p.toReal := by
+    refine intervalIntegral.integral_congr (E := ℝ) fun θ _ => ?_
+    simp [mul_comm]
+  rw [hintegral]
+  ring
 
 /-- If `f` is continuous on the unit disc, then `‖f‖ ^ q` is continuous on every circle
 of radius `R < 1`. -/
@@ -208,10 +212,10 @@ lemma norm_eval_le_const_mul_hardyNorm_of_mem_closedBall {p : ℝ≥0∞} {r : �
   have hkernel_average : circleAverage (fun ξ : ℂ => poissonKernel 0 z ξ * ‖f ξ‖ ^ q) 0 R ≤
         K * circleAverage (fun ξ : ℂ => ‖f ξ‖ ^ q) 0 R := by
     exact circleAverage_kernel_mul_le_const_mul_circleAverage
-      (R := ⟨R, hR_pos.le⟩) (K := K)
+      (R := R) (K := K)
       (kernel := fun ξ : ℂ => poissonKernel 0 z ξ)
       (g := fun ξ : ℂ => ‖f ξ‖ ^ q)
-      hbase hweighted
+      hR_pos.le hbase hweighted
       (fun ξ hξ => Real.rpow_nonneg (norm_nonneg _) _)
       (by simpa using hkernel_bound)
   have hcircle_hardy : ENNReal.ofReal (circleAverage (fun ξ : ℂ => ‖f ξ‖ ^ q) 0 R) ≤
@@ -236,7 +240,7 @@ lemma norm_eval_le_const_mul_hardyNorm_of_mem_closedBall {p : ℝ≥0∞} {r : �
   have h_eval :
       ‖f z‖ₑ ≤ ENNReal.ofReal (K ^ q⁻¹) * hardyNorm f p := by
     have h_eval_q : ‖f z‖ₑ ^ q ≤ ENNReal.ofReal K * (hardyNorm f p) ^ q := by
-      rw [← ofReal_norm_eq_enorm,
+      rw [← ofReal_norm,
         ENNReal.ofReal_rpow_of_nonneg (norm_nonneg _) hq_pos.le]
       simpa [q] using h_eval_rpow
     refine (ENNReal.rpow_le_rpow_iff hq_pos).mp ?_
@@ -248,8 +252,7 @@ lemma norm_eval_le_const_mul_hardyNorm_of_mem_closedBall {p : ℝ≥0∞} {r : �
         rw [← ENNReal.ofReal_rpow_of_nonneg hK_nonneg (inv_nonneg.mpr hq_pos.le)]
         rw [ENNReal.rpow_inv_rpow hq_pos.ne']
   have hC_coe : (C : ℝ≥0∞) = ENNReal.ofReal (K ^ q⁻¹) := by
-    rw [ENNReal.coe_nnreal_eq]
-    simp [C]
+    exact ENNReal.coe_nnreal_eq C
   simpa [hC_coe] using h_eval
 
 /-- Point evaluations inside the disc are bounded by the Hardy norm. -/

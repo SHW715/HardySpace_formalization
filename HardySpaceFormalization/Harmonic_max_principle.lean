@@ -149,7 +149,7 @@ lemma isOpen_maxLevelSet_of_harmonicOnNhd_isMaxOn_general
   refine ⟨r, hr_pos, ?_⟩
   intro y hy
   have hy_ball : (y : E) ∈ ball (x : E) r := by
-    simpa [Metric.mem_ball] using hy
+    simpa only [Metric.mem_ball, Subtype.dist_eq] using hy
   have hclosed_sub : closedBall (x : E) r ⊆ s := hr_sub
   have hmean : ballAverage v (x : E) r = v (x : E) := by
     have hR : |r| = r := abs_of_pos hr_pos

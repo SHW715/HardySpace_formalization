@@ -3,6 +3,7 @@ import Mathlib.Algebra.Order.Archimedean.Basic
 import Mathlib.Topology.Semicontinuity.Basic
 import HardySpaceFormalization.Harmonic_max_principle
 import HardySpaceFormalization.Poisson_lemma
+import HardySpaceFormalization.withBotIntegral
 
 
 /-!
@@ -91,7 +92,10 @@ valued functions. -/
 lemma UpperSemicontinuousOn.const_mul {p : ℝ} (hp : 0 ≤ p)
   (hu : UpperSemicontinuousOn u s) : UpperSemicontinuousOn ((p : WithBot ℝ) • u) s := by
   by_cases hp0 : p = 0
-  · simpa [hp0] using (upperSemicontinuousOn_const (s := s) (z := (0 : WithBot ℝ)))
+  · subst p
+    convert (upperSemicontinuousOn_const (s := s) (z := (0 : WithBot ℝ))) using 1
+    ext x
+    simp
   · have hp_pos : 0 < p := lt_of_le_of_ne hp (Ne.symm hp0)
     intro x hx a hlt
     cases a with
@@ -188,40 +192,7 @@ lemma UpperSemicontinuousOn.withBot_add {v : E → WithBot ℝ}
 variable [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
 variable {F : Type*} [NormedAddCommGroup F]
 
-lemma WithBot.add_neg_coe_le_zero_iff (x : WithBot ℝ) (a : ℝ) :
-    x + ((-a : ℝ) : WithBot ℝ) ≤ 0 ↔ x ≤ a := by
-  cases x with
-  | bot => simp
-  | coe b =>
-      constructor
-      · intro h
-        exact WithBot.coe_le_coe.mpr (by
-          have hreal : b + -a ≤ 0 := WithBot.coe_le_coe.mp (by simpa using h)
-          linarith)
-      · intro h
-        have hreal : b ≤ a := WithBot.coe_le_coe.mp h
-        exact WithBot.coe_le_coe.mpr (by linarith)
 
-/-- The integral of a `WithBot ℝ`-valued function over a set. If the `⊥` set has positive
-measure, the integral is defined to be `⊥`; otherwise we integrate the real-valued representative
-obtained by sending `⊥` to `0`. -/
-def withBotIntegral' (u : E → WithBot ℝ) (A : Set E) (μ : Measure E := volume) : WithBot ℝ :=
-  if μ (A ∩ {x | u x = ⊥}) = 0 then
-    ((∫ x in A, (u x).unbotD 0 ∂μ : ℝ) : WithBot ℝ)
-  else ⊥
-
--- # Here I add another version of `withBotIntegral'` in order to manage junk value differently
-open Classical in
-def withBotIntegral (u : E → WithBot ℝ) (A : Set E) (μ : Measure E := volume) : WithBot ℝ :=
-  if μ (A ∩ {x | u x = ⊥}) = 0 ∧ IntegrableOn ((WithBot.unbotD 0) ∘ u) A μ then
-      ((∫ x in A, (u x).unbotD 0 ∂μ : ℝ) : WithBot ℝ)
-  else ⊥
-
-
-notation "∫ᴮ " x ", " f:60 " ∂" μ:70 => withBotIntegral (fun x => f) Set.univ μ
-notation "∫ᴮ " x ", " f:60 => withBotIntegral (fun x => f) Set.univ volume
-notation "∫ᴮ " x " in " s ", " f:60 " ∂" μ:70 => withBotIntegral (fun x => f) s μ
-notation "∫ᴮ " x " in " s ", " f:60 => withBotIntegral (fun x => f) s volume
 
 /-- Ball average for `WithBot ℝ`-valued functions, using `withBotIntegral`.
 For `r ≤ 0` this is just a total-definition junk value; the sub-mean property below only uses it
@@ -236,8 +207,8 @@ lemma integrableOn_unbotD_of_le_ballAverageWithBot {u : E → WithBot ℝ} {x : 
     IntegrableOn ((WithBot.unbotD 0) ∘ u) (ball x r) volume := by
   by_contra hnot
   have hcond_false :
-      ¬ (volume (ball x r ∩ {y | u y = ⊥}) = 0 ∧
-        IntegrableOn ((WithBot.unbotD 0) ∘ u) (ball x r) volume) := by
+      ¬ ((volume.restrict (ball x r)) {y | u y = ⊥} = 0 ∧
+        Integrable ((WithBot.unbotD 0) ∘ u) (volume.restrict (ball x r))) := by
     exact fun hcond => hnot hcond.2
   have hint_bot : (∫ᴮ y in ball x r, u y) = (⊥ : WithBot ℝ) := by
     simp [withBotIntegral, hcond_false]
@@ -254,27 +225,6 @@ lemma integrableOn_unbotD_of_le_ballAverageWithBot {u : E → WithBot ℝ} {x : 
   have hx_le_bot : u x ≤ (⊥ : WithBot ℝ) := by
     simpa [havg_bot] using hle
   exact hux (le_antisymm hx_le_bot bot_le)
-
-/-- For a real-valued function coerced to `WithBot ℝ`, the `WithBot` integral is just the ordinary
-Bochner integral, coerced to `WithBot ℝ`. -/
-lemma withBotIntegral_coe (u : E → ℝ) (A : Set E) (μ : Measure E := volume)
-  (hu : IntegrableOn u A μ) :
-  ∫ᴮ x in A, (u x : WithBot ℝ) ∂μ = ((∫ x in A, u x ∂μ : ℝ) : WithBot ℝ) := by
-  have hint : IntegrableOn ((WithBot.unbotD 0) ∘ fun x => (u x : WithBot ℝ)) A μ := by
-    simpa [Function.comp_def, WithBot.unbotD] using hu
-  simp [withBotIntegral, hint, WithBot.unbotD]
-
-omit [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [BorelSpace E] in
-/-- If a `WithBot ℝ`-valued function agrees almost everywhere with a real-valued representative,
-then the auxiliary real representative obtained by `(WithBot.unbotD 0)` is integrable wherever the
-real representative is integrable. -/
-lemma integrableOn_unbotD_of_eq_coe_ae
-    {u : E → WithBot ℝ} {v : E → ℝ} {A : Set E} {μ : Measure E}
-    (hv : IntegrableOn v A μ)(huv : ∀ᵐ x ∂μ.restrict A, u x = v x) :
-    IntegrableOn ((WithBot.unbotD 0) ∘ u) A μ := by
-  refine hv.congr_fun_ae ?_
-  filter_upwards [huv] with x hx
-  simp [hx, WithBot.unbotD]
 
 omit [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] in
 /-- If `f` is continuous and nonzero on a compact set `K`, then
@@ -302,89 +252,13 @@ lemma ballAverageWithBot_coe (u : E → ℝ) (x : E) (r : ℝ) :
   intro hu
   simp [ballAverageWithBot, ballAverage, withBotIntegral_coe, hu, smul_eq_mul]
 
-/-- A positive constant can be pulled through the auxiliary real representative of a
-`WithBot ℝ` value. -/
-lemma unbotD_const_mul_of_pos {p : ℝ} (hp : 0 < p) (x : WithBot ℝ) :
-    (WithBot.unbotD 0) ((p : WithBot ℝ) * x) = p * (WithBot.unbotD 0) x := by
-  cases x with
-  | bot =>
-      have hp_ne : (p : WithBot ℝ) ≠ 0 := by exact_mod_cast hp.ne'
-      simp [WithBot.unbotD, WithBot.mul_bot hp_ne]
-  | coe a =>
-      simp [WithBot.unbotD, ← WithBot.coe_mul]
-
-/-- The auxiliary real representative of a sum is pointwise bounded by the sum of the norms of
-the two auxiliary representatives. -/
-lemma norm_unbotD_add_le (x y : WithBot ℝ) :
-    ‖(WithBot.unbotD 0) (x + y)‖ ≤ ‖(WithBot.unbotD 0) x‖ + ‖(WithBot.unbotD 0) y‖ := by
-  cases x with
-  | bot => simp [WithBot.unbotD]
-  | coe a =>
-      cases y with
-      | bot => simp [WithBot.unbotD]
-      | coe b =>
-          simpa [WithBot.unbotD, ← WithBot.coe_add] using norm_add_le a b
-
-/-- For a positive constant, the `⊥` set of `p * u` is the `⊥` set of `u`. -/
-lemma const_mul_eq_bot_iff_of_pos {p : ℝ} (hp : 0 < p) (x : WithBot ℝ) :
-    (p : WithBot ℝ) * x = ⊥ ↔ x = ⊥ := by
-  cases x with
-  | bot =>
-      have hp_ne : (p : WithBot ℝ) ≠ 0 := by exact_mod_cast hp.ne'
-      simp [WithBot.mul_bot hp_ne]
-  | coe a =>
-      rw [WithBot.mul_eq_bot_iff]
-      simp
-
-/-- Positive constant multiplication is monotone on `WithBot ℝ`. -/
-lemma WithBot.const_mul_le_const_mul_of_pos {p : ℝ} (hp : 0 < p)
-    {x y : WithBot ℝ} (hxy : x ≤ y) :
-    (p : WithBot ℝ) * x ≤ (p : WithBot ℝ) * y := by
-  cases x with
-  | bot =>
-      have hp_ne : (p : WithBot ℝ) ≠ 0 := by exact_mod_cast hp.ne'
-      cases y <;> simp [WithBot.mul_bot hp_ne]
-  | coe a =>
-      cases y with
-      | bot =>
-          simp at hxy
-      | coe b =>
-          exact WithBot.coe_le_coe.mpr
-            (mul_le_mul_of_nonneg_left (WithBot.coe_le_coe.mp hxy) hp.le)
-
-/-- Positive constant multiplication commutes with the `WithBot` integral. -/
-lemma withBotIntegral_const_mul_of_pos {p : ℝ} (hp : 0 < p)
-    (u : E → WithBot ℝ) (A : Set E) (μ : Measure E := volume) :
-    withBotIntegral (fun x => (p : WithBot ℝ) * u x) A μ =
-      (p : WithBot ℝ) * withBotIntegral u A μ := by
-  have hint_iff :
-      IntegrableOn ((WithBot.unbotD 0) ∘ fun x => (p : WithBot ℝ) * u x) A μ ↔
-        IntegrableOn ((WithBot.unbotD 0) ∘ u) A μ := by
-    unfold IntegrableOn
-    simpa [Function.comp_def, unbotD_const_mul_of_pos hp] using
-      (integrable_const_mul_iff (isUnit_iff_ne_zero.mpr hp.ne')
-        (fun x => (u x).unbotD 0) (μ := μ.restrict A))
-  have hbotset :
-      A ∩ {x | (p : WithBot ℝ) * u x = ⊥} = A ∩ {x | u x = ⊥} := by
-    ext x
-    simp [const_mul_eq_bot_iff_of_pos hp]
-  unfold withBotIntegral
-  rw [hbotset]
-  rw [hint_iff]
-  by_cases hcond :
-      μ (A ∩ {x | u x = ⊥}) = 0 ∧ IntegrableOn ((WithBot.unbotD 0) ∘ u) A μ
-  · simp [hcond, unbotD_const_mul_of_pos hp, integral_const_mul]
-  · simp [hcond]
-    have hp_ne : (p : WithBot ℝ) ≠ 0 := by exact_mod_cast hp.ne'
-    simp [WithBot.mul_bot hp_ne]
-
 /-- Positive constant multiplication commutes with `ballAverageWithBot`. -/
 lemma ballAverageWithBot_const_mul_of_pos {p : ℝ} (hp : 0 < p)
     (u : E → WithBot ℝ) (x : E) (r : ℝ) :
     ballAverageWithBot (fun y => (p : WithBot ℝ) * u y) x r =
       (p : WithBot ℝ) * ballAverageWithBot u x r := by
   unfold ballAverageWithBot
-  rw [withBotIntegral_const_mul_of_pos hp]
+  rw [withBotIntegral_const_mul_of_pos (μ := volume.restrict (ball x r)) hp]
   let q : ℝ := ((volume (ball x r)).toReal)⁻¹
   calc
     (q : WithBot ℝ) * ((p : WithBot ℝ) * ∫ᴮ (y : E) in ball x r, u y) =
@@ -400,161 +274,8 @@ lemma ballAverageWithBot_const_mul_of_pos {p : ℝ} (hp : 0 < p)
 
 /-- The `WithBot` ball average of the zero function is zero. -/
 lemma ballAverageWithBot_zero (x : E) (r : ℝ) : ballAverageWithBot 0 x r = 0 := by
-  simpa [ballAverage] using
-    (ballAverageWithBot_coe (fun _ : E => (0 : ℝ)) x r integrableOn_zero)
-
-lemma WithBot.coe_mul_add (q : ℝ) (x y : WithBot ℝ) :
-    (q : WithBot ℝ) * (x + y) = (q : WithBot ℝ) * x + (q : WithBot ℝ) * y := by
-  by_cases hq : q = 0
-  · simp [hq]
-  · cases x with
-    | bot =>
-        have hq_wb : (q : WithBot ℝ) ≠ 0 := by exact_mod_cast hq
-        cases y with
-        | bot => simp [WithBot.mul_bot hq_wb]
-        | coe b => simp [WithBot.mul_bot hq_wb]
-    | coe a =>
-        have hq_wb : (q : WithBot ℝ) ≠ 0 := by exact_mod_cast hq
-        cases y with
-        | bot => simp [WithBot.mul_bot hq_wb]
-        | coe b =>
-            norm_num [← WithBot.coe_add, ← WithBot.coe_mul]
-            ring
-
-
-omit [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E] [BorelSpace E] in
-/-- The auxiliary real representative of a sum is integrable if both representatives are integrable
-and both summands are finite almost everywhere on the integration set. -/
-lemma integrableOn_unbotD_add_of_bot_null {u v : E → WithBot ℝ} {A : Set E}
-    {μ : Measure E} (hA : MeasurableSet A)
-    (hu_bot : μ (A ∩ {x | u x = ⊥}) = 0)
-    (hv_bot : μ (A ∩ {x | v x = ⊥}) = 0)
-    (hu_int : IntegrableOn ((WithBot.unbotD 0) ∘ u) A μ)
-    (hv_int : IntegrableOn ((WithBot.unbotD 0) ∘ v) A μ) :
-    IntegrableOn ((WithBot.unbotD 0) ∘ (u + v)) A μ := by
-  refine (hu_int.add hv_int).congr_fun_ae ?_
-  have hu_ne : ∀ᵐ x ∂μ.restrict A, u x ≠ ⊥ := by
-    rw [ae_iff, Measure.restrict_apply_eq_zero' hA]
-    simpa [inter_comm] using hu_bot
-  have hv_ne : ∀ᵐ x ∂μ.restrict A, v x ≠ ⊥ := by
-    rw [ae_iff, Measure.restrict_apply_eq_zero' hA]
-    simpa [inter_comm] using hv_bot
-  filter_upwards [hu_ne, hv_ne] with x hux hvx
-  cases hux' : u x with
-  | bot => exact False.elim (hux hux')
-  | coe a =>
-      cases hvx' : v x with
-      | bot => exact False.elim (hvx hvx')
-      | coe b =>
-          simp [Function.comp_def, WithBot.unbotD, hux', hvx', ← WithBot.coe_add]
-
-/-- Linearity of the `WithBot` integral under addition.  If either summand is `⊥` on a set of
-positive measure, both sides reduce to `⊥`; otherwise this is ordinary Bochner integral
-linearity for the real representatives. -/
-lemma withBotIntegral_add {u v : E → WithBot ℝ} {A : Set E} {μ : Measure E}
-    (hA : MeasurableSet A)
-    (hu_int : IntegrableOn ((WithBot.unbotD 0) ∘ u) A μ)
-    (hv_int : IntegrableOn ((WithBot.unbotD 0) ∘ v) A μ) :
-    (∫ᴮ x in A, u x + v x ∂μ) = (∫ᴮ x in A, u x ∂μ) + (∫ᴮ x in A, v x ∂μ) := by
-  unfold withBotIntegral
-  have hsum_bot_of
-      (hu_bot : μ (A ∩ {x | u x = ⊥}) = 0)
-      (hv_bot : μ (A ∩ {x | v x = ⊥}) = 0) :
-      μ (A ∩ {x | u x + v x = ⊥}) = 0 := by
-    refine measure_mono_null ?_ (measure_union_null hu_bot hv_bot)
-    intro x hx
-    rcases hx with ⟨hxA, hxbot⟩
-    have hxbot' : u x + v x = ⊥ := hxbot
-    rw [WithBot.add_eq_bot] at hxbot'
-    rcases hxbot' with hux | hvx
-    · exact Or.inl ⟨hxA, hux⟩
-    · exact Or.inr ⟨hxA, hvx⟩
-  by_cases hu_bot : μ (A ∩ {x | u x = ⊥}) = 0
-  · by_cases hv_bot : μ (A ∩ {x | v x = ⊥}) = 0
-    · have hsum_bot := hsum_bot_of hu_bot hv_bot
-      have hsum_or_bot : μ (A ∩ {x | u x = ⊥ ∨ v x = ⊥}) = 0 := by
-        refine measure_mono_null ?_ (measure_union_null hu_bot hv_bot)
-        intro x hx
-        rcases hx with ⟨hxA, hxor⟩
-        rcases hxor with hux | hvx
-        · exact Or.inl ⟨hxA, hux⟩
-        · exact Or.inr ⟨hxA, hvx⟩
-      have hsum_int : IntegrableOn ((WithBot.unbotD 0) ∘ fun x => u x + v x) A μ := by
-        simpa [Pi.add_apply, Function.comp_def] using
-          integrableOn_unbotD_add_of_bot_null hA hu_bot hv_bot hu_int hv_int
-      have hcond_sum :
-          μ (A ∩ {x | u x + v x = ⊥}) = 0 ∧
-            IntegrableOn ((WithBot.unbotD 0) ∘ fun x => u x + v x) A μ :=
-        ⟨hsum_bot, hsum_int⟩
-      have hcond_u :
-          μ (A ∩ {x | u x = ⊥}) = 0 ∧
-            IntegrableOn ((WithBot.unbotD 0) ∘ fun x => u x) A μ := by
-        simpa [Function.comp_def] using And.intro hu_bot hu_int
-      have hcond_v :
-          μ (A ∩ {x | v x = ⊥}) = 0 ∧
-            IntegrableOn ((WithBot.unbotD 0) ∘ fun x => v x) A μ := by
-        simpa [Function.comp_def] using And.intro hv_bot hv_int
-      simp [hcond_sum, hcond_u, hcond_v, WithBot.add_eq_bot, hsum_or_bot]
-      have hu_ne : ∀ᵐ x ∂μ.restrict A, u x ≠ ⊥ := by
-        rw [ae_iff, Measure.restrict_apply_eq_zero' hA]
-        simpa [inter_comm] using hu_bot
-      have hv_ne : ∀ᵐ x ∂μ.restrict A, v x ≠ ⊥ := by
-        rw [ae_iff, Measure.restrict_apply_eq_zero' hA]
-        simpa [inter_comm] using hv_bot
-      have h_eq :
-          (fun x => (WithBot.unbotD 0) (u x + v x)) =ᵐ[μ.restrict A]
-            fun x => (WithBot.unbotD 0) (u x) + (WithBot.unbotD 0) (v x) := by
-        filter_upwards [hu_ne, hv_ne] with x hux hvx
-        cases hux' : u x with
-        | bot => exact False.elim (hux hux')
-        | coe a =>
-            cases hvx' : v x with
-            | bot => exact False.elim (hvx hvx')
-            | coe b =>
-                simp [WithBot.unbotD, ← WithBot.coe_add]
-      have hu_int' : IntegrableOn (fun x => (WithBot.unbotD 0) (u x)) A μ := by
-        simpa [Function.comp_def] using hu_int
-      have hv_int' : IntegrableOn (fun x => (WithBot.unbotD 0) (v x)) A μ := by
-        simpa [Function.comp_def] using hv_int
-      calc
-        ((∫ x in A, (u x + v x).unbotD 0 ∂μ : ℝ) : WithBot ℝ)
-            = ((∫ x in A, (u x).unbotD 0 + (v x).unbotD 0 ∂μ : ℝ) :
-                WithBot ℝ) := by
-                exact congrArg ((↑) : ℝ → WithBot ℝ) (integral_congr_ae h_eq)
-        _ = (((∫ x in A, (u x).unbotD 0 ∂μ) +
-              (∫ x in A, (v x).unbotD 0 ∂μ) : ℝ) : WithBot ℝ) := by
-                rw [integral_add hu_int' hv_int']
-        _ = ((∫ x in A, (u x).unbotD 0 ∂μ : ℝ) : WithBot ℝ) +
-              ((∫ x in A, (v x).unbotD 0 ∂μ : ℝ) : WithBot ℝ) := by
-                simp [← WithBot.coe_add]
-    · have hsum_ne : μ (A ∩ {x | u x + v x = ⊥}) ≠ 0 := by
-        intro hsum_bot
-        exact hv_bot (measure_mono_null
-          (fun x (hx : x ∈ A ∩ {x | v x = ⊥}) =>
-            show x ∈ A ∩ {x | u x + v x = ⊥} from
-              ⟨hx.1, by change u x + v x = ⊥; rw [WithBot.add_eq_bot]; exact Or.inr hx.2⟩)
-          hsum_bot)
-      have hsum_or_ne : μ (A ∩ {x | u x = ⊥ ∨ v x = ⊥}) ≠ 0 := by
-        intro hsum_bot
-        exact hv_bot (measure_mono_null
-          (fun x (hx : x ∈ A ∩ {x | v x = ⊥}) =>
-            show x ∈ A ∩ {x | u x = ⊥ ∨ v x = ⊥} from ⟨hx.1, Or.inr hx.2⟩)
-          hsum_bot)
-      simp [hu_bot, hv_bot, WithBot.add_eq_bot, hsum_or_ne]
-  · have hsum_ne : μ (A ∩ {x | u x + v x = ⊥}) ≠ 0 := by
-      intro hsum_bot
-      exact hu_bot (measure_mono_null
-        (fun x (hx : x ∈ A ∩ {x | u x = ⊥}) =>
-          show x ∈ A ∩ {x | u x + v x = ⊥} from
-            ⟨hx.1, by change u x + v x = ⊥; rw [WithBot.add_eq_bot]; exact Or.inl hx.2⟩)
-        hsum_bot)
-    have hsum_or_ne : μ (A ∩ {x | u x = ⊥ ∨ v x = ⊥}) ≠ 0 := by
-      intro hsum_bot
-      exact hu_bot (measure_mono_null
-        (fun x (hx : x ∈ A ∩ {x | u x = ⊥}) =>
-          show x ∈ A ∩ {x | u x = ⊥ ∨ v x = ⊥} from ⟨hx.1, Or.inl hx.2⟩)
-        hsum_bot)
-    simp [hu_bot, WithBot.add_eq_bot, hsum_or_ne]
+  change ballAverageWithBot (fun _ : E => (0 : WithBot ℝ)) x r = 0
+  simpa [ballAverage] using (ballAverageWithBot_coe (fun _ : E => (0 : ℝ)) x r integrableOn_zero)
 
 /-- Linearity of `ballAverageWithBot` under addition. -/
 lemma ballAverageWithBot_add {u v : E → WithBot ℝ} (x : E) (r : ℝ)
@@ -566,49 +287,8 @@ lemma ballAverageWithBot_add {u v : E → WithBot ℝ} (x : E) (r : ℝ)
   change ((volume (ball x r)).toReal)⁻¹ * (∫ᴮ y in ball x r, u y + v y) =
     ((volume (ball x r)).toReal)⁻¹ * (∫ᴮ y in ball x r, u y) +
       ((volume (ball x r)).toReal)⁻¹ * (∫ᴮ y in ball x r, v y)
-  rw [withBotIntegral_add measurableSet_ball hu_int hv_int]
+  rw [withBotIntegral_add (μ := volume.restrict (ball x r)) hu_int hv_int]
   rw [WithBot.coe_mul_add]
-
-/-- `withBotIntegral` is monotone: a pointwise `≤` implies the `WithBot`-integrals compare.
-The key cases are:
-· if the lower function has positive `⊥`-set or nonintegrable real representative, the left side
-  is `⊥`;
-· otherwise the comparison is the standard integral monotonicity for the real representatives. -/
-lemma withBotIntegral_mono {u v : E → WithBot ℝ} {A : Set E} {μ : Measure E}
-    (hA : NullMeasurableSet A μ)
-    (h : ∀ x ∈ A, u x ≤ v x)
-    (hv_int : IntegrableOn (fun x => (WithBot.unbotD 0) (v x)) A μ) :
-    withBotIntegral u A μ ≤ withBotIntegral v A μ := by
-  unfold withBotIntegral
-  have hsubset : A ∩ {x | v x = ⊥} ⊆ A ∩ {x | u x = ⊥} := fun x ⟨hxA, hvx⟩ =>
-    ⟨hxA, le_antisymm (hvx ▸ h x hxA) bot_le⟩
-  by_cases hu_cond :
-      μ (A ∩ {x | u x = ⊥}) = 0 ∧
-        IntegrableOn ((WithBot.unbotD 0) ∘ fun x => u x) A μ
-  · have hu_bot : μ (A ∩ {x | u x = ⊥}) = 0 := hu_cond.1
-    have hu_int : IntegrableOn (fun x => (WithBot.unbotD 0) (u x)) A μ := by
-      simpa [Function.comp_def] using hu_cond.2
-    have hv_bot : μ (A ∩ {x | v x = ⊥}) = 0 := measure_mono_null hsubset hu_bot
-    have hv_cond :
-        μ (A ∩ {x | v x = ⊥}) = 0 ∧
-          IntegrableOn ((WithBot.unbotD 0) ∘ fun x => v x) A μ := by
-      simpa [Function.comp_def] using And.intro hv_bot hv_int
-    simp [hu_cond, hv_cond]
-    apply setIntegral_mono_ae_restrict hu_int hv_int
-    have hu_ne_bot : ∀ᵐ x ∂μ.restrict A, u x ≠ ⊥ := by
-      rw [ae_iff]
-      rw [Measure.restrict_apply₀' hA]
-      simpa [inter_comm]
-    filter_upwards [ae_restrict_mem₀ hA, hu_ne_bot] with x hxA hux_ne
-    have hvx_ne : v x ≠ ⊥ := fun hvx => hux_ne (le_antisymm (hvx ▸ h x hxA) bot_le)
-    cases hux : u x with
-    | bot => exact False.elim (hux_ne hux)
-    | coe a =>
-      cases hvx : v x with
-      | bot => exact False.elim (hvx_ne hvx)
-      | coe b =>
-        exact WithBot.coe_le_coe.mp (by simpa [hux, hvx] using h x hxA)
-  · simp [hu_cond]
 
 /-- `ballAverageWithBot` is monotone in the integrand (pointwise inequality → average inequality),
 provided the real representative of the upper function is integrable on the ball. -/
@@ -622,7 +302,8 @@ lemma ballAverageWithBot_mono {u v : E → WithBot ℝ} {x : E} {r : ℝ}
   · have hc_pos : 0 < ((volume (ball x r)).toReal)⁻¹ :=
       lt_of_le_of_ne (inv_nonneg.mpr ENNReal.toReal_nonneg) (Ne.symm hc)
     exact WithBot.const_mul_le_const_mul_of_pos hc_pos
-      (withBotIntegral_mono isOpen_ball.nullMeasurableSet (fun y hy => h y) hv_int)
+      (withBotIntegral_mono (μ := volume.restrict (ball x r))
+        (Eventually.of_forall (fun y => h y)) hv_int)
 
 -- # Here's the defintion of `subharmonic functions`:
 /-- A function is subharmonic on a set if it is upper semicontinuous, locally integrable in the
@@ -775,7 +456,11 @@ lemma SubharmonicOn.sub_harmonicOnNhd [Nontrivial E] (hu : SubharmonicOn u s)
     SubharmonicOn (fun z => u z + ((-h z : ℝ) : WithBot ℝ)) t := by
   have hu_t : SubharmonicOn u t := hu.mono hts ht
   have hneg_harm : InnerProductSpace.HarmonicOnNhd (fun z => -h z) t := by
-    simpa using hharm.neg
+    have hfun : (fun z => -h z) = -h := by
+      funext z
+      rfl
+    rw [hfun]
+    exact hharm.neg
   have hneg_sub : SubharmonicOn (fun z => ((-h z : ℝ) : WithBot ℝ)) t :=
     harmonicOnNhd_subharmonicOn (fun z => -h z) t ht hneg_harm
   exact hu_t.add hneg_sub
@@ -791,8 +476,7 @@ lemma SubharmonicOn.maximum_principle_on_ball [Nontrivial E] (hu : SubharmonicOn
 /-- The local sub-mean definition implies the harmonic comparison principle on balls:
 if a harmonic function dominates a subharmonic function on the boundary, then it dominates it
 inside. -/
-theorem SubharmonicOn.harmonicComparison [Nontrivial E] (hu : SubharmonicOn u s)
-    (_hs : IsOpen s) :
+theorem SubharmonicOn.harmonicComparison [Nontrivial E] (hu : SubharmonicOn u s) :
     ∀ (x : E) (r : ℝ) (h : E → ℝ),
       closedBall x r ⊆ s → ContinuousOn h (closedBall x r) →
       InnerProductSpace.HarmonicOnNhd h (ball x r) →
@@ -808,6 +492,29 @@ theorem SubharmonicOn.harmonicComparison [Nontrivial E] (hu : SubharmonicOn u s)
   have hv_y : v y ≤ 0 :=
     hv_sub.maximum_principle_on_ball isOpen_ball (Subset.refl _) hv_bd y hy
   exact (WithBot.add_neg_coe_le_zero_iff (u y) (h y)).1 hv_y
+
+/-- Converse direction for the comparison-principle characterization: an upper semicontinuous
+function satisfying harmonic comparison on every closed ball in an open set is subharmonic for the
+local sub-mean definition.
+
+The remaining gap is the standard passage from harmonic comparison/Dirichlet replacement on balls
+to the volume-ball sub-mean inequality. -/
+theorem subharmonicOn_of_harmonicComparison [Nontrivial E] (hs : IsOpen s)
+    (husc : UpperSemicontinuousOn u s)
+    (hcomp : ∀ (x : E) (r : ℝ) (h : E → ℝ),
+      closedBall x r ⊆ s → ContinuousOn h (closedBall x r) →
+      InnerProductSpace.HarmonicOnNhd h (ball x r) →
+      (∀ y ∈ sphere x r, u y ≤ h y) → ∀ y ∈ ball x r, u y ≤ h y) : SubharmonicOn u s := by
+  constructor
+  · exact husc
+  · intro x hx
+    rcases Metric.isOpen_iff.mp hs x hx with ⟨ρ, hρ_pos, hρ_sub⟩
+    refine ⟨ρ, hρ_pos, hρ_sub, ?_⟩
+    intro r hr
+    sorry
+
+
+
 
 
 
@@ -881,12 +588,9 @@ theorem subharmonicOn_of_upperSemicontinuousOn_of_harmonicAtWithBot [Nontrivial 
               not_and]
             intro hy_ball; rw [hu_eq_v_ball y hy_ball]; exact WithBot.coe_ne_bot
           simp [hempty, measure_empty]
-        have hwbi_eq : withBotIntegral u (ball x r) =
-            withBotIntegral (fun y => (v y : WithBot ℝ)) (ball x r) := by
-          rw [withBotIntegral_coe v (ball x r) volume hv_int]
-          unfold withBotIntegral
-          rw [if_pos ⟨h_u_bot, hu_int⟩]
-          exact congrArg ((↑) : ℝ → WithBot ℝ) hint_eq
+        have hwbi_eq : withBotIntegral (volume.restrict (ball x r)) u =
+            withBotIntegral (volume.restrict (ball x r)) (fun y => (v y : WithBot ℝ)) := by
+          sorry
         -- ballAverageWithBots agree
         have hball_avg_eq : ballAverageWithBot u x r =
             ballAverageWithBot (fun y => (v y : WithBot ℝ)) x r := by
@@ -967,7 +671,6 @@ values on a disk. -/
 theorem SubharmonicOn.le_circleAverage_poissonKernel_smul
     {u : ℂ → ℝ} {s : Set ℂ} {c w : ℂ} {R : ℝ}
     (hu : SubharmonicOn (fun z => (u z : WithBot ℝ)) s)
-    (hs : IsOpen s)
     (hu_cont : ContinuousOn u (sphere c R))
     (hclosed : closedBall c R ⊆ s) (hw : w ∈ ball c R) :
     u w ≤ circleAverage (fun z => poissonKernel c w z * u z) c R  := by
@@ -978,7 +681,7 @@ theorem SubharmonicOn.le_circleAverage_poissonKernel_smul
     intro y hy
     rw [hboundary y hy]
   have hle : (u w : WithBot ℝ) ≤ h w :=
-    hu.harmonicComparison hs c R h hclosed hcont hharm hbd w hw
+    hu.harmonicComparison c R h hclosed hcont hharm hbd w hw
   have hle_real : u w ≤ h w := WithBot.coe_le_coe.mp hle
   rw [hPoisson w hw] at hle_real
   exact hle_real

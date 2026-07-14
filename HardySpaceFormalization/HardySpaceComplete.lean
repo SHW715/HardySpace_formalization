@@ -169,7 +169,8 @@ lemma exists_dist_eval_le_const_mul_dist_of_mem_closedBall
   have hpoint : ‖u.1 z‖ₑ ≤ (C : ℝ≥0∞) * hardyNorm u.1 p := hC u.1 z u.2.1 hz
   have hprod_ne_top : (C : ℝ≥0∞) * hardyNorm u.1 p ≠ ∞ :=
     ENNReal.mul_ne_top ENNReal.coe_ne_top (ne_of_lt u.2.2.1)
-  simpa [ENNReal.toReal_mul] using ENNReal.toReal_mono hprod_ne_top hpoint
+  simpa [u, ENNReal.toReal_mul, Pi.neg_apply, Pi.add_apply] using
+    ENNReal.toReal_mono hprod_ne_top hpoint
 
 /-- At each point of the unit disc, point evaluation is Lipschitz with respect to the Hardy
 distance. -/
@@ -187,7 +188,8 @@ lemma exists_dist_eval_le_const_mul_dist {p : ℝ≥0∞} (hp : 1 ≤ p)
   have hpoint : ‖u.1 z‖ₑ ≤ (C : ℝ≥0∞) * hardyNorm u.1 p := hC u.1 u.2.1
   have hprod_ne_top : (C : ℝ≥0∞) * hardyNorm u.1 p ≠ ∞ :=
     ENNReal.mul_ne_top ENNReal.coe_ne_top (ne_of_lt u.2.2.1)
-  simpa [ENNReal.toReal_mul] using ENNReal.toReal_mono hprod_ne_top hpoint
+  simpa [u, ENNReal.toReal_mul, Pi.neg_apply, Pi.add_apply] using
+    ENNReal.toReal_mono hprod_ne_top hpoint
 
 /-- Point evaluation at a fixed point is Lipschitz for the Hardy-norm metric on `HpDisc`.-/
 lemma lipschitz_eval (p : ℝ≥0∞) [Fact (1 ≤ p)] (z : ℂ) :
