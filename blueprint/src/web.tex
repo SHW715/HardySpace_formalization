@@ -1,0 +1,30 @@
+% Web version of the HardySpaceFormalization blueprint.
+
+\documentclass{report}
+
+\usepackage{amssymb, amsthm, amsmath}
+\usepackage{hyperref}
+\usepackage[showmore, dep_graph]{blueprint}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\D}{\mathbb{D}}
+
+\home{https://SHW715.github.io/HardySpace_formalization}
+\github{https://github.com/SHW715/HardySpace_formalization}
+\dochome{https://SHW715.github.io/HardySpace_formalization/docs}
+
+\title{Hardy Space Formalization Blueprint}
+\author{Shuhan Wang}
+
+\begin{document}
+\maketitle
+\input{content}
+\end{document}

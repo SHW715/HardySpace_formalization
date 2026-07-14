@@ -1,4 +1,5 @@
 import HardySpaceFormalization.Subharmonic
+import HardySpaceFormalization.withBotIntegral
 
 
 
@@ -35,18 +36,35 @@ noncomputable def leastHarmonicMajorant (g : V → E) (s : Set V) [LE E]
 
 namespace Subharmonic
 
+def HasHarmonicMajorant' (g : V → WithBot ℝ) (s : Set V) : Prop :=
+  ∃ u : V → ℝ, InnerProductSpace.HarmonicOnNhd u s ∧ ∀ z ∈ s, g z ≤ u z
+
+def IsHarmonicMajorant' (u : V → ℝ) (g : V → WithBot ℝ) (s : Set V) : Prop :=
+    InnerProductSpace.HarmonicOnNhd u s ∧ ∀ z ∈ s, g z ≤ u z
+
+def IsLeastHarmonicMajorant' (u : V → ℝ) (g : V → WithBot ℝ) (s : Set V) : Prop :=
+  IsHarmonicMajorant' u g s ∧ ∀ v : V → ℝ, IsHarmonicMajorant' v g s  → ∀ z ∈ s, u z ≤ v z
+
+open Classical in
+noncomputable def leastHarmonicMajorant' (g : V → WithBot ℝ) (s : Set V)
+  := if h : ∃ u : V → ℝ, IsLeastHarmonicMajorant' u g s then Classical.choose h else 0
+
+
 /-- The normalized radial mean of a function on the circle of radius `r` centered at the origin. -/
 noncomputable def radialMean (v : ℂ → E) (r : ℝ) : E :=
   ∫ θ, v (r * exp (I * θ)) ∂angularMeasure
 
+
+
+
 /- A real-valued subharmonic function on the unit disc has a harmonic majorant if and only if
 its radial means are uniformly bounded above. -/
-/-theorem hasHarmonicMajorant_iff_iSup_radialMean_lt_top
+theorem hasHarmonicMajorant_iff_iSup_radialMean_lt_top
     {v : ℂ → WithBot ℝ}
     (hv : SubharmonicOn v (ball 0 1)) :
-    HasHarmonicMajorant v (ball 0 1) ↔
+    HasHarmonicMajorant' v (ball 0 1) ↔
       (⨆ (r : ℝ) (_ : r ∈ Ioo 0 1), radialMean v r) < ⊤ := by
-  sorry-/
+  sorry
 
 
 

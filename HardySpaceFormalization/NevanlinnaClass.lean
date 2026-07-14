@@ -17,7 +17,7 @@ namespace Nevanlinna
 
 /-- The radial Nevanlinna mean at radius `r`. -/
 def nevanlinnaRadialMean (f : ℂ → ℂ) (r : ℝ) : ℝ≥0∞ :=
-  ∫⁻ θ, ENNReal.ofReal ((log ‖f (r * exp (I * θ))‖)⁺) ∂angularMeasure
+  ∫⁻ θ, ENNReal.ofReal (log ‖f (r * exp (I * θ))‖) ∂angularMeasure
 
 
 

@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+  MathJax = { 
+    tex: {
+		    inlineMath: [['$','$'], ['\\(','\\)']]
+	} }
+</script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
+<meta name="generator" content="plasTeX" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Canonical factorization in the Nevanlinna class</title>
+<link rel="prev" href="index.html" title="Hardy Space Formalization Blueprint" />
+<link rel="up" href="index.html" title="Hardy Space Formalization Blueprint" />
+<link rel="stylesheet" href="styles/theme-white.css" />
+<link rel="stylesheet" href="styles/amsthm.css" />
+<link rel="stylesheet" href="styles/showmore.css" />
+<link rel="stylesheet" href="styles/blueprint.css" />
+<link rel="stylesheet" href="styles/extra_styles.css" />
+</head>
+
+<body>
+<header>
+<svg  id="toc-toggle" class="icon icon-list-numbered "><use xlink:href="symbol-defs.svg#icon-list-numbered"></use></svg>
+<h1 id="doc_title"><a href="index.html">Hardy Space Formalization Blueprint</a></h1>
+</header>
+
+<div class="wrapper">
+<nav class="toc">
+<ul class="sub-toc-0">
+<li class=" active current">
+  <a href="sect0001.html"><span class="toc_ref">1</span> <span class="toc_entry">Canonical factorization in the Nevanlinna class</span></a>
+  <span class="expand-toc">▼</span>
+  <ul class="sub-toc-1 active">
+     <li class="">
+  <a href="sect0001.html#a0000000003"><span class="toc_ref">1.1</span> <span class="toc_entry">Chapter I prerequisites</span></a>
+ </li>
+<li class="">
+  <a href="sect0001.html#a0000000008"><span class="toc_ref">1.2</span> <span class="toc_entry">Chapter II, Section 2: Blaschke products</span></a>
+ </li>
+<li class="">
+  <a href="sect0001.html#a0000000013"><span class="toc_ref">1.3</span> <span class="toc_entry">Chapter II, Section 4: boundary uniqueness and outer functions</span></a>
+ </li>
+<li class="">
+  <a href="sect0001.html#a0000000014"><span class="toc_ref">1.4</span> <span class="toc_entry">Chapter II, Section 5: Nevanlinna class</span></a>
+ </li>
+<li class="">
+  <a href="sect0001.html#a0000000019"><span class="toc_ref">1.5</span> <span class="toc_entry">Singular factors</span></a>
+ </li>
+<li class="">
+  <a href="sect0001.html#a0000000021"><span class="toc_ref">1.6</span> <span class="toc_entry">Final factorization and uniqueness</span></a>
+ </li>
+
+  </ul>
+ </li>
+<li ><a href="dep_graph_document.html">Dependency graph</a></li>
+</ul>
+</nav>
+
+<div class="content">
+<div class="content-wrapper">
+
+
+<div class="main-text">
+<h1 id="a0000000002">1 Canonical factorization in the Nevanlinna class</h1>
+<h1 id="a0000000003">1.1 Chapter I prerequisites</h1>
+<div class="theorem_thmwrapper theorem-style-plain" id="thm:I_5_3">
+  <div class="theorem_thmheading">
+    <span class="theorem_thmcaption">
+    Theorem
+    </span>
+    <span class="theorem_thmlabel">1</span>
+    <span class="theorem_thmtitle">Garnett I.5.3: Fatou theorem, \(p=1\) disc form</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#thm:I_5_3">#</a>
+    
+    
+    <button class="modal"><svg  class="icon icon-mindmap "><use xlink:href="symbol-defs.svg#icon-mindmap"></use></svg>
+</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Uses</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="sect0001.html#lem:I_5_4">Lemma 3</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+    
+        </div>
+  </div>
+  <div class="theorem_thmcontent">
+  <p>   Source: Garnett, Chapter I, Section 5, PDF pages 40–41. Let \(\mu \) be a finite real or complex measure on \(\partial \mathbb {D}\), with Lebesgue decomposition </p>
+<div class="displaymath" id="a0000000004">
+  \[  d\mu (\theta )=f(\theta )\, \frac{d\theta }{2\pi }+d\nu (\theta ), \qquad \nu \perp d\theta .  \]
+</div>
+<p> Then the Poisson integral of \(\mu \) has nontangential boundary values equal to the density of the absolutely continuous part: </p>
+<div class="displaymath" id="a0000000005">
+  \[  \operatorname {nt}\! \lim _{z\to e^{i\theta }}P[\mu ](z)=f(\theta )  \]
+</div>
+<p> for Lebesgue almost every \(\theta \). Garnett states the stronger theorem on the upper half-plane for all \(1\le p\le \infty \); this is the \(p=1\) consequence used later, transported to the disc by a Cayley transform. </p>
+
+  </div>
+</div>
+<div class="theorem_thmwrapper theorem-style-plain" id="thm:I_6_7">
+  <div class="theorem_thmheading">
+    <span class="theorem_thmcaption">
+    Theorem
+    </span>
+    <span class="theorem_thmlabel">2</span>
+    <span class="theorem_thmtitle">Harmonic majorants of subharmonic functions, Garnett I.6.7</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#thm:I_6_7">#</a>
+    
+    
+    
+        </div>
+  </div>
+  <div class="theorem_thmcontent">
+  <p>  Source: Garnett, Chapter I, Section 6, PDF page 36. Let \(v\) be subharmonic on \(\mathbb {D}\). Then \(v\) has a harmonic majorant on \(\mathbb {D}\) if and only if </p>
+<div class="displaymath" id="a0000000006">
+  \[  \sup _{0{\lt}r{\lt}1}\frac{1}{2\pi } \int _0^{2\pi }v(r e^{i\theta })\, d\theta = \sup _{0{\lt}r{\lt}1} v_r(0) {\lt} \infty ,  \]
+</div>
+<p> where \(v_r\) is the Poisson extension to \(|z|{\lt}r\) of the boundary values of \(v\) on \(|z|=r\). When this condition holds, the least harmonic majorant \(u\) of \(v\) is given by </p>
+<div class="displaymath" id="a0000000007">
+  \[  u(z)=\lim _{r\to 1} \frac{1}{2\pi }\int _0^{2\pi } P_{z/r}(\theta )v(r e^{i\theta })\, d\theta =\lim _{r\to 1}v_r(z).  \]
+</div>
+
+  </div>
+</div>
+<div class="lemma_thmwrapper theorem-style-plain" id="lem:I_5_4">
+  <div class="lemma_thmheading">
+    <span class="lemma_thmcaption">
+    Lemma
+    </span>
+    <span class="lemma_thmlabel">3</span>
+    <span class="lemma_thmtitle">Garnett I.5.4: singular Poisson integrals vanish at the boundary</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#lem:I_5_4">#</a>
+    
+    
+    
+        </div>
+  </div>
+  <div class="lemma_thmcontent">
+  <p>  Source: Garnett, Chapter I, Section 5, PDF pages 41–42. If \(\nu \) is a finite measure on \(\mathbb {R}\) singular with respect to Lebesgue measure, then its Poisson integral has nontangential boundary limit zero for Lebesgue almost every boundary point. This is the step that removes the singular part in the \(p=1\) boundary-limit assertion of Theorem&#160;<a href="sect0001.html#thm:I_5_3">1</a>. </p>
+
+  </div>
+</div>
+<h1 id="a0000000008">1.2 Chapter II, Section 2: Blaschke products</h1>
+<div class="theorem_thmwrapper theorem-style-plain" id="thm:II_2_1">
+  <div class="theorem_thmheading">
+    <span class="theorem_thmcaption">
+    Theorem
+    </span>
+    <span class="theorem_thmlabel">4</span>
+    <span class="theorem_thmtitle">Garnett II.2.1: harmonic majorants imply the Blaschke condition</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#thm:II_2_1">#</a>
+    
+    
+    <button class="modal"><svg  class="icon icon-mindmap "><use xlink:href="symbol-defs.svg#icon-mindmap"></use></svg>
+</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Uses</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="sect0001.html#thm:I_6_7">Theorem 2</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+    
+        </div>
+  </div>
+  <div class="theorem_thmcontent">
+  <p>   Source: Garnett, Chapter II, Section 2, PDF page 63. Let \(f\) be a nonzero analytic function on \(\mathbb {D}\), and let \(\{ a_n\} \) be its zeros, counted with multiplicity. If \(\log |f|\) has a harmonic majorant on \(\mathbb {D}\), then </p>
+<div class="displaymath" id="a0000000009">
+  \[  \sum _n (1-|a_n|){\lt}\infty .  \]
+</div>
+<p> Moreover, if \(f(0)\ne 0\) and \(u\) is the least harmonic majorant of \(\log |f|\), then </p>
+<div class="displaymath" id="a0000000010">
+  \[  \sum _n (1-|a_n|) \le u(0)-\log |f(0)|.  \]
+</div>
+<p> By Theorem&#160;<a href="sect0001.html#thm:II_5_1">12</a>, the harmonic-majorant hypothesis is equivalent to \(f\) belonging to the Nevanlinna class \(N\). </p>
+<div class="proof_wrapper" id="a0000000011">
+  <div class="proof_heading">
+    <span class="proof_caption">
+    Proof
+    </span>
+    <span class="expand-proof">▶</span>
+  </div>
+  <div class="proof_content">
+  <p>After removing a possible zero at the origin, fix \(r{\lt}1\) avoiding the moduli of the zeros and divide \(f(rz)\) by the finite Blaschke product with the same zeros. The logarithm of the modulus of the resulting zero-free analytic function is harmonic, so the mean-value formula gives the familiar Jensen identity </p>
+<div class="displaymath" id="a0000000012">
+  \[  \log |f(0)|+\sum _{|a_j|{\lt}r}\log \frac{r}{|a_j|} =\frac{1}{2\pi }\int _0^{2\pi }\log |f(r e^{i\theta })|\, d\theta .  \]
+</div>
+<p> Theorem&#160;<a href="sect0001.html#thm:I_6_7">2</a> identifies the limit of the right-hand side with \(u(0)\). Letting \(r\to 1\) and using \(1-|a_j|\le \log (1/|a_j|)\) proves both conclusions. </p>
+
+  </div>
+</div>
+
+  </div>
+</div>
+<div class="theorem_thmwrapper theorem-style-plain" id="thm:II_2_2">
+  <div class="theorem_thmheading">
+    <span class="theorem_thmcaption">
+    Theorem
+    </span>
+    <span class="theorem_thmlabel">5</span>
+    <span class="theorem_thmtitle">Garnett II.2.2: convergence and boundary size of Blaschke products</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#thm:II_2_2">#</a>
+    
+    
+    
+        </div>
+  </div>
+  <div class="theorem_thmcontent">
+  <p>  Source: Garnett, Chapter II, Section 2, PDF page 64. If \(\{ a_n\} \subset \mathbb {D}\) satisfies the Blaschke condition, then the associated Blaschke product converges uniformly on compact subsets of \(\mathbb {D}\) to a bounded analytic function whose zeros are exactly the \(a_n\) with the prescribed multiplicities, and whose boundary modulus is one almost everywhere. </p>
+
+  </div>
+</div>
+<div class="theorem_thmwrapper theorem-style-plain" id="thm:II_2_4">
+  <div class="theorem_thmheading">
+    <span class="theorem_thmcaption">
+    Theorem
+    </span>
+    <span class="theorem_thmlabel">6</span>
+    <span class="theorem_thmtitle">Garnett II.2.4: division by the Blaschke factor</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#thm:II_2_4">#</a>
+    
+    
+    <button class="modal"><svg  class="icon icon-mindmap "><use xlink:href="symbol-defs.svg#icon-mindmap"></use></svg>
+</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Uses</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="sect0001.html#thm:I_6_7">Theorem 2</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+    
+        </div>
+  </div>
+  <div class="theorem_thmcontent">
+  <p>   Source: Garnett, Chapter II, Section 2, PDF page 66. Let \(B\) be the Blaschke product built from part or all of the zero sequence of an analytic function \(f\). Dividing by \(B\) removes those zeros without increasing the relevant Hardy or boundary-size quantity; in particular the quotient remains in the same Hardy class in the applications used below. </p>
+
+  </div>
+</div>
+<div class="definition_thmwrapper theorem-style-definition" id="def:blaschke_factor">
+  <div class="definition_thmheading">
+    <span class="definition_thmcaption">
+    Definition
+    </span>
+    <span class="definition_thmlabel">7</span>
+    <span class="definition_thmtitle">Lean Blaschke factors</span>
+    <div class="thm_header_extras">
+
+    
+    ✓
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#def:blaschke_factor">#</a>
+    
+    
+    <button class="modal"><svg  class="icon icon-mindmap "><use xlink:href="symbol-defs.svg#icon-mindmap"></use></svg>
+</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Uses</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="sect0001.html#thm:II_2_1">Theorem 4</a></li>
+          
+          <li><a href="sect0001.html#thm:II_2_2">Theorem 5</a></li>
+          
+          <li><a href="sect0001.html#thm:II_2_4">Theorem 6</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+    
+    <button class="modal lean">L∃∀N</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Lean declarations</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="https://SHW715.github.io/HardySpace_formalization/docs/find/#doc/BlaschkeFactor" class="lean_decl">BlaschkeFactor</a></li>
+          
+          <li><a href="https://SHW715.github.io/HardySpace_formalization/docs/find/#doc/normedBlaschkeFactor" class="lean_decl">normedBlaschkeFactor</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+        </div>
+  </div>
+  <div class="definition_thmcontent">
+  <p>    The current Lean project has the one-zero Blaschke factors. The later formalization target is to define infinite Blaschke products, prove compact convergence, prove the a.e. boundary-modulus theorem, and prove the quotient theorem needed for Hardy and Nevanlinna functions. </p>
+
+  </div>
+</div>
+<h1 id="a0000000013">1.3 Chapter II, Section 4: boundary uniqueness and outer functions</h1>
+<div class="corollary_thmwrapper theorem-style-plain" id="cor:II_4_2">
+  <div class="corollary_thmheading">
+    <span class="corollary_thmcaption">
+    Corollary
+    </span>
+    <span class="corollary_thmlabel">8</span>
+    <span class="corollary_thmtitle">Garnett II.4.2: boundary uniqueness in \(H^p\)</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#cor:II_4_2">#</a>
+    
+    
+    
+        </div>
+  </div>
+  <div class="corollary_thmcontent">
+  <p>  Source: Garnett, Chapter II, Section 4, PDF page 75. Let \(0{\lt}p\le \infty \) and let \(f\in H^p(\mathbb {D})\). If the boundary function of \(f\) vanishes on a subset of \(\partial \mathbb {D}\) of positive Lebesgue measure, then \(f\) is identically zero. </p>
+
+  </div>
+</div>
+<div class="theorem_thmwrapper theorem-style-plain" id="thm:II_4_4">
+  <div class="theorem_thmheading">
+    <span class="theorem_thmcaption">
+    Theorem
+    </span>
+    <span class="theorem_thmlabel">9</span>
+    <span class="theorem_thmtitle">Garnett II.4.4: construction from logarithmic data</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#thm:II_4_4">#</a>
+    
+    
+    
+        </div>
+  </div>
+  <div class="theorem_thmcontent">
+  <p>  Source: Garnett, Chapter II, Section 4, PDF page 75. Given a nonnegative boundary function \(\varphi \) with \(\log \varphi \in L^1(\partial \mathbb {D})\), there is an outer analytic function \(F\) on \(\mathbb {D}\) whose a.e. boundary modulus is \(\varphi \). Equivalently, \(F\) is obtained by exponentiating the analytic function whose real part is the Poisson integral of \(\log \varphi \). </p>
+
+  </div>
+</div>
+<div class="theorem_thmwrapper theorem-style-plain" id="thm:outer_uniqueness">
+  <div class="theorem_thmheading">
+    <span class="theorem_thmcaption">
+    Theorem
+    </span>
+    <span class="theorem_thmlabel">10</span>
+    <span class="theorem_thmtitle">Outer uniqueness</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#thm:outer_uniqueness">#</a>
+    
+    
+    
+        </div>
+  </div>
+  <div class="theorem_thmcontent">
+  <p>  If two outer functions have the same boundary modulus almost everywhere, then their quotient is a unimodular constant. Equivalently, the boundary modulus determines the outer factor up to the expected constant. </p>
+
+  </div>
+</div>
+<div class="definition_thmwrapper theorem-style-definition" id="def:outer_factor">
+  <div class="definition_thmheading">
+    <span class="definition_thmcaption">
+    Definition
+    </span>
+    <span class="definition_thmlabel">11</span>
+    <span class="definition_thmtitle">Outer factor</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#def:outer_factor">#</a>
+    
+    
+    <button class="modal"><svg  class="icon icon-mindmap "><use xlink:href="symbol-defs.svg#icon-mindmap"></use></svg>
+</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Uses</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="sect0001.html#thm:II_4_4">Theorem 9</a></li>
+          
+          <li><a href="sect0001.html#thm:outer_uniqueness">Theorem 10</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+    
+        </div>
+  </div>
+  <div class="definition_thmcontent">
+  <p>   The outer factor \(F\) in the Nevanlinna factorization is the zero-free analytic factor built from the absolutely continuous part of the boundary measure representing the least harmonic majorant. </p>
+
+  </div>
+</div>
+<h1 id="a0000000014">1.4 Chapter II, Section 5: Nevanlinna class</h1>
+<div class="theorem_thmwrapper theorem-style-plain" id="thm:II_5_1">
+  <div class="theorem_thmheading">
+    <span class="theorem_thmcaption">
+    Theorem
+    </span>
+    <span class="theorem_thmlabel">12</span>
+    <span class="theorem_thmtitle">Garnett II.5.1: harmonic-majorant characterization of \(N\)</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#thm:II_5_1">#</a>
+    
+    
+    <button class="modal"><svg  class="icon icon-mindmap "><use xlink:href="symbol-defs.svg#icon-mindmap"></use></svg>
+</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Uses</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="sect0001.html#thm:log_abs_subharmonic">Theorem 13</a></li>
+          
+          <li><a href="sect0001.html#thm:I_6_7">Theorem 2</a></li>
+          
+          <li><a href="sect0001.html#thm:positive_harmonic_poisson_measure">Theorem 14</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+    
+        </div>
+  </div>
+  <div class="theorem_thmcontent">
+  <p>   Source: Garnett, Chapter II, Section 5, PDF page 78. For an analytic function \(f\) on \(\mathbb {D}\), the following are equivalent: \(f\) belongs to the Nevanlinna class \(N\), and the subharmonic function \(\log |f|\) admits a harmonic majorant on \(\mathbb {D}\). When such a majorant exists, there is a least harmonic majorant. </p>
+
+  </div>
+</div>
+<div class="theorem_thmwrapper theorem-style-plain" id="thm:log_abs_subharmonic">
+  <div class="theorem_thmheading">
+    <span class="theorem_thmcaption">
+    Theorem
+    </span>
+    <span class="theorem_thmlabel">13</span>
+    <span class="theorem_thmtitle">Logarithm of modulus is subharmonic</span>
+    <div class="thm_header_extras">
+
+    
+    ✓
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#thm:log_abs_subharmonic">#</a>
+    
+    <a class="icon proof" href="sect0001.html#a0000000015"><svg  class="icon icon-cogs "><use xlink:href="symbol-defs.svg#icon-cogs"></use></svg>
+</a>
+    
+    
+    
+    <button class="modal lean">L∃∀N</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Lean declarations</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="https://SHW715.github.io/HardySpace_formalization/docs/find/#doc/logNormBot_comp_analytic_subharmonicOn_scalar" class="lean_decl">logNormBot_comp_analytic_subharmonicOn_scalar</a></li>
+          
+          <li><a href="https://SHW715.github.io/HardySpace_formalization/docs/find/#doc/logNormBot_comp_analytic_subharmonicOn_banach" class="lean_decl">logNormBot_comp_analytic_subharmonicOn_banach</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+        </div>
+  </div>
+  <div class="theorem_thmcontent">
+  <p>   If \(f\) is analytic on an open subset of \(\mathbb {C}\), then \(z\mapsto \log \lVert f(z)\rVert \), interpreted as \(-\infty \) at zeros, is subharmonic there. This has been formalized both for complex-valued functions and, more generally, for functions taking values in a complex Banach space. </p>
+<div class="proof_wrapper" id="a0000000015">
+  <div class="proof_heading">
+    <span class="proof_caption">
+    Proof
+    </span>
+    <span class="expand-proof">▶</span>
+  </div>
+  <div class="proof_content">
+  <p> The Lean proofs are complete in the declarations linked above. </p>
+
+  </div>
+</div>
+
+  </div>
+</div>
+<div class="theorem_thmwrapper theorem-style-plain" id="thm:positive_harmonic_poisson_measure">
+  <div class="theorem_thmheading">
+    <span class="theorem_thmcaption">
+    Theorem
+    </span>
+    <span class="theorem_thmlabel">14</span>
+    <span class="theorem_thmtitle">Garnett I.3.5(c): positive harmonic functions as Poisson integrals, disc form</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#thm:positive_harmonic_poisson_measure">#</a>
+    
+    
+    
+        </div>
+  </div>
+  <div class="theorem_thmcontent">
+  <p>  Source: Garnett, Chapter I, Section 3, Theorem 3.5(c), especially the disc-version argument in its proof, printed pages 17–19 (PDF pages approximately 29–31). If \(u\) is a positive harmonic function on \(\mathbb {D}\), then there is a finite positive measure \(\mu \) on \(\partial \mathbb {D}\) such that \(u=P[\mu ]\). Conversely, the Poisson integral of any finite positive boundary measure is positive and harmonic. </p>
+
+  </div>
+</div>
+<div class="lemma_thmwrapper theorem-style-plain" id="lem:II_5_2">
+  <div class="lemma_thmheading">
+    <span class="lemma_thmcaption">
+    Lemma
+    </span>
+    <span class="lemma_thmlabel">15</span>
+    <span class="lemma_thmtitle">Garnett II.5.2: remove the zeros of a Nevanlinna function</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#lem:II_5_2">#</a>
+    
+    
+    <button class="modal"><svg  class="icon icon-mindmap "><use xlink:href="symbol-defs.svg#icon-mindmap"></use></svg>
+</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Uses</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="sect0001.html#thm:II_5_1">Theorem 12</a></li>
+          
+          <li><a href="sect0001.html#thm:II_2_1">Theorem 4</a></li>
+          
+          <li><a href="sect0001.html#thm:II_2_2">Theorem 5</a></li>
+          
+          <li><a href="sect0001.html#thm:II_2_4">Theorem 6</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+    
+        </div>
+  </div>
+  <div class="lemma_thmcontent">
+  <p>   Source: Garnett, Chapter II, Section 5, PDF page 78. Let \(f\in N\) be nonzero and let \(B\) be the Blaschke product formed from the zeros of \(f\), counted with multiplicity. Then \(B\) converges, the quotient \(g=f/B\) is analytic and zero-free on \(\mathbb {D}\), and \(g\) still belongs to the Nevanlinna class. Moreover, \(\log |g|\) is the least harmonic majorant of \(\log |f|\) on \(\mathbb {D}\). </p>
+
+  </div>
+</div>
+<div class="corollary_thmwrapper theorem-style-plain" id="cor:II_3_2">
+  <div class="corollary_thmheading">
+    <span class="corollary_thmcaption">
+    Corollary
+    </span>
+    <span class="corollary_thmlabel">16</span>
+    <span class="corollary_thmtitle">Garnett II.3.2: \(H^\infty \) boundary values, disc form</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#cor:II_3_2">#</a>
+    
+    
+    
+        </div>
+  </div>
+  <div class="corollary_thmcontent">
+  <p>  Source: Garnett, Chapter II, Section 3, PDF page 67. Every bounded analytic function on \(\mathbb {D}\) has nontangential boundary limits almost everywhere, and the resulting boundary function has essential supremum bounded by the analytic supremum norm. This is the forward direction of the \(p=\infty \) case of Corollary II.3.2, transported from the upper half-plane to the disc by a Cayley transform. </p>
+
+  </div>
+</div>
+<div class="theorem_thmwrapper theorem-style-plain" id="thm:II_5_3">
+  <div class="theorem_thmheading">
+    <span class="theorem_thmcaption">
+    Theorem
+    </span>
+    <span class="theorem_thmlabel">17</span>
+    <span class="theorem_thmtitle">Garnett II.5.3: boundary values and the least-majorant measure</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#thm:II_5_3">#</a>
+    
+    
+    <button class="modal"><svg  class="icon icon-mindmap "><use xlink:href="symbol-defs.svg#icon-mindmap"></use></svg>
+</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Uses</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="sect0001.html#thm:II_5_1">Theorem 12</a></li>
+          
+          <li><a href="sect0001.html#lem:II_5_2">Lemma 15</a></li>
+          
+          <li><a href="sect0001.html#thm:I_5_3">Theorem 1</a></li>
+          
+          <li><a href="sect0001.html#cor:II_3_2">Corollary 16</a></li>
+          
+          <li><a href="sect0001.html#cor:II_4_2">Corollary 8</a></li>
+          
+          <li><a href="sect0001.html#thm:positive_harmonic_poisson_measure">Theorem 14</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+    
+        </div>
+  </div>
+  <div class="theorem_thmcontent">
+  <p>   Source: Garnett, Chapter II, Section 5, PDF page 79. If \(f\in N\) and \(f\) is not identically zero, then \(f\) has nontangential boundary values \(f(e^{i\theta })\) almost everywhere, and </p>
+<div class="displaymath" id="a0000000016">
+  \[  \log |f(e^{i\theta })|\in L^1(d\theta ).  \]
+</div>
+<p> If \(u\) is the least harmonic majorant of \(\log |f|\), then </p>
+<div class="displaymath" id="a0000000017">
+  \[  u(z)=\int _{0}^{2\pi }P_z(\theta )\, d\mu (\theta ),  \]
+</div>
+<p> where the finite real representing measure has the decomposition </p>
+<div class="displaymath" id="a0000000018">
+  \[  d\mu (\theta ) =\log |f(e^{i\theta })|\, \frac{d\theta }{2\pi }+d\mu _s(\theta ),  \]
+</div>
+<p> with \(\mu _s\) singular with respect to Lebesgue measure. </p>
+
+  </div>
+</div>
+<h1 id="a0000000019">1.5 Singular factors</h1>
+<div class="theorem_thmwrapper theorem-style-plain" id="thm:jordan_decomposition_singular_measure">
+  <div class="theorem_thmheading">
+    <span class="theorem_thmcaption">
+    Theorem
+    </span>
+    <span class="theorem_thmlabel">18</span>
+    <span class="theorem_thmtitle">Jordan decomposition of singular measures</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#thm:jordan_decomposition_singular_measure">#</a>
+    
+    
+    
+        </div>
+  </div>
+  <div class="theorem_thmcontent">
+  <p>  If \(\nu \) is a finite real signed measure on \(\partial \mathbb {D}\) and is singular with respect to Lebesgue measure, then its Jordan decomposition \(\nu =\nu ^+-\nu ^-\) has \(\nu ^+\) and \(\nu ^-\) finite positive singular measures. </p>
+
+  </div>
+</div>
+<div class="definition_thmwrapper theorem-style-definition" id="def:singular_function_formula">
+  <div class="definition_thmheading">
+    <span class="definition_thmcaption">
+    Definition
+    </span>
+    <span class="definition_thmlabel">19</span>
+    <span class="definition_thmtitle">Singular function formula</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#def:singular_function_formula">#</a>
+    
+    
+    
+        </div>
+  </div>
+  <div class="definition_thmcontent">
+  <p>  For a finite positive singular measure \(\sigma \) on \(\partial \mathbb {D}\), the associated singular function is the analytic exponential </p>
+<div class="displaymath" id="a0000000020">
+  \[  S_\sigma (z)=\exp \left(-\int _{\partial \mathbb {D}} \frac{\zeta +z}{\zeta -z}\, d\sigma (\zeta )\right).  \]
+</div>
+<p> It is bounded by one in the disc and has boundary modulus one almost everywhere. </p>
+
+  </div>
+</div>
+<div class="definition_thmwrapper theorem-style-definition" id="def:singular_factors">
+  <div class="definition_thmheading">
+    <span class="definition_thmcaption">
+    Definition
+    </span>
+    <span class="definition_thmlabel">20</span>
+    <span class="definition_thmtitle">Singular factors</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#def:singular_factors">#</a>
+    
+    
+    <button class="modal"><svg  class="icon icon-mindmap "><use xlink:href="symbol-defs.svg#icon-mindmap"></use></svg>
+</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Uses</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="sect0001.html#thm:jordan_decomposition_singular_measure">Theorem 18</a></li>
+          
+          <li><a href="sect0001.html#def:singular_function_formula">Definition 19</a></li>
+          
+          <li><a href="sect0001.html#lem:I_5_4">Lemma 3</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+    
+        </div>
+  </div>
+  <div class="definition_thmcontent">
+  <p>   If the singular part of the representing measure is \(\nu _s=\nu _s^+-\nu _s^-\), then the canonical factorization uses the two singular functions \(S_1=S_{\nu _s^+}\) and \(S_2=S_{\nu _s^-}\). </p>
+
+  </div>
+</div>
+<h1 id="a0000000021">1.6 Final factorization and uniqueness</h1>
+<div class="theorem_thmwrapper theorem-style-plain" id="thm:zeros_determine_blaschke">
+  <div class="theorem_thmheading">
+    <span class="theorem_thmcaption">
+    Theorem
+    </span>
+    <span class="theorem_thmlabel">21</span>
+    <span class="theorem_thmtitle">Zeros determine the Blaschke factor</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#thm:zeros_determine_blaschke">#</a>
+    
+    
+    
+        </div>
+  </div>
+  <div class="theorem_thmcontent">
+  <p>  The multiset of zeros in \(\mathbb {D}\) determines the associated Blaschke product up to the chosen unimodular normalization. With a fixed convention for elementary factors, the product is uniquely determined. </p>
+
+  </div>
+</div>
+<div class="theorem_thmwrapper theorem-style-plain" id="thm:boundary_modulus_determines_outer">
+  <div class="theorem_thmheading">
+    <span class="theorem_thmcaption">
+    Theorem
+    </span>
+    <span class="theorem_thmlabel">22</span>
+    <span class="theorem_thmtitle">Boundary modulus determines the outer factor</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#thm:boundary_modulus_determines_outer">#</a>
+    
+    
+    <button class="modal"><svg  class="icon icon-mindmap "><use xlink:href="symbol-defs.svg#icon-mindmap"></use></svg>
+</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Uses</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="sect0001.html#thm:outer_uniqueness">Theorem 10</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+    
+        </div>
+  </div>
+  <div class="theorem_thmcontent">
+  <p>   If two outer functions have the same a.e. boundary modulus, then they differ by multiplication by a constant of modulus one. </p>
+
+  </div>
+</div>
+<div class="theorem_thmwrapper theorem-style-plain" id="thm:singular_measure_determines_factors">
+  <div class="theorem_thmheading">
+    <span class="theorem_thmcaption">
+    Theorem
+    </span>
+    <span class="theorem_thmlabel">23</span>
+    <span class="theorem_thmtitle">Singular measure determines singular factors</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#thm:singular_measure_determines_factors">#</a>
+    
+    
+    <button class="modal"><svg  class="icon icon-mindmap "><use xlink:href="symbol-defs.svg#icon-mindmap"></use></svg>
+</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Uses</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="sect0001.html#def:singular_factors">Definition 20</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+    
+        </div>
+  </div>
+  <div class="theorem_thmcontent">
+  <p>   The positive and negative singular parts of the representing measure determine \(S_1\) and \(S_2\). Conversely, equality of the corresponding singular functions forces equality of the singular measures, modulo the normalization convention. </p>
+
+  </div>
+</div>
+<div class="theorem_thmwrapper theorem-style-plain" id="thm:nevanlinna_factorization_uniqueness">
+  <div class="theorem_thmheading">
+    <span class="theorem_thmcaption">
+    Theorem
+    </span>
+    <span class="theorem_thmlabel">24</span>
+    <span class="theorem_thmtitle">Uniqueness of Nevanlinna factorization</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#thm:nevanlinna_factorization_uniqueness">#</a>
+    
+    
+    <button class="modal"><svg  class="icon icon-mindmap "><use xlink:href="symbol-defs.svg#icon-mindmap"></use></svg>
+</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Uses</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="sect0001.html#thm:zeros_determine_blaschke">Theorem 21</a></li>
+          
+          <li><a href="sect0001.html#thm:boundary_modulus_determines_outer">Theorem 22</a></li>
+          
+          <li><a href="sect0001.html#thm:singular_measure_determines_factors">Theorem 23</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+    
+        </div>
+  </div>
+  <div class="theorem_thmcontent">
+  <p>   In the canonical factorization, the Blaschke factor is determined by the zero multiset, the outer factor by the a.e. boundary modulus, and the singular factors by the singular part of the representing measure. The only remaining ambiguity is the conventional unimodular constant. </p>
+
+  </div>
+</div>
+<div class="theorem_thmwrapper theorem-style-plain" id="thm:nevanlinna_canonical_factorization">
+  <div class="theorem_thmheading">
+    <span class="theorem_thmcaption">
+    Theorem
+    </span>
+    <span class="theorem_thmlabel">25</span>
+    <span class="theorem_thmtitle">Garnett II.5.5: canonical factorization in \(N\)</span>
+    <div class="thm_header_extras">
+
+        </div>
+    <div class="thm_header_hidden_extras">
+
+    <a class="icon proof" href="sect0001.html#thm:nevanlinna_canonical_factorization">#</a>
+    
+    <a class="icon proof" href="sect0001.html#a0000000022"><svg  class="icon icon-cogs "><use xlink:href="symbol-defs.svg#icon-cogs"></use></svg>
+</a>
+    
+    
+    <button class="modal"><svg  class="icon icon-mindmap "><use xlink:href="symbol-defs.svg#icon-mindmap"></use></svg>
+</button>
+        <div class="modal-container">
+      <div class="modal-content">
+        <header>
+          <h1>Uses</h1>
+          <button class="closebtn"><svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        </header>
+        
+        <ul class="uses">
+          
+          <li><a href="sect0001.html#thm:II_5_1">Theorem 12</a></li>
+          
+          <li><a href="sect0001.html#lem:II_5_2">Lemma 15</a></li>
+          
+          <li><a href="sect0001.html#thm:II_5_3">Theorem 17</a></li>
+          
+          <li><a href="sect0001.html#def:outer_factor">Definition 11</a></li>
+          
+          <li><a href="sect0001.html#def:singular_factors">Definition 20</a></li>
+          
+          <li><a href="sect0001.html#thm:nevanlinna_factorization_uniqueness">Theorem 24</a></li>
+          
+        </ul>
+    
+      </div>
+    </div>
+
+    
+    
+        </div>
+  </div>
+  <div class="theorem_thmcontent">
+  <p>   Source: Garnett, Chapter II, Section 5, PDF page 83. If \(f\in N\) and \(f\) is not identically zero, then there exist a unimodular constant \(C\), a Blaschke product \(B\), an outer function \(F\), and singular functions \(S_1,S_2\) such that </p>
+<div class="displaymath" id="a0000000023">
+  \[  f = C\, B\, F\, S_1/S_2.  \]
+</div>
+<p> Conversely, every expression of this form belongs to the Nevanlinna class. The factors are unique after fixing the standard normalizations. </p>
+
+  </div>
+</div>
+<div class="proof_wrapper" id="a0000000022">
+  <div class="proof_heading">
+    <span class="proof_caption">
+    Proof
+    </span>
+    <span class="expand-proof">▶</span>
+  </div>
+  <div class="proof_content">
+  <p>Remove the zeros using the Blaschke product. Apply the boundary-value and logarithmic-integrability theorem to the zero-free quotient. Split the representing measure of the least harmonic majorant into absolutely continuous and singular parts. The absolutely continuous part gives the outer factor, while the positive and negative singular parts give \(S_1\) and \(S_2\). The uniqueness statement follows by comparing zero sets, boundary moduli, and singular measures. </p>
+
+  </div>
+</div>
+
+</div> <!--main-text -->
+</div> <!-- content-wrapper -->
+</div> <!-- content -->
+</div> <!-- wrapper -->
+
+<nav class="prev_up_next">
+  <svg  id="showmore-minus" class="icon icon-eye-minus showmore"><use xlink:href="symbol-defs.svg#icon-eye-minus"></use></svg>
+
+  <svg  id="showmore-plus" class="icon icon-eye-plus showmore"><use xlink:href="symbol-defs.svg#icon-eye-plus"></use></svg>
+
+  <a href="index.html" title="Hardy Space Formalization Blueprint"><svg  class="icon icon-arrow-left "><use xlink:href="symbol-defs.svg#icon-arrow-left"></use></svg>
+</a>
+  <a href="index.html" title="Hardy Space Formalization Blueprint"><svg  class="icon icon-arrow-up "><use xlink:href="symbol-defs.svg#icon-arrow-up"></use></svg>
+</a>
+</nav>
+
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript" src="js/plastex.js"></script>
+<script type="text/javascript" src="js/svgxuse.js"></script>
+<script type="text/javascript" src="js/js.cookie.min.js"></script>
+<script type="text/javascript" src="js/showmore.js"></script>
+</body>
+</html>

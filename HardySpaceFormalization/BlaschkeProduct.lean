@@ -24,17 +24,12 @@ noncomputable def normedBlaschkeFactor (R : ℝ) (w : ℂ) : ℂ → ℂ :=
   if w = 0 then BlaschkeFactor R 0
   else fun z ↦ (-(conj w) / ‖w‖) * BlaschkeFactor R w z
 
-/-- The set of indices at which a complex sequence vanishes. -/
-def zeroIndexSet (z : ℕ → ℂ) : Set ℕ := {n | z n = 0}
 
-/-- The number of zero terms in a complex sequence. -/
-noncomputable def zeroMultiplicity (z : ℕ → ℂ) : ℕ :=
-  (zeroIndexSet z).ncard
 
 /-- A sequence in the unit disc satisfying the Blaschke condition has only finitely many zero
 terms. -/
 theorem zeroIndexSet_finite {z : ℕ → ℂ} (hzD : ∀ n, z n ∈ unitDisc)
-    (hz : BlaschkeCondition z) : (zeroIndexSet z).Finite := by
+    (hz : BlaschkeCondition z) : (z ⁻¹'{0}).Finite := by
   sorry
 
 /-- The `n`th factor in the Blaschke product. `0`-terms are omitted from the infinite
@@ -46,4 +41,4 @@ noncomputable def blaschkeProductFactor (z : ℕ → ℂ) (n : ℕ) : ℂ → �
 as a function for any sequence; convergence and the expected zero set will later be proved under
 the Blaschke condition. -/
 noncomputable def BlaschkeProduct (z : ℕ → ℂ) : ℂ → ℂ :=
-  fun w ↦ w ^ zeroMultiplicity z * ∏' n, blaschkeProductFactor z n w
+  fun w ↦ w ^ (z ⁻¹'{0}).ncard * ∏' n, blaschkeProductFactor z n w
