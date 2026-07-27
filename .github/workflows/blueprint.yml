@@ -7,24 +7,18 @@ on:
     paths:
       - "blueprint/**"
       - ".github/workflows/blueprint.yml"
+  pull_request:
+    paths:
+      - "blueprint/**"
+      - ".github/workflows/blueprint.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: github-pages
-  cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout repository
@@ -41,11 +35,14 @@ jobs:
             git config --global --add safe.directory "$(pwd)"
 
             for lib in core dot_layout neato_layout gd pango; do
-              plugin="$(find /usr/lib/graphviz -maxdepth 1 -name "libgvplugin_${lib}.so.*" | head -n 1)"
+              plugin="$(find /usr/lib/graphviz -maxdepth 1 \
+                -name "libgvplugin_${lib}.so.*" -print -quit)"
               if [ -n "$plugin" ] && [ ! -e "/usr/lib/graphviz/libgvplugin_${lib}.so" ]; then
                 ln -s "$plugin" "/usr/lib/graphviz/libgvplugin_${lib}.so"
               fi
             done
+            export LIBRARY_PATH="/usr/lib/graphviz${LIBRARY_PATH:+:$LIBRARY_PATH}"
+            export LD_LIBRARY_PATH="/usr/lib/graphviz${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
             python3 -m venv env
             source env/bin/activate
@@ -60,13 +57,31 @@ jobs:
             mkdir -p site/blueprint
             cp -r blueprint/web/. site/blueprint/
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
           path: site
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: github-pages
+      cancel-in-progress: true
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
 
       - name: Deploy GitHub Pages
         id: deployment
