@@ -1,0 +1,66 @@
+name: Compile and deploy blueprint
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "blueprint/**"
+      - ".github/workflows/blueprint.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Build blueprint
+        uses: xu-cheng/texlive-action@v3
+        with:
+          docker_image: ghcr.io/xu-cheng/texlive-full:20231201
+          run: |
+            apk update
+            apk add --update make py3-pip git pkgconfig graphviz graphviz-dev gcc musl-dev
+            git config --global --add safe.directory "$GITHUB_WORKSPACE"
+            git config --global --add safe.directory "$(pwd)"
+
+            python3 -m venv env
+            source env/bin/activate
+            pip install --upgrade pip wheel
+            pip install pygraphviz
+            pip install leanblueprint
+
+            leanblueprint web
+
+            mkdir -p site
+            cp -r blueprint/web/. site/
+            mkdir -p site/blueprint
+            cp -r blueprint/web/. site/blueprint/
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

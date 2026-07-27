@@ -19,9 +19,42 @@ variable {α ε ε' E F G 𝕜 : Type*} {m m0 : MeasurableSpace α} {p : ℝ≥0
 
 
 /-- Fixed `eLpNorm` where raised to the power `p` when `0 < p < 1`. -/
-def eLpNormFixed {α ε : Type*} [ENorm ε] {_ : MeasurableSpace α}
+def eLpNormFixed [ENorm ε] {_ : MeasurableSpace α}
     (f : α → ε) (p : ℝ≥0∞) (μ : Measure α := by volume_tac) : ℝ≥0∞ :=
   if p ∈ Ioo 0 1 then (eLpNorm f p μ) ^ p.toReal else eLpNorm f p μ
+
+/-- `eLpNormFixed` is the usual `eLpNorm` raised to `min p 1`. -/
+lemma eLpNormFixed_eq_eLpNorm_rpow_min_one [ENorm ε]
+    {f : α → ε} (hp : 0 < p) :
+    eLpNormFixed f p μ = eLpNorm f p μ ^ (min p 1).toReal := by
+  by_cases hp_lt_one : p < 1
+  · have hp_small : p ∈ Ioo (0 : ℝ≥0∞) 1 := ⟨hp, hp_lt_one⟩
+    rw [eLpNormFixed, if_pos hp_small, min_eq_left hp_lt_one.le]
+  · have hp_one_le : 1 ≤ p := le_of_not_gt hp_lt_one
+    have hp_not_small : p ∉ Ioo (0 : ℝ≥0∞) 1 := fun hp_small ↦ hp_lt_one hp_small.2
+    rw [eLpNormFixed, if_neg hp_not_small, min_eq_right hp_one_le,
+      ENNReal.toReal_one, ENNReal.rpow_one]
+
+
+
+/-- Raising `eLpNormFixed` to `max p 1` recovers the usual finite `p`-moment. -/
+lemma eLpNormFixed_rpow_max_one [ENorm ε]
+    {f : α → ε} (hp : 0 < p) (hp_ne_top : p ≠ ∞) :
+    eLpNormFixed f p μ ^ max p.toReal 1 = eLpNorm f p μ ^ p.toReal := by
+  by_cases hp_lt_one : p < 1
+  · have hp_small : p ∈ Ioo (0 : ℝ≥0∞) 1 := ⟨hp, hp_lt_one⟩
+    have hp_toReal_le_one : p.toReal ≤ 1 := by
+      rw [← ENNReal.toReal_one]
+      exact ENNReal.toReal_mono ENNReal.one_ne_top hp_lt_one.le
+    rw [eLpNormFixed, if_pos hp_small, max_eq_right hp_toReal_le_one, ENNReal.rpow_one]
+  · have hp_one_le : 1 ≤ p := le_of_not_gt hp_lt_one
+    have hp_not_small : p ∉ Ioo (0 : ℝ≥0∞) 1 := fun hp_small ↦ hp_lt_one hp_small.2
+    have hp_toReal_one_le : 1 ≤ p.toReal := by
+      rw [← ENNReal.toReal_one]
+      exact (ENNReal.toReal_le_toReal ENNReal.one_ne_top hp_ne_top).2 hp_one_le
+    rw [eLpNormFixed, if_neg hp_not_small, max_eq_left hp_toReal_one_le]
+
+
 
 
 theorem eLpNormFixed_neg (f : α → F) (p : ℝ≥0∞) (μ : Measure α) :
@@ -112,6 +145,26 @@ theorem eLpNormFixed_le_eLpNormFixed_of_exponent_le
     exact (not_lt_of_ge hq1) hq.2
   simpa [eLpNormFixed, hp_not_mem_Ioo, hq_not_mem_Ioo] using
     eLpNorm_le_eLpNorm_of_exponent_le hpq hf
+
+/-- Unconditional version of `eLpNormFixed_le_eLpNormFixed_of_exponent_le` for `0 < p ≤ q`:
+since `eLpNormFixed` is `eLpNorm` raised to the fixed positive power `min p 1` (resp. `min q 1`),
+comparing exponents across the `p < 1` boundary only gives a comparison up to a further fixed
+positive power, not a literal `≤`. -/
+theorem eLpNormFixed_le_eLpNormFixed_rpow_of_exponent_le
+    [TopologicalSpace ε] [ContinuousENorm ε]
+    {f : α → ε} {p q : ℝ≥0∞} (hp : p ≠ 0) (hpq : p ≤ q) [IsProbabilityMeasure μ]
+    (hf : AEStronglyMeasurable f μ) :
+    eLpNormFixed f p μ ≤ eLpNormFixed f q μ ^ ((min p 1).toReal / (min q 1).toReal) := by
+  have hp_pos : 0 < p := pos_iff_ne_zero.mpr hp
+  have hq_pos : 0 < q := hp_pos.trans_le hpq
+  have hkq_pos : 0 < (min q 1).toReal :=
+    ENNReal.toReal_pos (lt_min hq_pos one_pos).ne'
+      (lt_of_le_of_lt (min_le_right q 1) ENNReal.one_lt_top).ne
+  have hkey : (min q 1).toReal * ((min p 1).toReal / (min q 1).toReal) = (min p 1).toReal := by
+    field_simp
+  rw [eLpNormFixed_eq_eLpNorm_rpow_min_one hp_pos, eLpNormFixed_eq_eLpNorm_rpow_min_one hq_pos,
+    ← ENNReal.rpow_mul, hkey]
+  exact ENNReal.rpow_le_rpow (eLpNorm_le_eLpNorm_of_exponent_le hpq hf) ENNReal.toReal_nonneg
 
 theorem eLpNormFixed_le_of_ae_bound_of_one_le
     {f : α → E} {C : ℝ} (hp : 1 ≤ p) [IsProbabilityMeasure μ]

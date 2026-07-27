@@ -49,13 +49,13 @@
       
       <dt>Blue background</dt><dd>the <em>proof</em> of this result is ready to be formalized; all prerequisites are done</dd>
       
-      <dt>Green border</dt><dd>the <em>statement</em> of this result is formalized</dd>
+      <dt>Steel blue border</dt><dd>the <em>statement</em> of this result is formalized</dd>
       
-      <dt>Green background</dt><dd>the <em>proof</em> of this result is formalized</dd>
+      <dt>Steel blue background</dt><dd>the <em>proof</em> of this result is formalized</dd>
       
       <dt>Dark green background</dt><dd>the <em>proof</em> of this result and all its ancestors are formalized</dd>
       
-      <dt>Dark green border</dt><dd>this is in Mathlib</dd>
+      <dt>Purple border</dt><dd>this is in Mathlib</dd>
       
     </dl>
   </div>
@@ -74,7 +74,7 @@
       <span class="corollary_thmcaption">
       Corollary
       </span>
-      <span class="corollary_thmlabel">16</span><span class="corollary_thmtitle">Garnett II.3.2: \(H^\infty \) boundary values, disc form</span></div>
+      <span class="corollary_thmlabel">17</span><span class="corollary_thmtitle">Garnett II.3.2: \(H^\infty \) boundary values, disc form</span></div>
     <div class="thm_thmcontent"><p>  Source: Garnett, Chapter II, Section 3, PDF page 67. Every bounded analytic function on \(\mathbb {D}\) has nontangential boundary limits almost everywhere, and the resulting boundary function has essential supremum bounded by the analytic supremum norm. This is the forward direction of the \(p=\infty \) case of Corollary II.3.2, transported from the upper half-plane to the disc by a Cayley transform. </p>
 </div>
 
@@ -104,7 +104,7 @@
       <span class="corollary_thmcaption">
       Corollary
       </span>
-      <span class="corollary_thmlabel">8</span><span class="corollary_thmtitle">Garnett II.4.2: boundary uniqueness in \(H^p\)</span></div>
+      <span class="corollary_thmlabel">9</span><span class="corollary_thmtitle">Garnett II.4.2: boundary uniqueness in \(H^p\)</span></div>
     <div class="thm_thmcontent"><p>  Source: Garnett, Chapter II, Section 4, PDF page 75. Let \(0{\lt}p\le \infty \) and let \(f\in H^p(\mathbb {D})\). If the boundary function of \(f\) vanishes on a subset of \(\partial \mathbb {D}\) of positive Lebesgue measure, then \(f\) is identically zero. </p>
 </div>
 
@@ -134,8 +134,8 @@
       <span class="definition_thmcaption">
       Definition
       </span>
-      <span class="definition_thmlabel">7</span><span class="definition_thmtitle">Lean Blaschke factors</span></div>
-    <div class="thm_thmcontent"><p>    The current Lean project has the one-zero Blaschke factors. The later formalization target is to define infinite Blaschke products, prove compact convergence, prove the a.e. boundary-modulus theorem, and prove the quotient theorem needed for Hardy and Nevanlinna functions. </p>
+      <span class="definition_thmlabel">8</span><span class="definition_thmtitle">Lean Blaschke factors</span></div>
+    <div class="thm_thmcontent"><p>    The current Lean project has the one-zero Blaschke factors. The later formalization target is to define infinite Blaschke products, prove compact convergence, prove the a.e. boundary-modulus theorem, prove the \(H^p\) quotient theorem II.2.3, and provide the Blaschke-product characterization II.2.4 used for Nevanlinna factorization. </p>
 </div>
 
     <a class="latex_link" href="sect0001.html#def:blaschke_factor">LaTeX</a>
@@ -173,7 +173,7 @@
       <span class="definition_thmcaption">
       Definition
       </span>
-      <span class="definition_thmlabel">11</span><span class="definition_thmtitle">Outer factor</span></div>
+      <span class="definition_thmlabel">12</span><span class="definition_thmtitle">Outer factor</span></div>
     <div class="thm_thmcontent"><p>   The outer factor \(F\) in the Nevanlinna factorization is the zero-free analytic factor built from the absolutely continuous part of the boundary measure representing the least harmonic majorant. </p>
 </div>
 
@@ -203,7 +203,7 @@
       <span class="definition_thmcaption">
       Definition
       </span>
-      <span class="definition_thmlabel">20</span><span class="definition_thmtitle">Singular factors</span></div>
+      <span class="definition_thmlabel">21</span><span class="definition_thmtitle">Singular factors</span></div>
     <div class="thm_thmcontent"><p>   If the singular part of the representing measure is \(\nu _s=\nu _s^+-\nu _s^-\), then the canonical factorization uses the two singular functions \(S_1=S_{\nu _s^+}\) and \(S_2=S_{\nu _s^-}\). </p>
 </div>
 
@@ -233,9 +233,9 @@
       <span class="definition_thmcaption">
       Definition
       </span>
-      <span class="definition_thmlabel">19</span><span class="definition_thmtitle">Singular function formula</span></div>
+      <span class="definition_thmlabel">20</span><span class="definition_thmtitle">Singular function formula</span></div>
     <div class="thm_thmcontent"><p>  For a finite positive singular measure \(\sigma \) on \(\partial \mathbb {D}\), the associated singular function is the analytic exponential </p>
-<div class="displaymath" id="a0000000020">
+<div class="displaymath" id="a0000000022">
   \[  S_\sigma (z)=\exp \left(-\int _{\partial \mathbb {D}} \frac{\zeta +z}{\zeta -z}\, d\sigma (\zeta )\right).  \]
 </div>
 <p> It is bounded by one in the disc and has boundary modulus one almost everywhere. </p>
@@ -297,7 +297,7 @@
       <span class="lemma_thmcaption">
       Lemma
       </span>
-      <span class="lemma_thmlabel">15</span><span class="lemma_thmtitle">Garnett II.5.2: remove the zeros of a Nevanlinna function</span></div>
+      <span class="lemma_thmlabel">16</span><span class="lemma_thmtitle">Garnett II.5.2: remove the zeros of a Nevanlinna function</span></div>
     <div class="thm_thmcontent"><p>   Source: Garnett, Chapter II, Section 5, PDF page 78. Let \(f\in N\) be nonzero and let \(B\) be the Blaschke product formed from the zeros of \(f\), counted with multiplicity. Then \(B\) converges, the quotient \(g=f/B\) is analytic and zero-free on \(\mathbb {D}\), and \(g\) still belongs to the Nevanlinna class. Moreover, \(\log |g|\) is the least harmonic majorant of \(\log |f|\) on \(\mathbb {D}\). </p>
 </div>
 
@@ -327,7 +327,7 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">22</span><span class="theorem_thmtitle">Boundary modulus determines the outer factor</span></div>
+      <span class="theorem_thmlabel">23</span><span class="theorem_thmtitle">Boundary modulus determines the outer factor</span></div>
     <div class="thm_thmcontent"><p>   If two outer functions have the same a.e. boundary modulus, then they differ by multiplication by a constant of modulus one. </p>
 </div>
 
@@ -396,7 +396,7 @@
       Theorem
       </span>
       <span class="theorem_thmlabel">2</span><span class="theorem_thmtitle">Harmonic majorants of subharmonic functions, Garnett I.6.7</span></div>
-    <div class="thm_thmcontent"><p>  Source: Garnett, Chapter I, Section 6, PDF page 36. Let \(v\) be subharmonic on \(\mathbb {D}\). Then \(v\) has a harmonic majorant on \(\mathbb {D}\) if and only if </p>
+    <div class="thm_thmcontent"><p>   Source: Garnett, Chapter I, Section 6, PDF page 36. Let \(v\) be subharmonic on \(\mathbb {D}\). Then \(v\) has a harmonic majorant on \(\mathbb {D}\) if and only if </p>
 <div class="displaymath" id="a0000000006">
   \[  \sup _{0{\lt}r{\lt}1}\frac{1}{2\pi } \int _0^{2\pi }v(r e^{i\theta })\, d\theta = \sup _{0{\lt}r{\lt}1} v_r(0) {\lt} \infty ,  \]
 </div>
@@ -409,7 +409,16 @@
     <a class="latex_link" href="sect0001.html#thm:I_6_7">LaTeX</a>
     
     
-  
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://SHW715.github.io/HardySpace_formalization/docs/find/#doc/Subharmonic.hasHarmonicMajorant_iff_radialMean_bddAbove" class="lean_decl">Subharmonic.hasHarmonicMajorant_iff_radialMean_bddAbove</a></li>
+        
+           <li><a href="https://SHW715.github.io/HardySpace_formalization/docs/find/#doc/Subharmonic.exists_isLeastHarmonicMajorant_tendsto_poissonModification" class="lean_decl">Subharmonic.exists_isLeastHarmonicMajorant_tendsto_poissonModification</a></li>
+        
+      </ul>
+  </div>
     
     
   
@@ -433,7 +442,7 @@
       Theorem
       </span>
       <span class="theorem_thmlabel">4</span><span class="theorem_thmtitle">Garnett II.2.1: harmonic majorants imply the Blaschke condition</span></div>
-    <div class="thm_thmcontent"><p>   Source: Garnett, Chapter II, Section 2, PDF page 63. Let \(f\) be a nonzero analytic function on \(\mathbb {D}\), and let \(\{ a_n\} \) be its zeros, counted with multiplicity. If \(\log |f|\) has a harmonic majorant on \(\mathbb {D}\), then </p>
+    <div class="thm_thmcontent"><p>    Source: Garnett, Chapter II, Section 2, PDF page 63. Let \(f\) be a nonzero analytic function on \(\mathbb {D}\), and let \(\{ a_n\} \) be its zeros, counted with multiplicity. If \(\log |f|\) has a harmonic majorant on \(\mathbb {D}\), then </p>
 <div class="displaymath" id="a0000000009">
   \[  \sum _n (1-|a_n|){\lt}\infty .  \]
 </div>
@@ -441,7 +450,7 @@
 <div class="displaymath" id="a0000000010">
   \[  \sum _n (1-|a_n|) \le u(0)-\log |f(0)|.  \]
 </div>
-<p> By Theorem&#160;<a href="sect0001.html#thm:II_5_1">12</a>, the harmonic-majorant hypothesis is equivalent to \(f\) belonging to the Nevanlinna class \(N\). </p>
+<p> By Theorem&#160;<a href="sect0001.html#thm:II_5_1">13</a>, the harmonic-majorant hypothesis is equivalent to \(f\) belonging to the Nevanlinna class \(N\). </p>
 <div class="proof_wrapper" id="a0000000011">
   <div class="proof_heading">
     <span class="proof_caption">
@@ -463,7 +472,16 @@
     <a class="latex_link" href="sect0001.html#thm:II_2_1">LaTeX</a>
     
     
-  
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://SHW715.github.io/HardySpace_formalization/docs/find/#doc/summable_one_sub_norm_of_hasHarmonicMajorant" class="lean_decl">summable_one_sub_norm_of_hasHarmonicMajorant</a></li>
+        
+           <li><a href="https://SHW715.github.io/HardySpace_formalization/docs/find/#doc/tsum_one_sub_norm_le_of_isLeastHarmonicMajorant" class="lean_decl">tsum_one_sub_norm_le_of_isLeastHarmonicMajorant</a></li>
+        
+      </ul>
+  </div>
     
     
   
@@ -505,6 +523,39 @@
 
 
     
+    <div class="dep-modal-container" id="thm:II_2_3_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm:II_2_3" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">6</span><span class="theorem_thmtitle">Garnett II.2.3 (F. Riesz): division by the Blaschke factor</span></div>
+    <div class="thm_thmcontent"><p>   Source: Garnett, Chapter II, Section 2, PDF page 66. Let \(0{\lt}p{\lt}\infty \), let \(f\in H^p(\mathbb D)\) be nonzero, and let \(B\) be the Blaschke product formed from all zeros of \(f\), counted with multiplicity. Then \(g=f/B\) extends analytically across the removable singularities, belongs to \(H^p(\mathbb D)\), and satisfies </p>
+<div class="displaymath" id="a0000000013">
+  \[  \lVert g\rVert _{H^p}=\lVert f\rVert _{H^p}.  \]
+</div>
+</div>
+
+    <a class="latex_link" href="sect0001.html#thm:II_2_3">LaTeX</a>
+    
+    
+  
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
     <div class="dep-modal-container" id="thm:II_2_4_modal">
       <div class="dep-modal-content">
           <button class="dep-closebtn">
@@ -516,8 +567,19 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">6</span><span class="theorem_thmtitle">Garnett II.2.4: division by the Blaschke factor</span></div>
-    <div class="thm_thmcontent"><p>   Source: Garnett, Chapter II, Section 2, PDF page 66. Let \(B\) be the Blaschke product built from part or all of the zero sequence of an analytic function \(f\). Dividing by \(B\) removes those zeros without increasing the relevant Hardy or boundary-size quantity; in particular the quotient remains in the same Hardy class in the applications used below. </p>
+      <span class="theorem_thmlabel">7</span><span class="theorem_thmtitle">Garnett II.2.4: characterization of Blaschke products</span></div>
+    <div class="thm_thmcontent"><p>   Source: Garnett, Chapter II, Section 2, PDF page 66. Let \(f\in H^\infty (\mathbb D)\) with \(\lVert f\rVert _\infty \le 1\). Then the following are equivalent: </p>
+<ol class="enumerate">
+  <li><p>\(f=\lambda B\), where \(|\lambda |=1\) and \(B\) is a Blaschke product; </p>
+</li>
+  <li><div class="displaymath" id="a0000000014">
+  \[  \lim _{r\to 1}\frac{1}{2\pi }\int _0^{2\pi } \log |f(r e^{i\theta })|\, d\theta =0;  \]
+</div>
+</li>
+  <li><p>the least harmonic majorant of \(\log |f|\) is the zero function. </p>
+</li>
+</ol>
+<p> The equivalence of the last two conditions is the direct use of Theorem&#160;<a href="sect0001.html#thm:I_6_7">2</a>; condition (3) is the form used in Lemma&#160;<a href="sect0001.html#lem:II_5_2">16</a>. </p>
 </div>
 
     <a class="latex_link" href="sect0001.html#thm:II_2_4">LaTeX</a>
@@ -546,7 +608,7 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">9</span><span class="theorem_thmtitle">Garnett II.4.4: construction from logarithmic data</span></div>
+      <span class="theorem_thmlabel">10</span><span class="theorem_thmtitle">Garnett II.4.4: construction from logarithmic data</span></div>
     <div class="thm_thmcontent"><p>  Source: Garnett, Chapter II, Section 4, PDF page 75. Given a nonnegative boundary function \(\varphi \) with \(\log \varphi \in L^1(\partial \mathbb {D})\), there is an outer analytic function \(F\) on \(\mathbb {D}\) whose a.e. boundary modulus is \(\varphi \). Equivalently, \(F\) is obtained by exponentiating the analytic function whose real part is the Poisson integral of \(\log \varphi \). </p>
 </div>
 
@@ -576,7 +638,7 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">12</span><span class="theorem_thmtitle">Garnett II.5.1: harmonic-majorant characterization of \(N\)</span></div>
+      <span class="theorem_thmlabel">13</span><span class="theorem_thmtitle">Garnett II.5.1: harmonic-majorant characterization of \(N\)</span></div>
     <div class="thm_thmcontent"><p>   Source: Garnett, Chapter II, Section 5, PDF page 78. For an analytic function \(f\) on \(\mathbb {D}\), the following are equivalent: \(f\) belongs to the Nevanlinna class \(N\), and the subharmonic function \(\log |f|\) admits a harmonic majorant on \(\mathbb {D}\). When such a majorant exists, there is a least harmonic majorant. </p>
 </div>
 
@@ -606,17 +668,17 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">17</span><span class="theorem_thmtitle">Garnett II.5.3: boundary values and the least-majorant measure</span></div>
+      <span class="theorem_thmlabel">18</span><span class="theorem_thmtitle">Garnett II.5.3: boundary values and the least-majorant measure</span></div>
     <div class="thm_thmcontent"><p>   Source: Garnett, Chapter II, Section 5, PDF page 79. If \(f\in N\) and \(f\) is not identically zero, then \(f\) has nontangential boundary values \(f(e^{i\theta })\) almost everywhere, and </p>
-<div class="displaymath" id="a0000000016">
+<div class="displaymath" id="a0000000018">
   \[  \log |f(e^{i\theta })|\in L^1(d\theta ).  \]
 </div>
 <p> If \(u\) is the least harmonic majorant of \(\log |f|\), then </p>
-<div class="displaymath" id="a0000000017">
+<div class="displaymath" id="a0000000019">
   \[  u(z)=\int _{0}^{2\pi }P_z(\theta )\, d\mu (\theta ),  \]
 </div>
 <p> where the finite real representing measure has the decomposition </p>
-<div class="displaymath" id="a0000000018">
+<div class="displaymath" id="a0000000020">
   \[  d\mu (\theta ) =\log |f(e^{i\theta })|\, \frac{d\theta }{2\pi }+d\mu _s(\theta ),  \]
 </div>
 <p> with \(\mu _s\) singular with respect to Lebesgue measure. </p>
@@ -648,7 +710,7 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">18</span><span class="theorem_thmtitle">Jordan decomposition of singular measures</span></div>
+      <span class="theorem_thmlabel">19</span><span class="theorem_thmtitle">Jordan decomposition of singular measures</span></div>
     <div class="thm_thmcontent"><p>  If \(\nu \) is a finite real signed measure on \(\partial \mathbb {D}\) and is singular with respect to Lebesgue measure, then its Jordan decomposition \(\nu =\nu ^+-\nu ^-\) has \(\nu ^+\) and \(\nu ^-\) finite positive singular measures. </p>
 </div>
 
@@ -678,9 +740,9 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">13</span><span class="theorem_thmtitle">Logarithm of modulus is subharmonic</span></div>
+      <span class="theorem_thmlabel">14</span><span class="theorem_thmtitle">Logarithm of modulus is subharmonic</span></div>
     <div class="thm_thmcontent"><p>   If \(f\) is analytic on an open subset of \(\mathbb {C}\), then \(z\mapsto \log \lVert f(z)\rVert \), interpreted as \(-\infty \) at zeros, is subharmonic there. This has been formalized both for complex-valued functions and, more generally, for functions taking values in a complex Banach space. </p>
-<div class="proof_wrapper" id="a0000000015">
+<div class="proof_wrapper" id="a0000000017">
   <div class="proof_heading">
     <span class="proof_caption">
     Proof
@@ -729,9 +791,9 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">25</span><span class="theorem_thmtitle">Garnett II.5.5: canonical factorization in \(N\)</span></div>
+      <span class="theorem_thmlabel">26</span><span class="theorem_thmtitle">Garnett II.5.5: canonical factorization in \(N\)</span></div>
     <div class="thm_thmcontent"><p>   Source: Garnett, Chapter II, Section 5, PDF page 83. If \(f\in N\) and \(f\) is not identically zero, then there exist a unimodular constant \(C\), a Blaschke product \(B\), an outer function \(F\), and singular functions \(S_1,S_2\) such that </p>
-<div class="displaymath" id="a0000000023">
+<div class="displaymath" id="a0000000025">
   \[  f = C\, B\, F\, S_1/S_2.  \]
 </div>
 <p> Conversely, every expression of this form belongs to the Nevanlinna class. The factors are unique after fixing the standard normalizations. </p>
@@ -763,7 +825,7 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">24</span><span class="theorem_thmtitle">Uniqueness of Nevanlinna factorization</span></div>
+      <span class="theorem_thmlabel">25</span><span class="theorem_thmtitle">Uniqueness of Nevanlinna factorization</span></div>
     <div class="thm_thmcontent"><p>   In the canonical factorization, the Blaschke factor is determined by the zero multiset, the outer factor by the a.e. boundary modulus, and the singular factors by the singular part of the representing measure. The only remaining ambiguity is the conventional unimodular constant. </p>
 </div>
 
@@ -793,7 +855,7 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">10</span><span class="theorem_thmtitle">Outer uniqueness</span></div>
+      <span class="theorem_thmlabel">11</span><span class="theorem_thmtitle">Outer uniqueness</span></div>
     <div class="thm_thmcontent"><p>  If two outer functions have the same boundary modulus almost everywhere, then their quotient is a unimodular constant. Equivalently, the boundary modulus determines the outer factor up to the expected constant. </p>
 </div>
 
@@ -823,7 +885,7 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">14</span><span class="theorem_thmtitle">Garnett I.3.5(c): positive harmonic functions as Poisson integrals, disc form</span></div>
+      <span class="theorem_thmlabel">15</span><span class="theorem_thmtitle">Garnett I.3.5(c): positive harmonic functions as Poisson integrals, disc form</span></div>
     <div class="thm_thmcontent"><p>  Source: Garnett, Chapter I, Section 3, Theorem 3.5(c), especially the disc-version argument in its proof, printed pages 17–19 (PDF pages approximately 29–31). If \(u\) is a positive harmonic function on \(\mathbb {D}\), then there is a finite positive measure \(\mu \) on \(\partial \mathbb {D}\) such that \(u=P[\mu ]\). Conversely, the Poisson integral of any finite positive boundary measure is positive and harmonic. </p>
 </div>
 
@@ -853,7 +915,7 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">23</span><span class="theorem_thmtitle">Singular measure determines singular factors</span></div>
+      <span class="theorem_thmlabel">24</span><span class="theorem_thmtitle">Singular measure determines singular factors</span></div>
     <div class="thm_thmcontent"><p>   The positive and negative singular parts of the representing measure determine \(S_1\) and \(S_2\). Conversely, equality of the corresponding singular functions forces equality of the singular measures, modulo the normalization convention. </p>
 </div>
 
@@ -883,7 +945,7 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">21</span><span class="theorem_thmtitle">Zeros determine the Blaschke factor</span></div>
+      <span class="theorem_thmlabel">22</span><span class="theorem_thmtitle">Zeros determine the Blaschke factor</span></div>
     <div class="thm_thmcontent"><p>  The multiset of zeros in \(\mathbb {D}\) determines the associated Blaschke product up to the chosen unimodular normalization. With a fixed convention for elementary factors, the product is uniquely determined. </p>
 </div>
 
@@ -918,7 +980,7 @@ graphContainer.graphviz({useWorker: true})
     .width(width)
     .height(height)
     .fit(true)
-    .renderDot(`strict digraph "" {	graph [bgcolor=transparent];	node [label="\N",		penwidth=1.8	];	edge [arrowhead=vee];	"def:singular_factors"	[color="#FFAA33",		label=singular_factors,		shape=box];	"thm:singular_measure_determines_factors"	[color="#FFAA33",		label=singular_measure_determines_factors,		shape=ellipse];	"def:singular_factors" -> "thm:singular_measure_determines_factors"	[style=dashed];	"thm:nevanlinna_factorization_uniqueness"	[color="#FFAA33",		label=nevanlinna_factorization_uniqueness,		shape=ellipse];	"thm:singular_measure_determines_factors" -> "thm:nevanlinna_factorization_uniqueness"	[style=dashed];	"thm:nevanlinna_canonical_factorization"	[color="#FFAA33",		label=nevanlinna_canonical_factorization,		shape=ellipse];	"thm:nevanlinna_factorization_uniqueness" -> "thm:nevanlinna_canonical_factorization"	[style=dashed];	"cor:II_3_2"	[color="#FFAA33",		label=II_3_2,		shape=ellipse];	"thm:II_5_3"	[color="#FFAA33",		label=II_5_3,		shape=ellipse];	"cor:II_3_2" -> "thm:II_5_3"	[style=dashed];	"thm:II_5_3" -> "thm:nevanlinna_canonical_factorization"	[style=dashed];	"def:blaschke_factor"	[color=green,		fillcolor="#B0ECA3",		label=blaschke_factor,		shape=box,		style=filled];	"thm:II_4_4"	[color="#FFAA33",		label=II_4_4,		shape=ellipse];	"def:outer_factor"	[color="#FFAA33",		label=outer_factor,		shape=box];	"thm:II_4_4" -> "def:outer_factor"	[style=dashed];	"def:outer_factor" -> "thm:nevanlinna_canonical_factorization"	[style=dashed];	"thm:II_5_1"	[color="#FFAA33",		label=II_5_1,		shape=ellipse];	"lem:II_5_2"	[color="#FFAA33",		label=II_5_2,		shape=ellipse];	"thm:II_5_1" -> "lem:II_5_2"	[style=dashed];	"lem:II_5_2" -> "thm:II_5_3"	[style=dashed];	"thm:II_2_2"	[color="#FFAA33",		label=II_2_2,		shape=ellipse];	"thm:II_2_2" -> "def:blaschke_factor"	[style=dashed];	"thm:II_2_2" -> "lem:II_5_2"	[style=dashed];	"thm:log_abs_subharmonic"	[color=green,		fillcolor="#1CAC78",		label=log_abs_subharmonic,		shape=ellipse,		style=filled];	"thm:log_abs_subharmonic" -> "thm:II_5_1"	[style=dashed];	"thm:boundary_modulus_determines_outer"	[color="#FFAA33",		label=boundary_modulus_determines_outer,		shape=ellipse];	"thm:boundary_modulus_determines_outer" -> "thm:nevanlinna_factorization_uniqueness"	[style=dashed];	"thm:zeros_determine_blaschke"	[color="#FFAA33",		label=zeros_determine_blaschke,		shape=ellipse];	"thm:zeros_determine_blaschke" -> "thm:nevanlinna_factorization_uniqueness"	[style=dashed];	"lem:I_5_4"	[color="#FFAA33",		label=I_5_4,		shape=ellipse];	"lem:I_5_4" -> "def:singular_factors"	[style=dashed];	"thm:I_5_3"	[color="#FFAA33",		label=I_5_3,		shape=ellipse];	"lem:I_5_4" -> "thm:I_5_3"	[style=dashed];	"thm:I_5_3" -> "thm:II_5_3"	[style=dashed];	"def:singular_function_formula"	[color="#FFAA33",		label=singular_function_formula,		shape=box];	"def:singular_function_formula" -> "def:singular_factors"	[style=dashed];	"thm:I_6_7"	[color="#FFAA33",		label=I_6_7,		shape=ellipse];	"thm:I_6_7" -> "thm:II_5_1"	[style=dashed];	"thm:II_2_1"	[color="#FFAA33",		label=II_2_1,		shape=ellipse];	"thm:I_6_7" -> "thm:II_2_1"	[style=dashed];	"thm:II_2_4"	[color="#FFAA33",		label=II_2_4,		shape=ellipse];	"thm:I_6_7" -> "thm:II_2_4"	[style=dashed];	"thm:II_2_1" -> "def:blaschke_factor"	[style=dashed];	"thm:II_2_1" -> "lem:II_5_2"	[style=dashed];	"thm:II_2_4" -> "def:blaschke_factor"	[style=dashed];	"thm:II_2_4" -> "lem:II_5_2"	[style=dashed];	"cor:II_4_2"	[color="#FFAA33",		label=II_4_2,		shape=ellipse];	"cor:II_4_2" -> "thm:II_5_3"	[style=dashed];	"thm:positive_harmonic_poisson_measure"	[color="#FFAA33",		label=positive_harmonic_poisson_measure,		shape=ellipse];	"thm:positive_harmonic_poisson_measure" -> "thm:II_5_1"	[style=dashed];	"thm:jordan_decomposition_singular_measure"	[color="#FFAA33",		label=jordan_decomposition_singular_measure,		shape=ellipse];	"thm:jordan_decomposition_singular_measure" -> "def:singular_factors"	[style=dashed];	"thm:outer_uniqueness"	[color="#FFAA33",		label=outer_uniqueness,		shape=ellipse];	"thm:outer_uniqueness" -> "def:outer_factor"	[style=dashed];	"thm:outer_uniqueness" -> "thm:boundary_modulus_determines_outer"	[style=dashed];}`)
+    .renderDot(`strict digraph "" {	graph [bgcolor=transparent];	node [label="\N",		penwidth=1.8	];	edge [arrowhead=vee];	"def:blaschke_factor"	[color=steelblue,		fillcolor=lightblue,		label=blaschke_factor,		shape=box,		style=filled];	"lem:II_5_2"	[color=orange,		label=II_5_2,		shape=ellipse];	"thm:II_5_3"	[color=orange,		label=II_5_3,		shape=ellipse];	"lem:II_5_2" -> "thm:II_5_3"	[style=dashed];	"thm:nevanlinna_canonical_factorization"	[color=orange,		label=nevanlinna_canonical_factorization,		shape=ellipse];	"thm:II_5_3" -> "thm:nevanlinna_canonical_factorization"	[style=dashed];	"thm:outer_uniqueness"	[color=orange,		label=outer_uniqueness,		shape=ellipse];	"def:outer_factor"	[color=orange,		label=outer_factor,		shape=box];	"thm:outer_uniqueness" -> "def:outer_factor"	[style=dashed];	"thm:boundary_modulus_determines_outer"	[color=orange,		label=boundary_modulus_determines_outer,		shape=ellipse];	"thm:outer_uniqueness" -> "thm:boundary_modulus_determines_outer"	[style=dashed];	"def:outer_factor" -> "thm:nevanlinna_canonical_factorization"	[style=dashed];	"thm:nevanlinna_factorization_uniqueness"	[color=orange,		label=nevanlinna_factorization_uniqueness,		shape=ellipse];	"thm:boundary_modulus_determines_outer" -> "thm:nevanlinna_factorization_uniqueness"	[style=dashed];	"thm:nevanlinna_factorization_uniqueness" -> "thm:nevanlinna_canonical_factorization"	[style=dashed];	"thm:singular_measure_determines_factors"	[color=orange,		label=singular_measure_determines_factors,		shape=ellipse];	"thm:singular_measure_determines_factors" -> "thm:nevanlinna_factorization_uniqueness"	[style=dashed];	"thm:II_2_4"	[color=orange,		label=II_2_4,		shape=ellipse];	"thm:II_2_4" -> "def:blaschke_factor"	[style=dashed];	"thm:II_2_4" -> "lem:II_5_2"	[style=dashed];	"thm:II_4_4"	[color=orange,		label=II_4_4,		shape=ellipse];	"thm:II_4_4" -> "def:outer_factor"	[style=dashed];	"def:singular_function_formula"	[color=orange,		label=singular_function_formula,		shape=box];	"def:singular_factors"	[color=orange,		label=singular_factors,		shape=box];	"def:singular_function_formula" -> "def:singular_factors"	[style=dashed];	"def:singular_factors" -> "thm:singular_measure_determines_factors"	[style=dashed];	"thm:I_5_3"	[color=orange,		label=I_5_3,		shape=ellipse];	"thm:I_5_3" -> "thm:II_5_3"	[style=dashed];	"thm:II_2_2"	[color=orange,		label=II_2_2,		shape=ellipse];	"thm:II_2_2" -> "thm:II_2_4"	[style=dashed];	"thm:II_2_3"	[color=orange,		label=II_2_3,		shape=ellipse];	"thm:II_2_2" -> "thm:II_2_3"	[style=dashed];	"thm:II_2_3" -> "def:blaschke_factor"	[style=dashed];	"thm:II_5_1"	[color=orange,		label=II_5_1,		shape=ellipse];	"thm:II_5_1" -> "lem:II_5_2"	[style=dashed];	"thm:zeros_determine_blaschke"	[color=orange,		label=zeros_determine_blaschke,		shape=ellipse];	"thm:zeros_determine_blaschke" -> "thm:nevanlinna_factorization_uniqueness"	[style=dashed];	"cor:II_3_2"	[color=orange,		label=II_3_2,		shape=ellipse];	"cor:II_3_2" -> "thm:II_5_3"	[style=dashed];	"lem:I_5_4"	[color=orange,		label=I_5_4,		shape=ellipse];	"lem:I_5_4" -> "def:singular_factors"	[style=dashed];	"lem:I_5_4" -> "thm:I_5_3"	[style=dashed];	"thm:II_2_1"	[color=steelblue,		label=II_2_1,		shape=ellipse];	"thm:II_2_1" -> "thm:II_2_4"	[style=dashed];	"thm:II_2_1" -> "thm:II_2_3"	[style=dashed];	"thm:I_6_7"	[color=steelblue,		label=I_6_7,		shape=ellipse];	"thm:I_6_7" -> "thm:II_5_1"	[style=dashed];	"thm:I_6_7" -> "thm:II_2_1"	[style=dashed];	"thm:jordan_decomposition_singular_measure"	[color=orange,		label=jordan_decomposition_singular_measure,		shape=ellipse];	"thm:jordan_decomposition_singular_measure" -> "def:singular_factors"	[style=dashed];	"thm:log_abs_subharmonic"	[color=steelblue,		fillcolor=mediumseagreen,		label=log_abs_subharmonic,		shape=ellipse,		style=filled];	"thm:log_abs_subharmonic" -> "thm:II_5_1"	[style=dashed];	"thm:positive_harmonic_poisson_measure"	[color=orange,		label=positive_harmonic_poisson_measure,		shape=ellipse];	"thm:positive_harmonic_poisson_measure" -> "thm:II_5_1"	[style=dashed];	"cor:II_4_2"	[color=orange,		label=II_4_2,		shape=ellipse];	"cor:II_4_2" -> "thm:II_5_3"	[style=dashed];}`)
     .on("end", interactive);
 
 latexLabelEscaper = function(label) {

@@ -183,6 +183,10 @@ theorem harmonicOnNhd_subharmonicOn
 def HarmonicAtWithBot (u : E → WithBot ℝ) (x : E) : Prop :=
   ∃ v : E → ℝ, InnerProductSpace.HarmonicAt v x ∧ u =ᶠ[𝓝 x] (v ·)
 
+/-- The extended notion of `HarmonicOnNhd` for a `WithBot ℝ`-valued function `u` on a set `s`. -/
+def HarmonicOnNhdWithBot (u : E → WithBot ℝ) (s : Set E) : Prop :=
+  ∃ v : E → ℝ, InnerProductSpace.HarmonicOnNhd v s ∧ ∀ x ∈ s, u x = v x
+
 
 
 /-- An upper semicontinuous `WithBot ℝ`-valued function which is locally harmonic at every finite
@@ -497,6 +501,3 @@ theorem logNormBot_comp_analytic_subharmonicOn_gen [DecidableEq F] {f : E → F}
 theorem norm_rpow_comp_analytic_subharmonicOn_gen {f : E → F} {p : ℝ}
   (hs : IsOpen s) (hf : AnalyticOn ℂ f s) (hp : 0 < p) :
   SubharmonicOn (fun z => ((‖f z‖ ^ p : ℝ) : WithBot ℝ)) s := sorry
-
-
-

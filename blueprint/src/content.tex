@@ -31,7 +31,9 @@
 
 \begin{theorem}[Harmonic majorants of subharmonic functions, Garnett I.6.7]
   \label{thm:I_6_7}
-  \notready
+  \lean{Subharmonic.hasHarmonicMajorant_iff_radialMean_bddAbove,
+    Subharmonic.exists_isLeastHarmonicMajorant_tendsto_poissonModification}
+  \leanok
   Source: Garnett, Chapter I, Section 6, PDF page 36.
   Let $v$ be subharmonic on $\mathbb{D}$. Then $v$ has a harmonic majorant on
   $\mathbb{D}$ if and only if
@@ -66,7 +68,9 @@
 
 \begin{theorem}[Garnett II.2.1: harmonic majorants imply the Blaschke condition]
   \label{thm:II_2_1}
-  \notready
+  \lean{summable_one_sub_norm_of_hasHarmonicMajorant,
+    tsum_one_sub_norm_le_of_isLeastHarmonicMajorant}
+  \leanok
   \uses{thm:I_6_7}
   Source: Garnett, Chapter II, Section 2, PDF page 63.
   Let $f$ be a nonzero analytic function on $\mathbb{D}$, and let
@@ -109,26 +113,51 @@
   almost everywhere.
 \end{theorem}
 
-\begin{theorem}[Garnett II.2.4: division by the Blaschke factor]
+\begin{theorem}[Garnett II.2.3 (F. Riesz): division by the Blaschke factor]
+  \label{thm:II_2_3}
+  \notready
+  \uses{thm:II_2_1, thm:II_2_2}
+  Source: Garnett, Chapter II, Section 2, PDF page 66.
+  Let $0<p<\infty$, let $f\in H^p(\mathbb D)$ be nonzero, and let $B$ be the
+  Blaschke product formed from all zeros of $f$, counted with multiplicity.
+  Then $g=f/B$ extends analytically across the removable singularities,
+  belongs to $H^p(\mathbb D)$, and satisfies
+  \[
+    \lVert g\rVert_{H^p}=\lVert f\rVert_{H^p}.
+  \]
+\end{theorem}
+
+\begin{theorem}[Garnett II.2.4: characterization of Blaschke products]
   \label{thm:II_2_4}
   \notready
-  \uses{thm:I_6_7}
+  \uses{thm:I_6_7, thm:II_2_1, thm:II_2_2}
   Source: Garnett, Chapter II, Section 2, PDF page 66.
-  Let $B$ be the Blaschke product built from part or all of the zero sequence
-  of an analytic function $f$. Dividing by $B$ removes those zeros without
-  increasing the relevant Hardy or boundary-size quantity; in particular the
-  quotient remains in the same Hardy class in the applications used below.
+  Let $f\in H^\infty(\mathbb D)$ with $\lVert f\rVert_\infty\le 1$. Then the
+  following are equivalent:
+  \begin{enumerate}
+    \item $f=\lambda B$, where $|\lambda|=1$ and $B$ is a Blaschke product;
+    \item
+      \[
+        \lim_{r\to1}\frac{1}{2\pi}\int_0^{2\pi}
+          \log|f(r e^{i\theta})|\,d\theta=0;
+      \]
+    \item the least harmonic majorant of $\log|f|$ is the zero function.
+  \end{enumerate}
+  The equivalence of the last two conditions is the direct use of
+  Theorem~\ref{thm:I_6_7}; condition (3) is the form used in
+  Lemma~\ref{lem:II_5_2}.
 \end{theorem}
 
 \begin{definition}[Lean Blaschke factors]
   \label{def:blaschke_factor}
   \lean{BlaschkeFactor, normedBlaschkeFactor}
   \leanok
-  \uses{thm:II_2_1, thm:II_2_2, thm:II_2_4}
+  \uses{thm:II_2_1, thm:II_2_2, thm:II_2_3, thm:II_2_4}
   The current Lean project has the one-zero Blaschke factors. The later
   formalization target is to define infinite Blaschke products, prove compact
-  convergence, prove the a.e. boundary-modulus theorem, and prove the quotient
-  theorem needed for Hardy and Nevanlinna functions.
+  convergence, prove the a.e. boundary-modulus theorem, prove the $H^p$
+  quotient theorem II.2.3, and provide the Blaschke-product characterization
+  II.2.4 used for Nevanlinna factorization.
 \end{definition}
 
 \section{Chapter II, Section 4: boundary uniqueness and outer functions}

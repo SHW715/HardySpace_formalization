@@ -82,7 +82,7 @@ namespace HardySpace
 
 
 /-- The radial `p`-power mean appearing in the finite-exponent Hardy norm estimates. -/
-def hardyRadialMean (f : ℂ → ℂ) (p : ℝ≥0∞) (r : ℝ) : ℝ≥0∞ :=
+def hardyRadialMean (f : ℂ → E) (p : ℝ≥0∞) (r : ℝ) : ℝ≥0∞ :=
   eLpNormFixed (fun θ : ℝ ↦ f (r * exp (I * θ))) p angularMeasure
 
 /-- The Hardy `p`-norm on the unit disc. -/
@@ -98,6 +98,13 @@ lemma hardyNorm_radial_le (f : ℂ → E) (p : ℝ≥0∞) {r : ℝ} (hr : 0 < r
   unfold hardyNorm
   exact (le_iSup (fun hr : 0 < r ∧ r < 1 => eLpNormFixed _ p _) hr).trans
     (le_iSup (fun r : ℝ => ⨆ (_ : 0 < r ∧ r < 1), eLpNormFixed _ p _) r)
+
+/-- The fixed radial Hardy mean is controlled by the Hardy norm. -/
+lemma hardyRadialMean_le_hardyNorm {p : ℝ≥0∞} (f : ℂ → E)
+    {r : ℝ} (hr : 0 < r ∧ r < 1) :
+    hardyRadialMean f p r ≤ hardyNorm f p := by
+  simpa [hardyRadialMean, angularMeasure, div_eq_mul_inv, mul_comm, mul_left_comm,
+    mul_assoc] using hardyNorm_radial_le f p hr
 
 lemma circle_measure_isProbabilityMeasure :
     IsProbabilityMeasure (ENNReal.ofReal (1 / (2 * π)) • volume.restrict (Ico 0 (2 * π))) := by
@@ -188,7 +195,6 @@ lemma hardyNorm_top_eq_Sup_norm {f : ℂ → E} (hf : ContinuousOn f unitDisc) :
 
 variable [NormedSpace ℂ E]
 
-
 lemma hardyNorm_const_smul (c : ℂ) (f : ℂ → E) (p : ℝ≥0∞):
     hardyNorm (c • f) p = eLpFixedScalar c p * hardyNorm f p := by
   simp [hardyNorm, ENNReal.mul_iSup]
@@ -197,6 +203,12 @@ lemma hardyNorm_const_smul (c : ℂ) (f : ℂ → E) (p : ℝ≥0∞):
       c • fun θ : ℝ => f (r * exp (I * θ)) by rfl]
   exact eLpNormFixed_const_smul c (fun θ : ℝ => f (r * exp (I * θ))) p
     (ENNReal.ofReal (π⁻¹ * 2⁻¹) • volume.restrict (Ico 0 (2 * π)))
+
+lemma hardyNorm_const_smul' {p : ℝ≥0∞} [Fact (1 ≤ p)] (c : ℂ) (f : ℂ → E) :
+    hardyNorm (c • f) p = ‖c‖ₑ * hardyNorm f p := by
+  rw [HardySpace.hardyNorm_const_smul c f p]
+  unfold eLpFixedScalar
+  rw [if_neg (fun hp => absurd hp.2 (not_lt.2 Fact.out))]
 
 /-- Hardy norm satisfies triangle inequality. -/
 lemma hardyNorm_add_le {p : ℝ≥0∞} {f g : ℂ → E}
@@ -232,6 +244,32 @@ lemma hardyNorm_le_hardyNorm_of_exponent_le {p q : ℝ≥0∞} {f : ℂ → E}
   grw [eLpNormFixed_le_eLpNormFixed_of_exponent_le hpq
     (radial_aestronglyMeasurable hf_an.continuousOn hr μ)]
   exact hardyNorm_radial_le f q hr
+
+/-- Unconditional version of `hardyNorm_le_hardyNorm_of_exponent_le` for `0 < p ≤ q`: since
+`hardyNorm` at `p` is `hardyNorm` at `p'` (with `p ≤ p'`) raised to a fixed positive power,
+comparing exponents across the `p < 1` boundary only gives a comparison up to a further fixed
+positive power, not a literal `≤` (which indeed fails there, e.g. for constant functions of
+norm `< 1`). -/
+lemma hardyNorm_le_hardyNorm_rpow_of_exponent_le {p q : ℝ≥0∞} {f : ℂ → E}
+    (hf_an : AnalyticOn ℂ f unitDisc) (hp : p ≠ 0) (hpq : p ≤ q) :
+    hardyNorm f p ≤ hardyNorm f q ^ ((min p 1).toReal / (min q 1).toReal) := by
+  let μ : Measure ℝ := ENNReal.ofReal (1 / (2 * π)) • volume.restrict (Ico 0 (2 * π))
+  haveI : IsProbabilityMeasure μ := circle_measure_isProbabilityMeasure
+  refine iSup_le ?_
+  intro r
+  refine iSup_le ?_
+  intro hr
+  grw [eLpNormFixed_le_eLpNormFixed_rpow_of_exponent_le hp hpq
+  (radial_aestronglyMeasurable hf_an.continuousOn hr μ),
+  ENNReal.rpow_le_rpow (hardyNorm_radial_le f q hr) (by positivity)]
+
+
+/-- Hardy norm finiteness is monotone in the exponent, for all `0 < p ≤ q`. -/
+lemma hardyNorm_lt_top_of_hardyNorm_lt_top_of_exponent_le {p q : ℝ≥0∞} {f : ℂ → E}
+    (hf_an : AnalyticOn ℂ f unitDisc) (hp : p ≠ 0) (hpq : p ≤ q)
+    (hq_lt_top : hardyNorm f q < ∞) : hardyNorm f p < ∞ :=
+  lt_of_le_of_lt (hardyNorm_le_hardyNorm_rpow_of_exponent_le hf_an hp hpq)
+    (ENNReal.rpow_lt_top_of_nonneg (by positivity) hq_lt_top.ne)
 
 
 -- # We define Hardy space on unit disc together with its structure of ℂ-vector space.
@@ -292,19 +330,14 @@ def HpDisc (p : ℝ≥0∞) : Submodule ℂ (ℂ → E) where
   zero_mem' := MemHpDisc.zero
   smul_mem' := MemHpDisc.smul
 
-/-- Monotonicity of Hardy spaces on the unit disc: `H^q ⊆ H^p` for `1 ≤ p ≤ q`. -/
-theorem HpDisc_mono {p q : ℝ≥0∞} (hpq : p ≤ q) [Fact (1 ≤ p)] :
+/-- Monotonicity of Hardy spaces on the unit disc: `H^q ⊆ H^p` for `0 < p ≤ q`. -/
+theorem HpDisc_mono {p q : ℝ≥0∞} (hp : p ≠ 0) (hpq : p ≤ q) :
     HpDisc (E := E) q ≤ HpDisc (E := E) p := by
   intro f hf
   simp [HpDisc] at *
   rcases hf with ⟨hf_an, hf_norm, hf_zero⟩
-  constructor
-  · exact hf_an
-  · constructor
-    · exact lt_of_le_of_lt (hardyNorm_le_hardyNorm_of_exponent_le hf_an hpq) hf_norm
-    · exact hf_zero
-
--- # Note: monotonicity of Hardy spaces also holds for `0 < p ≤ q`, but for simplicity we ask for `1≤ p`.
+  exact ⟨hf_an,
+    hardyNorm_lt_top_of_hardyNorm_lt_top_of_exponent_le hf_an hp hpq hf_norm, hf_zero⟩
 
 end HardySpace
 end
