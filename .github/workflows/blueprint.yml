@@ -41,6 +41,8 @@ jobs:
                 ln -s "$plugin" "/usr/lib/graphviz/libgvplugin_${lib}.so"
               fi
             done
+            export LIBRARY_PATH="/usr/lib/graphviz${LIBRARY_PATH:+:$LIBRARY_PATH}"
+            export LD_LIBRARY_PATH="/usr/lib/graphviz${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
             python3 -m venv env
             source env/bin/activate
