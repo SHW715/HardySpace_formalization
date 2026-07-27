@@ -9,15 +9,15 @@
 % Colorblind-friendly dependency-graph palette (blue/orange/black, no red-green
 % contrasts; proof fills form a light-to-dark blue lightness ramp).
 % Borders (statement status):
-\bpcolor{not_ready}{orange}{Orange}      % statement not ready to formalize
-\bpcolor{can_state}{blue}{Blue}          % statement ready to formalize
-\bpcolor{stated}{steelblue}{Steel blue}  % statement formalized (matches `proved` fill)
-\bpcolor{mathlib}{purple}{Purple}        % in Mathlib
+\graphcolor{not_ready}{orange}{Orange}      % statement not ready to formalize
+\graphcolor{can_state}{blue}{Blue}          % statement ready to formalize
+\graphcolor{stated}{steelblue}{Steel blue}  % statement formalized (matches `proved` fill)
+\graphcolor{mathlib}{purple}{Purple}        % in Mathlib
 % Fills (proof status):
-\bpcolor{defined}{lightblue}{Light blue} % definition formalized
-\bpcolor{can_prove}{gold}{Gold}          % proof ready to formalize
-\bpcolor{proved}{steelblue}{Steel blue}  % proof formalized
-\bpcolor{fully_proved}{mediumseagreen}{Dark green} % proof and all ancestors formalized
+\graphcolor{defined}{lightblue}{Light blue} % definition formalized
+\graphcolor{can_prove}{gold}{Gold}          % proof ready to formalize
+\graphcolor{proved}{steelblue}{Steel blue}  % proof formalized
+\graphcolor{fully_proved}{mediumseagreen}{Dark green} % proof and all ancestors formalized
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{proposition}[theorem]{Proposition}
