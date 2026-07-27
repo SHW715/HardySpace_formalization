@@ -40,6 +40,13 @@ jobs:
             git config --global --add safe.directory "$GITHUB_WORKSPACE"
             git config --global --add safe.directory "$(pwd)"
 
+            for lib in core dot_layout neato_layout gd pango; do
+              plugin="$(find /usr/lib/graphviz -maxdepth 1 -name "libgvplugin_${lib}.so.*" | head -n 1)"
+              if [ -n "$plugin" ] && [ ! -e "/usr/lib/graphviz/libgvplugin_${lib}.so" ]; then
+                ln -s "$plugin" "/usr/lib/graphviz/libgvplugin_${lib}.so"
+              fi
+            done
+
             python3 -m venv env
             source env/bin/activate
             pip install --upgrade pip wheel
