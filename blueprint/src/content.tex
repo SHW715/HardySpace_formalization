@@ -24,27 +24,6 @@ and are not verbatim reproductions of the source.
 
 \section{Chapter I prerequisites}
 
-\begin{theorem}[Garnett I.5.3: Fatou theorem, $p=1$ disc form]
-  \label{thm:I_5_3}
-  \notready
-  \uses{lem:I_5_4}
-  Source: Garnett, Chapter I, Section 5, PDF pages 40--41.
-  Let $\mu$ be a finite real or complex measure on
-  $\partial\mathbb{D}$, with Lebesgue decomposition
-  \[
-    d\mu(\theta)=f(\theta)\,\frac{d\theta}{2\pi}+d\nu(\theta),
-    \qquad \nu\perp d\theta.
-  \]
-  Then the Poisson integral of $\mu$ has nontangential boundary values equal
-  to the density of the absolutely continuous part:
-  \[
-    \operatorname{nt}\!\lim_{z\to e^{i\theta}}P[\mu](z)=f(\theta)
-  \]
-  for Lebesgue almost every $\theta$. Garnett states the stronger theorem on
-  the upper half-plane for all $1\le p\le\infty$; this is the $p=1$ consequence
-  used later, transported to the disc by a Cayley transform.
-\end{theorem}
-
 \begin{theorem}[Harmonic majorants of subharmonic functions, Garnett I.6.7]
   \label{thm:I_6_7}
   \lean{Subharmonic.hasHarmonicMajorant_iff_radialMean_bddAbove,
@@ -69,16 +48,313 @@ and are not verbatim reproductions of the source.
   \]
 \end{theorem}
 
+\section{Nontangential limits and boundary values}
+
+\noindent\textbf{Route.} Garnett proves Fatou's theorem (I.5.3) from the
+nontangential maximal function: $u^*\le A_\alpha M(d\mu)$ (I.4.2), the
+Hardy--Littlewood weak-type estimate (I.4.3, via the Vitali covering lemma
+I.4.4 and the Marcinkiewicz interpolation theorem I.4.5), and a $C_0$ density
+argument. None of the $L^p$ statements with $p>1$ are used downstream in this
+project, and mathlib does not currently carry the Hardy--Littlewood maximal
+theorem. We therefore take the equivalent \emph{approximate identity} route:
+a single quantitative bound on the Poisson kernel over a Stolz region
+(Lemma~\ref{lem:poisson_stolz_bound}) plus the differentiation theorem for
+measures (Theorem~\ref{thm:circle_differentiation}), which mathlib does have.
+
+Consequently the nontangential maximal function $u^*_\alpha(\zeta)=
+\sup_{\Gamma_\alpha(\zeta)}\|u\|$ is deliberately absent from this blueprint.
+Checking Garnett chapter by chapter, it is load-bearing in exactly two places
+that touch the present development, and both are bypassed. It is used in
+Theorem II.3.1, the boundary-value theorem for $H^p$ with $0<p\le\infty$,
+which is stated through $\|f^*\|_p\le A_\alpha\|f\|_{H^p}$; we only need the
+$H^\infty$ case, obtained in Corollary~\ref{cor:II_3_2} from
+Theorem~\ref{thm:bounded_harmonic_poisson_Linfty} and
+Theorem~\ref{thm:I_5_3}. And it is used in Theorem II.4.1, where
+$(1/p)|f^*|^p$ is the dominating function in a convergence argument; the
+consequence we need, Corollary~\ref{cor:II_4_2}, instead follows from part
+(2) of Theorem~\ref{thm:II_5_3}, since $\log|f^*|\in L^1$ forces $f^*\ne0$
+almost everywhere, and $H^p\subseteq N$ is already formalized. Chapter II,
+Section 5 never mentions the maximal function at all. It becomes unavoidable
+only if this project is extended to the $N^+$ and $H^p$ refinements
+(Garnett II.5.7, II.3.6, the $H^p\cong$ closed subspace of $L^p$ isometry) or
+to Carleson measures, and each of those additionally needs the
+Hardy--Littlewood maximal theorem, which mathlib does not have.
+
+\medskip
+\noindent\textbf{Convention.} Boundary measures and boundary functions are
+modelled on $\mathbb{C}$ rather than on $[0,2\pi)$: the normalized arclength
+measure $d\theta/2\pi$ on $\partial\D$ is \texttt{circleMeasure 0 1}, the
+pushforward of the normalized angular measure \texttt{angularMeasure} along
+$\theta\mapsto e^{i\theta}$, a probability measure carried by the unit circle.
+This is the convention already used for the representing measures of
+Theorem~\ref{thm:positive_harmonic_poisson_measure} and
+Theorem~\ref{thm:II_5_1}, and it is what allows the two summands of
+\eqref{eq:II_5_3_decomposition} below to be added. Statements phrased in
+$\theta$, such as $\log|f(e^{i\theta})|\in L^1(d\theta)$, are obtained by
+pulling back along $\theta\mapsto e^{i\theta}$; transferring null sets and
+integrability between the two pictures is a small piece of Lean infrastructure
+to be added next to \texttt{circleMeasure}, not a mathematical step.
+
+\begin{definition}[Nontangential approach region]
+  \label{def:nt_region}
+  \notready
+  Source: Garnett, Chapter I, Section 4, PDF page 23 (disc form).
+  For $\zeta\in\partial\D$ and $\alpha>1$ put
+  \[
+    \Gamma_\alpha(\zeta)
+      =\Bigl\{z\in\D:\ |\zeta-z|<\alpha\,(1-|z|)\Bigr\},
+  \]
+  a teardrop-shaped region asymptotic at $\zeta$ to an angle with vertex
+  $\zeta$. Facts to record: $\Gamma_\alpha(\zeta)$ is open and contained in
+  $\D$; it increases with $\alpha$; it contains the radial segment
+  $[0,1)\zeta$; it is empty when $\alpha\le 1$; and
+  $\Gamma_\alpha(1)$ is mathlib's \texttt{Complex.stolzSet}~$\alpha$, with
+  $\Gamma_\alpha(\zeta)=\zeta\cdot\Gamma_\alpha(1)$. Mathlib only has the
+  region at $\zeta=1$, so the rotated family has to be added.
+\end{definition}
+
+\begin{definition}[Nontangential limit]
+  \label{def:nt_limit}
+  \notready
+  \uses{def:nt_region}
+  Source: Garnett, Chapter I, Section 5, PDF page 27.
+  The \emph{nontangential filter} at $\zeta\in\partial\D$ is
+  \[
+    \mathcal{N}_\zeta=\sup_{\alpha>1}\ \mathcal{N}_{\Gamma_\alpha(\zeta)}(\zeta),
+  \]
+  the supremum, in the lattice of filters, of the neighbourhood filters of
+  $\zeta$ within $\Gamma_\alpha(\zeta)$, and
+  $\operatorname{nt}\lim_{z\to\zeta}f(z)=L$ means
+  that $f$ tends to $L$ along $\mathcal{N}_\zeta$. Two consequences of packaging
+  the definition as a single filter: the limit is unique because
+  $\mathcal{N}_\zeta$ is nontrivial for $\zeta\in\partial\D$, and all the
+  algebraic rules for nontangential limits (sums, products, scalar multiples,
+  composition with continuous maps, squeezing) are inherited from the generic
+  API for limits along filters, so none of them has to be proved.
+\end{definition}
+
+\begin{definition}[Boundary function]
+  \label{def:boundary_function}
+  \notready
+  \uses{def:nt_limit}
+  The boundary function of $f$ is defined by the \emph{radial} limit
+  \[
+    f^*(\zeta)=\lim_{r\uparrow 1}f(r\zeta),
+  \]
+  interpreted through the choice operator, so that $f^*$ is a total function
+  requiring no hypothesis on $f$ or on $\zeta$. Since $[0,1)\zeta\subset
+  \Gamma_\alpha(\zeta)$ for every $\alpha>1$, whenever the nontangential limit
+  at $\zeta$ exists it is equal to $f^*(\zeta)$. All statements below are
+  therefore of the shape ``$f$ has a nontangential limit at almost every
+  $\zeta$, and its value is $f^*(\zeta)$'': the existence assertion carries the
+  strength, while the value is a total, well-behaved function that can be fed
+  to $L^p$ statements without side conditions.
+\end{definition}
+
+\begin{lemma}[Measurability of the boundary function]
+  \label{lem:boundary_function_measurable}
+  \notready
+  \uses{def:boundary_function}
+  If $f$ is continuous on $\D$ and has nontangential limits almost everywhere
+  on $\partial\D$, then $f^*$ is almost everywhere strongly measurable with
+  respect to $d\theta/2\pi$, being the almost everywhere pointwise limit of the
+  continuous functions $\zeta\mapsto f\bigl((1-\tfrac1n)\zeta\bigr)$. This is
+  the reason for defining $f^*$ radially: a limit along a countably generated
+  filter is a limit of a sequence, hence measurable.
+\end{lemma}
+
+\begin{lemma}[Poisson kernel over a Stolz region]
+  \label{lem:poisson_stolz_bound}
+  \notready
+  \uses{def:nt_region}
+  Let $\alpha>1$. There is a constant $C_\alpha$ such that for every
+  $\zeta\in\partial\D$, every $z\in\Gamma_\alpha(\zeta)$ and every
+  $\theta$,
+  \[
+    P_z(\theta)\ \le\
+      \frac{C_\alpha\,(1-|z|)}{\bigl((1-|z|)+|e^{i\theta}-\zeta|\bigr)^{2}} .
+  \]
+  In particular $P_z(\theta)\le C_\alpha/(1-|z|)$ always, and
+  $P_z(\theta)\le C_\alpha (1-|z|)/|e^{i\theta}-\zeta|^{2}$ once
+  $|e^{i\theta}-\zeta|\ge 2\alpha(1-|z|)$. Together with
+  $\int P_z\,d\theta/2\pi=1$ this exhibits the Poisson kernels, restricted to a
+  Stolz region, as an approximate identity with a uniformly integrable
+  decreasing majorant. This single estimate replaces Garnett's Theorem I.4.2
+  and is the engine of both Lemma~\ref{lem:I_5_4} and
+  Theorem~\ref{thm:I_5_3_ac}.
+  \begin{proof}
+    From $|e^{i\theta}-z|\ge 1-|z|$ and, by the triangle inequality and the
+    definition of $\Gamma_\alpha(\zeta)$,
+    $|e^{i\theta}-z|\ge|e^{i\theta}-\zeta|-\alpha(1-|z|)$, one gets
+    $|e^{i\theta}-z|\ge c_\alpha\bigl((1-|z|)+|e^{i\theta}-\zeta|\bigr)$;
+    insert this into $P_z(\theta)=(1-|z|^2)/|e^{i\theta}-z|^{2}$ and use
+    $1-|z|^2\le 2(1-|z|)$.
+  \end{proof}
+\end{lemma}
+
+\begin{theorem}[Differentiation of measures on the circle]
+  \label{thm:circle_differentiation}
+  \notready
+  Let $\nu$ be a finite positive Borel measure on $\partial\D$ and let
+  $I(\zeta,h)$ denote the arc of length $2h$ centred at $\zeta$. Then for
+  almost every $\zeta$,
+  \[
+    \lim_{h\to0}\frac{\nu\bigl(I(\zeta,h)\bigr)}{2h}
+      =\frac{d\nu}{d\theta}(\zeta),
+  \]
+  and in particular $\nu(I(\zeta,h))/2h\to0$ almost everywhere when
+  $\nu\perp d\theta$. In the same setting, almost every $\zeta$ is a Lebesgue
+  point of a given $k\in L^1(d\theta/2\pi)$:
+  \[
+    \lim_{h\to0}\ \frac{1}{\mu\bigl(I(\zeta,h)\bigr)}
+      \int_{I(\zeta,h)}|k-k(\zeta)|\,d\mu\ =\ 0,
+    \qquad \mu=d\theta/2\pi .
+  \]
+  Both halves come from mathlib applied \emph{directly} on $\mathbb{C}$ with
+  $\mu=$ \texttt{circleMeasure 0 1}, with no passage to intervals in $\theta$:
+  \texttt{Besicovitch.ae\_tendsto\_rnDeriv} needs only local finiteness of the
+  two measures, \texttt{Besicovitch.vitaliFamily} needs only $s$-finiteness,
+  and \texttt{VitaliFamily.ae\_tendsto\_average\_norm\_sub} then gives the
+  Lebesgue points; \texttt{HasBesicovitchCovering} holds for every
+  finite-dimensional real normed space, in particular for $\mathbb{C}$. The
+  singular case follows since the Radon--Nikodym derivative of a mutually
+  singular measure vanishes almost everywhere.
+
+  Two points of care. The Vitali families of
+  \texttt{MeasureTheory.Covering.DensityTheorem} are \emph{not} usable here:
+  they require \texttt{IsUnifLocDoublingMeasure}, which fails for
+  \texttt{circleMeasure} viewed as a measure on $\mathbb{C}$, since balls
+  centred slightly off the circle have measure zero while their doubles do
+  not; the Besicovitch family carries no such hypothesis. And
+  $\overline{B}(\zeta,h)\cap\partial\D$ \emph{is} the arc $I(\zeta,h)$, so the
+  only genuine work is the comparability
+  $\mu\bigl(\overline B(\zeta,h)\bigr)\asymp h$ of chord and arc, which
+  Lemma~\ref{lem:poisson_stolz_bound} needs anyway. This node replaces
+  Garnett's Vitali covering lemma I.4.4 and the weak-type argument built on
+  it.
+\end{theorem}
+
 \begin{lemma}[Garnett I.5.4: singular Poisson integrals vanish at the boundary]
   \label{lem:I_5_4}
   \notready
+  \uses{def:nt_limit, lem:poisson_stolz_bound, thm:circle_differentiation}
   Source: Garnett, Chapter I, Section 5, PDF pages 41--42.
-  If $\nu$ is a finite measure on $\mathbb{R}$ singular with respect to
-  Lebesgue measure, then its Poisson integral has nontangential boundary limit
-  zero for Lebesgue almost every boundary point. This is the step that removes
-  the singular part in the $p=1$ boundary-limit assertion of
-  Theorem~\ref{thm:I_5_3}.
+  If $\nu$ is a finite signed measure on $\partial\D$ that is singular with
+  respect to $d\theta$, then
+  \[
+    \operatorname{nt}\lim_{z\to\zeta}P[\nu](z)=0
+  \]
+  for almost every $\zeta\in\partial\D$. This is the step that removes the
+  singular part in Theorem~\ref{thm:I_5_3}, and it is also what gives the
+  singular functions of Definition~\ref{def:singular_function_formula} boundary
+  modulus one almost everywhere.
+  \begin{proof}
+    \notready
+    By the Jordan decomposition we may assume $\nu\ge0$. Fix $\zeta$ at which
+    $\nu(I(\zeta,h))/2h\to0$, which by
+    Theorem~\ref{thm:circle_differentiation} is almost every $\zeta$. For
+    $z\in\Gamma_\alpha(\zeta)$ split the integral at
+    $|e^{i\theta}-\zeta|=A(1-|z|)$. On the far part
+    Lemma~\ref{lem:poisson_stolz_bound} gives a bound
+    $C_\alpha\,\nu(\partial\D)/(A^{2}(1-|z|))$, and on the near part the same
+    lemma bounds the integral by
+    $C_\alpha\sup_{h<A(1-|z|)}\nu(I(\zeta,h))/2h$. Choose $A=A(z)$ with
+    $A(1-|z|)\to0$ and $A^{2}(1-|z|)\to\infty$ as $|z|\to1$.
+  \end{proof}
 \end{lemma}
+
+\begin{theorem}[Fatou at Lebesgue points]
+  \label{thm:I_5_3_ac}
+  \notready
+  \uses{def:nt_limit, lem:poisson_stolz_bound, thm:circle_differentiation}
+  Let $k\in L^1(d\theta/2\pi)$. Then at every Lebesgue point $\zeta$ of $k$,
+  and hence almost everywhere,
+  \[
+    \operatorname{nt}\lim_{z\to\zeta}P\bigl[k\,d\theta/2\pi\bigr](z)=k(\zeta).
+  \]
+  \begin{proof}
+    \notready
+    Estimate $|P[k](z)-k(\zeta)|\le\int P_z(\theta)|k(\theta)-k(\zeta)|
+    \,d\theta/2\pi$ using $\int P_z\,d\theta/2\pi=1$, and split the integral
+    into dyadic arcs around $\zeta$; the majorant of
+    Lemma~\ref{lem:poisson_stolz_bound} converts the Lebesgue-point condition
+    into a convergent sum. This is the standard approximate-identity argument
+    and it avoids the maximal function entirely.
+  \end{proof}
+\end{theorem}
+
+\begin{theorem}[Lebesgue decomposition of a finite boundary measure]
+  \label{thm:signed_lebesgue_decomposition}
+  \mathlibok
+  A finite signed Borel measure $\mu$ on $\partial\D$ decomposes uniquely as
+  \[
+    d\mu=k\,\frac{d\theta}{2\pi}+d\mu_s,
+    \qquad k\in L^1(d\theta/2\pi),\quad \mu_s\perp d\theta .
+  \]
+  This is available in mathlib:
+  \texttt{MeasureTheory.SignedMeasure.singularPart\_add\_withDensity\_rnDeriv\_eq},
+  \texttt{SignedMeasure.rnDeriv}, \texttt{SignedMeasure.integrable\_rnDeriv},
+  the signed density operator \texttt{Measure.withDensity} for vector measures,
+  and the mutual-singularity relation
+  \texttt{VectorMeasure.MutuallySingular}. Only the ambient space has to be
+  fixed, which the convention at the head of this section does.
+\end{theorem}
+
+\begin{theorem}[Garnett I.5.3: Fatou theorem, $p=1$ disc form]
+  \label{thm:I_5_3}
+  \notready
+  \uses{thm:I_5_3_ac, lem:I_5_4, thm:signed_lebesgue_decomposition,
+    def:nt_limit, def:boundary_function}
+  Source: Garnett, Chapter I, Section 5, PDF pages 40--41.
+  Let $\mu$ be a finite signed measure on $\partial\D$, with Lebesgue
+  decomposition $d\mu=k\,d\theta/2\pi+d\mu_s$, $\mu_s\perp d\theta$. Then the
+  Poisson integral of $\mu$ has a nontangential limit at almost every boundary
+  point, and
+  \[
+    \operatorname{nt}\lim_{z\to\zeta}P[\mu](z)=k(\zeta)
+    \qquad\text{for almost every }\zeta\in\partial\D;
+  \]
+  equivalently $\bigl(P[\mu]\bigr)^*=k$ almost everywhere, so the boundary
+  function is in $L^1$. Garnett states the stronger half-plane theorem for all
+  $1\le p\le\infty$; only this $p=1$ disc form is used in this project.
+  \begin{proof}
+    \notready
+    Split $\mu$ by Theorem~\ref{thm:signed_lebesgue_decomposition} and add
+    Theorem~\ref{thm:I_5_3_ac} to Lemma~\ref{lem:I_5_4}, using that
+    nontangential limits are limits along a filter and therefore additive.
+  \end{proof}
+\end{theorem}
+
+\begin{theorem}[Bounded harmonic functions are Poisson integrals of $L^\infty$ data]
+  \label{thm:bounded_harmonic_poisson_Linfty}
+  \notready
+  \uses{thm:positive_harmonic_poisson_measure}
+  If $u$ is real harmonic on $\D$ with $|u|\le M$, then there is
+  $k\in L^\infty(d\theta/2\pi)$ with $\|k\|_\infty\le M$ and $u=P[k\,
+  d\theta/2\pi]$.
+  \begin{proof}
+    \notready
+    Apply Theorem~\ref{thm:positive_harmonic_poisson_measure} to the positive
+    harmonic function $u+M$ to get $u+M=P[\mu]$ with $\mu\ge0$ finite. Since
+    $\mu$ is the weak-star limit of the measures $(u(r\,\cdot)+M)\,
+    d\theta/2\pi$, whose densities are bounded by $2M$, one gets
+    $\mu\le 2M\,d\theta/2\pi$; Radon--Nikodym then produces a density bounded
+    by $2M$, and subtracting $M$ gives $k$.
+  \end{proof}
+\end{theorem}
+
+\begin{theorem}[A boundary measure is determined by its Poisson integral]
+  \label{thm:poisson_measure_unique}
+  \notready
+  If $\mu$ and $\nu$ are finite signed measures on $\partial\D$ with
+  $P[\mu]=P[\nu]$ on $\D$, then $\mu=\nu$. The proof is the standard weak-star
+  argument: $P[\mu](r\,\cdot)\,d\theta/2\pi\to\mu$ when tested against
+  continuous functions on the circle. This is what licenses speaking of
+  \emph{the} representing measure in Theorem~\ref{thm:II_5_3}, and it is used
+  again for the uniqueness of the singular factors
+  (Theorem~\ref{thm:singular_measure_determines_factors}) and in Garnett's
+  Theorem II.5.4.
+\end{theorem}
 
 \section{Chapter II, Section 2: Blaschke products}
 
@@ -178,13 +454,38 @@ and are not verbatim reproductions of the source.
 
 \section{Chapter II, Section 4: boundary uniqueness and outer functions}
 
-\begin{corollary}[Garnett II.4.2: boundary uniqueness in $H^p$]
+\begin{corollary}[Garnett II.4.2: boundary uniqueness]
   \label{cor:II_4_2}
   \notready
+  \uses{thm:II_5_3, def:boundary_function}
   Source: Garnett, Chapter II, Section 4, PDF page 75.
-  Let $0<p\le\infty$ and let $f\in H^p(\mathbb{D})$. If the boundary function
-  of $f$ vanishes on a subset of $\partial\mathbb{D}$ of positive Lebesgue
-  measure, then $f$ is identically zero.
+  Let $f\in N$, and suppose the boundary function $f^*$ vanishes on a subset
+  of $\partial\D$ of positive Lebesgue measure. Then $f\equiv0$. Since
+  $H^p\subseteq N$ for every $p>0$, this contains Garnett's statement for
+  $H^p(\D)$, $0<p\le\infty$.
+  \begin{proof}
+    \notready
+    Contrapositive. If $f\not\equiv0$ then part (2) of
+    Theorem~\ref{thm:II_5_3} gives $\log|f^*|\in L^1(d\theta/2\pi)$, so
+    $\log|f^*|>-\infty$ and hence $f^*\ne0$ almost everywhere. The passage
+    from $H^p$ to $N$ is the inclusion \texttt{hpDisc\_le\_nevanlinnaDisc},
+    already formalized.
+
+    Garnett argues the other way round, deducing this from Theorem II.4.1,
+    whose proof dominates $\log^+|f(re^{i\theta})|$ by $(1/p)|f^*|^p$ with
+    $f^*$ the nontangential maximal function of Theorem II.3.1. Reversing the
+    implication keeps the present development free of the maximal function and
+    of the Hardy--Littlewood theory behind it, at the cost of making this
+    corollary depend on Theorem~\ref{thm:II_5_3}. There is no circularity:
+    Theorem~\ref{thm:II_5_3} obtains the nonvanishing of the boundary values
+    of $e^{-(u_j+iv_j)}$ from a second application of
+    Theorem~\ref{thm:I_5_3}, not from this corollary. What is lost is
+    Garnett's sharper inequality~II.4.1 itself,
+    $\log|f(z_0)|\le\int\log|f^*|P_{z_0}\,d\theta/2\pi$ for $f\in H^p$, which
+    is not needed for Theorem~\ref{thm:nevanlinna_canonical_factorization}; it
+    would be needed for the $N^+$ refinements, and there the maximal function
+    would have to be developed anyway.
+  \end{proof}
 \end{corollary}
 
 \begin{theorem}[Garnett II.4.4: construction from logarithmic data]
@@ -201,6 +502,7 @@ and are not verbatim reproductions of the source.
 \begin{theorem}[Outer uniqueness]
   \label{thm:outer_uniqueness}
   \notready
+  \uses{cor:II_4_2, def:boundary_function}
   If two outer functions have the same boundary modulus almost everywhere,
   then their quotient is a unimodular constant. Equivalently, the boundary
   modulus determines the outer factor up to the expected constant.
@@ -248,7 +550,10 @@ and are not verbatim reproductions of the source.
 
 \begin{theorem}[Garnett I.3.5(c): positive harmonic functions as Poisson integrals, disc form]
   \label{thm:positive_harmonic_poisson_measure}
-  \notready
+  \lean{harmonicOnNhd_nonneg_iff_exists_eq_poissonIntegral,
+    exists_isFiniteMeasure_eq_poissonIntegral_of_harmonicOnNhd_nonneg,
+    harmonicOnNhd_poissonIntegral_measure, poissonIntegral_nonneg}
+  \leanok
   Source: Garnett, Chapter I, Section 3, Theorem 3.5(c), especially the
   disc-version argument in its proof, printed pages 17--19 (PDF pages
   approximately 29--31).
@@ -256,6 +561,14 @@ and are not verbatim reproductions of the source.
   finite positive measure $\mu$ on $\partial\mathbb{D}$ such that
   $u=P[\mu]$. Conversely, the Poisson integral of any finite positive boundary
   measure is positive and harmonic.
+
+  Formalization status: the Lean statements are in place, the boundary measure
+  being modelled as a finite measure on $\mathbb{C}$ carried by the circle. The
+  converse direction is proved; the analyticity of the Herglotz--Riesz
+  transform of a boundary measure, which is the engine of that direction, is
+  available as \texttt{analyticOnNhd\_integral\_herglotzRieszKernel}. The existence
+  direction, whose proof needs weak-$*$ compactness of the approximating
+  measures $u(r\,\cdot)\,d\sigma$, is still open.
 \end{theorem}
 
 \begin{lemma}[Garnett II.5.2: remove the zeros of a Nevanlinna function]
@@ -273,36 +586,87 @@ and are not verbatim reproductions of the source.
 \begin{corollary}[Garnett II.3.2: $H^\infty$ boundary values, disc form]
   \label{cor:II_3_2}
   \notready
+  \uses{thm:bounded_harmonic_poisson_Linfty, thm:I_5_3,
+    def:boundary_function, lem:boundary_function_measurable}
   Source: Garnett, Chapter II, Section 3, PDF page 67.
-  Every bounded analytic function on $\mathbb{D}$ has nontangential boundary
-  limits almost everywhere, and the resulting boundary function has essential
-  supremum bounded by the analytic supremum norm. This is the forward
-  direction of the $p=\infty$ case of Corollary II.3.2, transported from the
-  upper half-plane to the disc by a Cayley transform.
+  Every $f\in H^\infty(\D)$ has a nontangential limit at almost every boundary
+  point, and its boundary function satisfies
+  $\|f^*\|_{L^\infty(d\theta/2\pi)}\le\|f\|_\infty$.
+  \begin{proof}
+    \notready
+    The real and imaginary parts of $f$ are bounded harmonic, hence Poisson
+    integrals of $L^\infty$ boundary data by
+    Theorem~\ref{thm:bounded_harmonic_poisson_Linfty}; an $L^\infty$ density is
+    in particular an $L^1$ density, so Theorem~\ref{thm:I_5_3} gives
+    nontangential limits almost everywhere. The norm bound needs no maximal
+    function: $\|f(z)\|\le\|f\|_\infty$ pointwise on $\D$, and the bound passes
+    to the limit along the filter. This is the only part of Garnett's
+    Corollary II.3.2 used here; the remaining $H^p$ cases are not needed.
+  \end{proof}
 \end{corollary}
 
 \begin{theorem}[Garnett II.5.3: boundary values and the least-majorant measure]
   \label{thm:II_5_3}
   \notready
-  \uses{thm:II_5_1, lem:II_5_2, thm:I_5_3,
-    cor:II_3_2, cor:II_4_2,
-    thm:positive_harmonic_poisson_measure}
+  \uses{thm:II_5_1, lem:II_5_2, thm:II_2_2, thm:I_5_3, cor:II_3_2,
+    thm:signed_lebesgue_decomposition, thm:poisson_measure_unique,
+    def:nt_limit, def:boundary_function}
   Source: Garnett, Chapter II, Section 5, PDF page 79.
-  If $f\in N$ and $f$ is not identically zero, then $f$ has nontangential
-  boundary values $f(e^{i\theta})$ almost everywhere, and
-  \[
-    \log|f(e^{i\theta})|\in L^1(d\theta).
-  \]
-  If $u$ is the least harmonic majorant of $\log|f|$, then
-  \[
-    u(z)=\int_{0}^{2\pi}P_z(\theta)\,d\mu(\theta),
-  \]
-  where the finite real representing measure has the decomposition
-  \[
-    d\mu(\theta)
-      =\log|f(e^{i\theta})|\,\frac{d\theta}{2\pi}+d\mu_s(\theta),
-  \]
-  with $\mu_s$ singular with respect to Lebesgue measure.
+  Let $f\in N$, $f\not\equiv0$. Then:
+  \begin{enumerate}
+    \item $f$ has a nontangential limit $f^*(\zeta)$ at almost every
+      $\zeta\in\partial\D$, and $f^*\ne0$ almost everywhere;
+    \item $\log|f^*|\in L^1(d\theta/2\pi)$;
+    \item the least harmonic majorant of $\log|f|$ is $P[\mu]$ for a unique
+      finite signed measure $\mu$ on $\partial\D$, and
+      \begin{equation}
+        \label{eq:II_5_3_decomposition}
+        d\mu=\log|f^*|\,\frac{d\theta}{2\pi}+d\mu_s,
+        \qquad \mu_s\perp d\theta .
+      \end{equation}
+  \end{enumerate}
+  In other words, the absolutely continuous part of the representing measure
+  is exactly the boundary logarithm, and the whole obstruction to the
+  inequality $\log|f(z)|\le\int\log|f^*|P_z\,d\theta/2\pi$ is concentrated in
+  the singular part; Garnett's class $N^+$ is the subclass where
+  $\mu_s\le0$.
+  \begin{proof}
+    \notready
+    Let $B$ be the Blaschke product over the zeros of $f$ and $g=f/B$. By
+    Theorem~\ref{thm:II_5_1} and Lemma~\ref{lem:II_5_2}, $g$ is zero-free and
+    $\log|g|=P[\mu]$ is the least harmonic majorant of $\log|f|$; by
+    Theorem~\ref{thm:poisson_measure_unique} the measure $\mu$ is unique. Write
+    $d\mu=k\,d\theta/2\pi+d\mu_s$ using
+    Theorem~\ref{thm:signed_lebesgue_decomposition}. By
+    Theorem~\ref{thm:I_5_3}, $\log|g|$ has nontangential limit $k$ almost
+    everywhere, and since $|B^*|=1$ almost everywhere
+    (Theorem~\ref{thm:II_2_2}) the same holds for $\log|f|$. So $k\in L^1$ and
+    \eqref{eq:II_5_3_decomposition} follow once $f$ itself is known to have
+    nontangential limits.
+
+    For that, decompose $\log|g|=u_1-u_2$ with $u_j=P[\mu_j]\ge0$ harmonic,
+    $\mu=\mu_1-\mu_2$ the Jordan decomposition. Choose harmonic conjugates
+    $v_j$ with $v_j(0)=0$, which exist because the disc is simply connected and
+    which mathlib provides as
+    \texttt{InnerProductSpace.HarmonicOnNhd.exists\_analyticOnNhd\_ball\_re\_eq};
+    then $\log g=(u_1+iv_1)-(u_2+iv_2)+ic$ for a real constant $c$, so that
+    \[
+      g=e^{ic}\,\frac{e^{-(u_2+iv_2)}}{e^{-(u_1+iv_1)}} .
+    \]
+    Each $e^{-(u_j+iv_j)}$ has modulus $e^{-u_j}\le1$, hence lies in
+    $H^\infty$ and has nontangential limits almost everywhere by
+    Corollary~\ref{cor:II_3_2}. Those limits are nonzero almost everywhere:
+    $\log|e^{-(u_j+iv_j)}|=-P[\mu_j]$ has a finite nontangential limit almost
+    everywhere by Theorem~\ref{thm:I_5_3} again, so the boundary modulus is
+    $e^{-k_j}>0$ almost everywhere. Hence $g$, and then $f=Bg$, have
+    nontangential limits almost everywhere.
+
+    Garnett obtains the nonvanishing from the boundary uniqueness theorem
+    (Corollary~\ref{cor:II_4_2}) instead. Using
+    Theorem~\ref{thm:I_5_3} as above keeps II.5.3 independent of the $H^p$
+    boundary uniqueness theory, which is why \texttt{cor:II\_4\_2} is not among
+    the dependencies above; it is still needed for the outer factor.
+  \end{proof}
 \end{theorem}
 
 \section{Singular factors}

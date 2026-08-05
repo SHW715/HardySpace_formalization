@@ -74,8 +74,20 @@
       <span class="corollary_thmcaption">
       Corollary
       </span>
-      <span class="corollary_thmlabel">17</span><span class="corollary_thmtitle">Garnett II.3.2: \(H^\infty \) boundary values, disc form</span></div>
-    <div class="thm_thmcontent"><p>  Source: Garnett, Chapter II, Section 3, PDF page 67. Every bounded analytic function on \(\mathbb {D}\) has nontangential boundary limits almost everywhere, and the resulting boundary function has essential supremum bounded by the analytic supremum norm. This is the forward direction of the \(p=\infty \) case of Corollary II.3.2, transported from the upper half-plane to the disc by a Cayley transform. </p>
+      <span class="corollary_thmlabel">27</span><span class="corollary_thmtitle">Garnett II.3.2: \(H^\infty \) boundary values, disc form</span></div>
+    <div class="thm_thmcontent"><p>   Source: Garnett, Chapter II, Section 3, PDF page 67. Every \(f\in H^\infty (\mathbb {D})\) has a nontangential limit at almost every boundary point, and its boundary function satisfies \(\| f^*\| _{L^\infty (d\theta /2\pi )}\le \| f\| _\infty \). </p>
+<div class="proof_wrapper" id="a0000000033">
+  <div class="proof_heading">
+    <span class="proof_caption">
+    Proof
+    </span>
+    <span class="expand-proof">▶</span>
+  </div>
+  <div class="proof_content">
+  <p>The real and imaginary parts of \(f\) are bounded harmonic, hence Poisson integrals of \(L^\infty \) boundary data by Theorem&#160;<a href="sect0001.html#thm:bounded_harmonic_poisson_Linfty">12</a>; an \(L^\infty \) density is in particular an \(L^1\) density, so Theorem&#160;<a href="sect0001.html#thm:I_5_3">11</a> gives nontangential limits almost everywhere. The norm bound needs no maximal function: \(\| f(z)\| \le \| f\| _\infty \) pointwise on \(\mathbb {D}\), and the bound passes to the limit along the filter. This is the only part of Garnett’s Corollary II.3.2 used here; the remaining \(H^p\) cases are not needed. </p>
+
+  </div>
+</div>
 </div>
 
     <a class="latex_link" href="sect0001.html#cor:II_3_2">LaTeX</a>
@@ -104,8 +116,21 @@
       <span class="corollary_thmcaption">
       Corollary
       </span>
-      <span class="corollary_thmlabel">9</span><span class="corollary_thmtitle">Garnett II.4.2: boundary uniqueness in \(H^p\)</span></div>
-    <div class="thm_thmcontent"><p>  Source: Garnett, Chapter II, Section 4, PDF page 75. Let \(0{\lt}p\le \infty \) and let \(f\in H^p(\mathbb {D})\). If the boundary function of \(f\) vanishes on a subset of \(\partial \mathbb {D}\) of positive Lebesgue measure, then \(f\) is identically zero. </p>
+      <span class="corollary_thmlabel">19</span><span class="corollary_thmtitle">Garnett II.4.2: boundary uniqueness</span></div>
+    <div class="thm_thmcontent"><p>   Source: Garnett, Chapter II, Section 4, PDF page 75. Let \(f\in N\), and suppose the boundary function \(f^*\) vanishes on a subset of \(\partial \mathbb {D}\) of positive Lebesgue measure. Then \(f\equiv 0\). Since \(H^p\subseteq N\) for every \(p{\gt}0\), this contains Garnett’s statement for \(H^p(\mathbb {D})\), \(0{\lt}p\le \infty \). </p>
+<div class="proof_wrapper" id="a0000000030">
+  <div class="proof_heading">
+    <span class="proof_caption">
+    Proof
+    </span>
+    <span class="expand-proof">▶</span>
+  </div>
+  <div class="proof_content">
+  <p>Contrapositive. If \(f\not\equiv 0\) then part (2) of Theorem&#160;<a href="sect0001.html#thm:II_5_3">28</a> gives \(\log |f^*|\in L^1(d\theta /2\pi )\), so \(\log |f^*|{\gt}-\infty \) and hence \(f^*\ne 0\) almost everywhere. The passage from \(H^p\) to \(N\) is the inclusion <span class="ttfamily">hpDisc_le_nevanlinnaDisc</span>, already formalized. </p>
+<p>Garnett argues the other way round, deducing this from Theorem II.4.1, whose proof dominates \(\log ^+|f(re^{i\theta })|\) by \((1/p)|f^*|^p\) with \(f^*\) the nontangential maximal function of Theorem II.3.1. Reversing the implication keeps the present development free of the maximal function and of the Hardy–Littlewood theory behind it, at the cost of making this corollary depend on Theorem&#160;<a href="sect0001.html#thm:II_5_3">28</a>. There is no circularity: Theorem&#160;<a href="sect0001.html#thm:II_5_3">28</a> obtains the nonvanishing of the boundary values of \(e^{-(u_j+iv_j)}\) from a second application of Theorem&#160;<a href="sect0001.html#thm:I_5_3">11</a>, not from this corollary. What is lost is Garnett’s sharper inequality&#160;II.4.1 itself, \(\log |f(z_0)|\le \int \log |f^*|P_{z_0}\, d\theta /2\pi \) for \(f\in H^p\), which is not needed for Theorem&#160;<a href="sect0001.html#thm:nevanlinna_canonical_factorization">36</a>; it would be needed for the \(N^+\) refinements, and there the maximal function would have to be developed anyway. </p>
+
+  </div>
+</div>
 </div>
 
     <a class="latex_link" href="sect0001.html#cor:II_4_2">LaTeX</a>
@@ -134,7 +159,7 @@
       <span class="definition_thmcaption">
       Definition
       </span>
-      <span class="definition_thmlabel">8</span><span class="definition_thmtitle">Lean Blaschke factors</span></div>
+      <span class="definition_thmlabel">18</span><span class="definition_thmtitle">Lean Blaschke factors</span></div>
     <div class="thm_thmcontent"><p>    The current Lean project has the one-zero Blaschke factors. The later formalization target is to define infinite Blaschke products, prove compact convergence, prove the a.e. boundary-modulus theorem, prove the \(H^p\) quotient theorem II.2.3, and provide the Blaschke-product characterization II.2.4 used for Nevanlinna factorization. </p>
 </div>
 
@@ -162,6 +187,108 @@
 
 
     
+    <div class="dep-modal-container" id="def:boundary_function_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def:boundary_function" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">4</span><span class="definition_thmtitle">Boundary function</span></div>
+    <div class="thm_thmcontent"><p>   The boundary function of \(f\) is defined by the <em>radial</em> limit </p>
+<div class="displaymath" id="a0000000009">
+  \[  f^*(\zeta )=\lim _{r\uparrow 1}f(r\zeta ),  \]
+</div>
+<p> interpreted through the choice operator, so that \(f^*\) is a total function requiring no hypothesis on \(f\) or on \(\zeta \). Since \([0,1)\zeta \subset \Gamma _\alpha (\zeta )\) for every \(\alpha {\gt}1\), whenever the nontangential limit at \(\zeta \) exists it is equal to \(f^*(\zeta )\). All statements below are therefore of the shape “\(f\) has a nontangential limit at almost every \(\zeta \), and its value is \(f^*(\zeta )\)”: the existence assertion carries the strength, while the value is a total, well-behaved function that can be fed to \(L^p\) statements without side conditions. </p>
+</div>
+
+    <a class="latex_link" href="sect0001.html#def:boundary_function">LaTeX</a>
+    
+    
+  
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def:nt_limit_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def:nt_limit" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">3</span><span class="definition_thmtitle">Nontangential limit</span></div>
+    <div class="thm_thmcontent"><p>   Source: Garnett, Chapter I, Section 5, PDF page 27. The <em>nontangential filter</em> at \(\zeta \in \partial \mathbb {D}\) is </p>
+<div class="displaymath" id="a0000000008">
+  \[  \mathcal{N}_\zeta =\sup _{\alpha {\gt}1}\  \mathcal{N}_{\Gamma _\alpha (\zeta )}(\zeta ),  \]
+</div>
+<p> the supremum, in the lattice of filters, of the neighbourhood filters of \(\zeta \) within \(\Gamma _\alpha (\zeta )\), and \(\operatorname {nt}\lim _{z\to \zeta }f(z)=L\) means that \(f\) tends to \(L\) along \(\mathcal{N}_\zeta \). Two consequences of packaging the definition as a single filter: the limit is unique because \(\mathcal{N}_\zeta \) is nontrivial for \(\zeta \in \partial \mathbb {D}\), and all the algebraic rules for nontangential limits (sums, products, scalar multiples, composition with continuous maps, squeezing) are inherited from the generic API for limits along filters, so none of them has to be proved. </p>
+</div>
+
+    <a class="latex_link" href="sect0001.html#def:nt_limit">LaTeX</a>
+    
+    
+  
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="def:nt_region_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="def:nt_region" style="display: none">
+    <div class="thm_thmheading">
+      <span class="definition_thmcaption">
+      Definition
+      </span>
+      <span class="definition_thmlabel">2</span><span class="definition_thmtitle">Nontangential approach region</span></div>
+    <div class="thm_thmcontent"><p>  Source: Garnett, Chapter I, Section 4, PDF page 23 (disc form). For \(\zeta \in \partial \mathbb {D}\) and \(\alpha {\gt}1\) put </p>
+<div class="displaymath" id="a0000000007">
+  \[  \Gamma _\alpha (\zeta ) =\Bigl\{ z\in \mathbb {D}:\  |\zeta -z|{\lt}\alpha \, (1-|z|)\Bigr\} ,  \]
+</div>
+<p> a teardrop-shaped region asymptotic at \(\zeta \) to an angle with vertex \(\zeta \). Facts to record: \(\Gamma _\alpha (\zeta )\) is open and contained in \(\mathbb {D}\); it increases with \(\alpha \); it contains the radial segment \([0,1)\zeta \); it is empty when \(\alpha \le 1\); and \(\Gamma _\alpha (1)\) is mathlib’s <span class="ttfamily">Complex.stolzSet</span>&#160;\(\alpha \), with \(\Gamma _\alpha (\zeta )=\zeta \cdot \Gamma _\alpha (1)\). Mathlib only has the region at \(\zeta =1\), so the rotated family has to be added. </p>
+</div>
+
+    <a class="latex_link" href="sect0001.html#def:nt_region">LaTeX</a>
+    
+    
+  
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
     <div class="dep-modal-container" id="def:outer_factor_modal">
       <div class="dep-modal-content">
           <button class="dep-closebtn">
@@ -173,7 +300,7 @@
       <span class="definition_thmcaption">
       Definition
       </span>
-      <span class="definition_thmlabel">12</span><span class="definition_thmtitle">Outer factor</span></div>
+      <span class="definition_thmlabel">22</span><span class="definition_thmtitle">Outer factor</span></div>
     <div class="thm_thmcontent"><p>   The outer factor \(F\) in the Nevanlinna factorization is the zero-free analytic factor built from the absolutely continuous part of the boundary measure representing the least harmonic majorant. </p>
 </div>
 
@@ -203,7 +330,7 @@
       <span class="definition_thmcaption">
       Definition
       </span>
-      <span class="definition_thmlabel">21</span><span class="definition_thmtitle">Singular factors</span></div>
+      <span class="definition_thmlabel">31</span><span class="definition_thmtitle">Singular factors</span></div>
     <div class="thm_thmcontent"><p>   If the singular part of the representing measure is \(\nu _s=\nu _s^+-\nu _s^-\), then the canonical factorization uses the two singular functions \(S_1=S_{\nu _s^+}\) and \(S_2=S_{\nu _s^-}\). </p>
 </div>
 
@@ -233,15 +360,45 @@
       <span class="definition_thmcaption">
       Definition
       </span>
-      <span class="definition_thmlabel">20</span><span class="definition_thmtitle">Singular function formula</span></div>
+      <span class="definition_thmlabel">30</span><span class="definition_thmtitle">Singular function formula</span></div>
     <div class="thm_thmcontent"><p>  For a finite positive singular measure \(\sigma \) on \(\partial \mathbb {D}\), the associated singular function is the analytic exponential </p>
-<div class="displaymath" id="a0000000022">
+<div class="displaymath" id="a0000000037">
   \[  S_\sigma (z)=\exp \left(-\int _{\partial \mathbb {D}} \frac{\zeta +z}{\zeta -z}\, d\sigma (\zeta )\right).  \]
 </div>
 <p> It is bounded by one in the disc and has boundary modulus one almost everywhere. </p>
 </div>
 
     <a class="latex_link" href="sect0001.html#def:singular_function_formula">LaTeX</a>
+    
+    
+  
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:boundary_function_measurable_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:boundary_function_measurable" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">5</span><span class="lemma_thmtitle">Measurability of the boundary function</span></div>
+    <div class="thm_thmcontent"><p>   If \(f\) is continuous on \(\mathbb {D}\) and has nontangential limits almost everywhere on \(\partial \mathbb {D}\), then \(f^*\) is almost everywhere strongly measurable with respect to \(d\theta /2\pi \), being the almost everywhere pointwise limit of the continuous functions \(\zeta \mapsto f\bigl((1-\tfrac 1n)\zeta \bigr)\). This is the reason for defining \(f^*\) radially: a limit along a countably generated filter is a limit of a sequence, hence measurable. </p>
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:boundary_function_measurable">LaTeX</a>
     
     
   
@@ -267,8 +424,24 @@
       <span class="lemma_thmcaption">
       Lemma
       </span>
-      <span class="lemma_thmlabel">3</span><span class="lemma_thmtitle">Garnett I.5.4: singular Poisson integrals vanish at the boundary</span></div>
-    <div class="thm_thmcontent"><p>  Source: Garnett, Chapter I, Section 5, PDF pages 41–42. If \(\nu \) is a finite measure on \(\mathbb {R}\) singular with respect to Lebesgue measure, then its Poisson integral has nontangential boundary limit zero for Lebesgue almost every boundary point. This is the step that removes the singular part in the \(p=1\) boundary-limit assertion of Theorem&#160;<a href="sect0001.html#thm:I_5_3">1</a>. </p>
+      <span class="lemma_thmlabel">8</span><span class="lemma_thmtitle">Garnett I.5.4: singular Poisson integrals vanish at the boundary</span></div>
+    <div class="thm_thmcontent"><p>   Source: Garnett, Chapter I, Section 5, PDF pages 41–42. If \(\nu \) is a finite signed measure on \(\partial \mathbb {D}\) that is singular with respect to \(d\theta \), then </p>
+<div class="displaymath" id="a0000000014">
+  \[  \operatorname {nt}\lim _{z\to \zeta }P[\nu ](z)=0  \]
+</div>
+<p> for almost every \(\zeta \in \partial \mathbb {D}\). This is the step that removes the singular part in Theorem&#160;<a href="sect0001.html#thm:I_5_3">11</a>, and it is also what gives the singular functions of Definition&#160;<a href="sect0001.html#def:singular_function_formula">30</a> boundary modulus one almost everywhere. </p>
+<div class="proof_wrapper" id="a0000000015">
+  <div class="proof_heading">
+    <span class="proof_caption">
+    Proof
+    </span>
+    <span class="expand-proof">▶</span>
+  </div>
+  <div class="proof_content">
+  <p>By the Jordan decomposition we may assume \(\nu \ge 0\). Fix \(\zeta \) at which \(\nu (I(\zeta ,h))/2h\to 0\), which by Theorem&#160;<a href="sect0001.html#thm:circle_differentiation">7</a> is almost every \(\zeta \). For \(z\in \Gamma _\alpha (\zeta )\) split the integral at \(|e^{i\theta }-\zeta |=A(1-|z|)\). On the far part Lemma&#160;<a href="sect0001.html#lem:poisson_stolz_bound">6</a> gives a bound \(C_\alpha \, \nu (\partial \mathbb {D})/(A^{2}(1-|z|))\), and on the near part the same lemma bounds the integral by \(C_\alpha \sup _{h{\lt}A(1-|z|)}\nu (I(\zeta ,h))/2h\). Choose \(A=A(z)\) with \(A(1-|z|)\to 0\) and \(A^{2}(1-|z|)\to \infty \) as \(|z|\to 1\). </p>
+
+  </div>
+</div>
 </div>
 
     <a class="latex_link" href="sect0001.html#lem:I_5_4">LaTeX</a>
@@ -297,11 +470,57 @@
       <span class="lemma_thmcaption">
       Lemma
       </span>
-      <span class="lemma_thmlabel">16</span><span class="lemma_thmtitle">Garnett II.5.2: remove the zeros of a Nevanlinna function</span></div>
+      <span class="lemma_thmlabel">26</span><span class="lemma_thmtitle">Garnett II.5.2: remove the zeros of a Nevanlinna function</span></div>
     <div class="thm_thmcontent"><p>   Source: Garnett, Chapter II, Section 5, PDF page 78. Let \(f\in N\) be nonzero and let \(B\) be the Blaschke product formed from the zeros of \(f\), counted with multiplicity. Then \(B\) converges, the quotient \(g=f/B\) is analytic and zero-free on \(\mathbb {D}\), and \(g\) still belongs to the Nevanlinna class. Moreover, \(\log |g|\) is the least harmonic majorant of \(\log |f|\) on \(\mathbb {D}\). </p>
 </div>
 
     <a class="latex_link" href="sect0001.html#lem:II_5_2">LaTeX</a>
+    
+    
+  
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="lem:poisson_stolz_bound_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="lem:poisson_stolz_bound" style="display: none">
+    <div class="thm_thmheading">
+      <span class="lemma_thmcaption">
+      Lemma
+      </span>
+      <span class="lemma_thmlabel">6</span><span class="lemma_thmtitle">Poisson kernel over a Stolz region</span></div>
+    <div class="thm_thmcontent"><p>   Let \(\alpha {\gt}1\). There is a constant \(C_\alpha \) such that for every \(\zeta \in \partial \mathbb {D}\), every \(z\in \Gamma _\alpha (\zeta )\) and every \(\theta \), </p>
+<div class="displaymath" id="a0000000010">
+  \[  P_z(\theta )\  \le  \frac{C_\alpha \, (1-|z|)}{\bigl((1-|z|)+|e^{i\theta }-\zeta |\bigr)^{2}} .  \]
+</div>
+<p> In particular \(P_z(\theta )\le C_\alpha /(1-|z|)\) always, and \(P_z(\theta )\le C_\alpha (1-|z|)/|e^{i\theta }-\zeta |^{2}\) once \(|e^{i\theta }-\zeta |\ge 2\alpha (1-|z|)\). Together with \(\int P_z\, d\theta /2\pi =1\) this exhibits the Poisson kernels, restricted to a Stolz region, as an approximate identity with a uniformly integrable decreasing majorant. This single estimate replaces Garnett’s Theorem I.4.2 and is the engine of both Lemma&#160;<a href="sect0001.html#lem:I_5_4">8</a> and Theorem&#160;<a href="sect0001.html#thm:I_5_3_ac">9</a>. </p>
+<div class="proof_wrapper" id="a0000000011">
+  <div class="proof_heading">
+    <span class="proof_caption">
+    Proof
+    </span>
+    <span class="expand-proof">▶</span>
+  </div>
+  <div class="proof_content">
+  <p>From \(|e^{i\theta }-z|\ge 1-|z|\) and, by the triangle inequality and the definition of \(\Gamma _\alpha (\zeta )\), \(|e^{i\theta }-z|\ge |e^{i\theta }-\zeta |-\alpha (1-|z|)\), one gets \(|e^{i\theta }-z|\ge c_\alpha \bigl((1-|z|)+|e^{i\theta }-\zeta |\bigr)\); insert this into \(P_z(\theta )=(1-|z|^2)/|e^{i\theta }-z|^{2}\) and use \(1-|z|^2\le 2(1-|z|)\). </p>
+
+  </div>
+</div>
+</div>
+
+    <a class="latex_link" href="sect0001.html#lem:poisson_stolz_bound">LaTeX</a>
     
     
   
@@ -327,11 +546,92 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">23</span><span class="theorem_thmtitle">Boundary modulus determines the outer factor</span></div>
+      <span class="theorem_thmlabel">33</span><span class="theorem_thmtitle">Boundary modulus determines the outer factor</span></div>
     <div class="thm_thmcontent"><p>   If two outer functions have the same a.e. boundary modulus, then they differ by multiplication by a constant of modulus one. </p>
 </div>
 
     <a class="latex_link" href="sect0001.html#thm:boundary_modulus_determines_outer">LaTeX</a>
+    
+    
+  
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm:bounded_harmonic_poisson_Linfty_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm:bounded_harmonic_poisson_Linfty" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">12</span><span class="theorem_thmtitle">Bounded harmonic functions are Poisson integrals of \(L^\infty \) data</span></div>
+    <div class="thm_thmcontent"><p>   If \(u\) is real harmonic on \(\mathbb {D}\) with \(|u|\le M\), then there is \(k\in L^\infty (d\theta /2\pi )\) with \(\| k\| _\infty \le M\) and \(u=P[k\,  d\theta /2\pi ]\). </p>
+<div class="proof_wrapper" id="a0000000021">
+  <div class="proof_heading">
+    <span class="proof_caption">
+    Proof
+    </span>
+    <span class="expand-proof">▶</span>
+  </div>
+  <div class="proof_content">
+  <p>Apply Theorem&#160;<a href="sect0001.html#thm:positive_harmonic_poisson_measure">25</a> to the positive harmonic function \(u+M\) to get \(u+M=P[\mu ]\) with \(\mu \ge 0\) finite. Since \(\mu \) is the weak-star limit of the measures \((u(r\, \cdot )+M)\,  d\theta /2\pi \), whose densities are bounded by \(2M\), one gets \(\mu \le 2M\, d\theta /2\pi \); Radon–Nikodym then produces a density bounded by \(2M\), and subtracting \(M\) gives \(k\). </p>
+
+  </div>
+</div>
+</div>
+
+    <a class="latex_link" href="sect0001.html#thm:bounded_harmonic_poisson_Linfty">LaTeX</a>
+    
+    
+  
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm:circle_differentiation_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm:circle_differentiation" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">7</span><span class="theorem_thmtitle">Differentiation of measures on the circle</span></div>
+    <div class="thm_thmcontent"><p>  Let \(\nu \) be a finite positive Borel measure on \(\partial \mathbb {D}\) and let \(I(\zeta ,h)\) denote the arc of length \(2h\) centred at \(\zeta \). Then for almost every \(\zeta \), </p>
+<div class="displaymath" id="a0000000012">
+  \[  \lim _{h\to 0}\frac{\nu \bigl(I(\zeta ,h)\bigr)}{2h} =\frac{d\nu }{d\theta }(\zeta ),  \]
+</div>
+<p> and in particular \(\nu (I(\zeta ,h))/2h\to 0\) almost everywhere when \(\nu \perp d\theta \). In the same setting, almost every \(\zeta \) is a Lebesgue point of a given \(k\in L^1(d\theta /2\pi )\): </p>
+<div class="displaymath" id="a0000000013">
+  \[  \lim _{h\to 0}\  \frac{1}{\mu \bigl(I(\zeta ,h)\bigr)} \int _{I(\zeta ,h)}|k-k(\zeta )|\, d\mu \  =\  0, \qquad \mu =d\theta /2\pi .  \]
+</div>
+<p> Both halves come from mathlib applied <em>directly</em> on \(\mathbb {C}\) with \(\mu =\) <span class="ttfamily">circleMeasure 0 1</span>, with no passage to intervals in \(\theta \): <span class="ttfamily">Besicovitch.ae_tendsto_rnDeriv</span> needs only local finiteness of the two measures, <span class="ttfamily">Besicovitch.vitaliFamily</span> needs only \(s\)-finiteness, and <span class="ttfamily">VitaliFamily.ae_tendsto_average_norm_sub</span> then gives the Lebesgue points; <span class="ttfamily">HasBesicovitchCovering</span> holds for every finite-dimensional real normed space, in particular for \(\mathbb {C}\). The singular case follows since the Radon–Nikodym derivative of a mutually singular measure vanishes almost everywhere. </p>
+<p>Two points of care. The Vitali families of <span class="ttfamily">MeasureTheory.Covering.DensityTheorem</span> are <em>not</em> usable here: they require <span class="ttfamily">IsUnifLocDoublingMeasure</span>, which fails for <span class="ttfamily">circleMeasure</span> viewed as a measure on \(\mathbb {C}\), since balls centred slightly off the circle have measure zero while their doubles do not; the Besicovitch family carries no such hypothesis. And \(\overline{B}(\zeta ,h)\cap \partial \mathbb {D}\) <em>is</em> the arc \(I(\zeta ,h)\), so the only genuine work is the comparability \(\mu \bigl(\overline B(\zeta ,h)\bigr)\asymp h\) of chord and arc, which Lemma&#160;<a href="sect0001.html#lem:poisson_stolz_bound">6</a> needs anyway. This node replaces Garnett’s Vitali covering lemma I.4.4 and the weak-type argument built on it. </p>
+</div>
+
+    <a class="latex_link" href="sect0001.html#thm:circle_differentiation">LaTeX</a>
     
     
   
@@ -357,19 +657,72 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">1</span><span class="theorem_thmtitle">Garnett I.5.3: Fatou theorem, \(p=1\) disc form</span></div>
-    <div class="thm_thmcontent"><p>   Source: Garnett, Chapter I, Section 5, PDF pages 40–41. Let \(\mu \) be a finite real or complex measure on \(\partial \mathbb {D}\), with Lebesgue decomposition </p>
-<div class="displaymath" id="a0000000004">
-  \[  d\mu (\theta )=f(\theta )\, \frac{d\theta }{2\pi }+d\nu (\theta ), \qquad \nu \perp d\theta .  \]
+      <span class="theorem_thmlabel">11</span><span class="theorem_thmtitle">Garnett I.5.3: Fatou theorem, \(p=1\) disc form</span></div>
+    <div class="thm_thmcontent"><p>   Source: Garnett, Chapter I, Section 5, PDF pages 40–41. Let \(\mu \) be a finite signed measure on \(\partial \mathbb {D}\), with Lebesgue decomposition \(d\mu =k\, d\theta /2\pi +d\mu _s\), \(\mu _s\perp d\theta \). Then the Poisson integral of \(\mu \) has a nontangential limit at almost every boundary point, and </p>
+<div class="displaymath" id="a0000000019">
+  \[  \operatorname {nt}\lim _{z\to \zeta }P[\mu ](z)=k(\zeta ) \qquad \text{for almost every }\zeta \in \partial \mathbb {D};  \]
 </div>
-<p> Then the Poisson integral of \(\mu \) has nontangential boundary values equal to the density of the absolutely continuous part: </p>
-<div class="displaymath" id="a0000000005">
-  \[  \operatorname {nt}\! \lim _{z\to e^{i\theta }}P[\mu ](z)=f(\theta )  \]
+<p> equivalently \(\bigl(P[\mu ]\bigr)^*=k\) almost everywhere, so the boundary function is in \(L^1\). Garnett states the stronger half-plane theorem for all \(1\le p\le \infty \); only this \(p=1\) disc form is used in this project. </p>
+<div class="proof_wrapper" id="a0000000020">
+  <div class="proof_heading">
+    <span class="proof_caption">
+    Proof
+    </span>
+    <span class="expand-proof">▶</span>
+  </div>
+  <div class="proof_content">
+  <p>Split \(\mu \) by Theorem&#160;<a href="sect0001.html#thm:signed_lebesgue_decomposition">10</a> and add Theorem&#160;<a href="sect0001.html#thm:I_5_3_ac">9</a> to Lemma&#160;<a href="sect0001.html#lem:I_5_4">8</a>, using that nontangential limits are limits along a filter and therefore additive. </p>
+
+  </div>
 </div>
-<p> for Lebesgue almost every \(\theta \). Garnett states the stronger theorem on the upper half-plane for all \(1\le p\le \infty \); this is the \(p=1\) consequence used later, transported to the disc by a Cayley transform. </p>
 </div>
 
     <a class="latex_link" href="sect0001.html#thm:I_5_3">LaTeX</a>
+    
+    
+  
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm:I_5_3_ac_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm:I_5_3_ac" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">9</span><span class="theorem_thmtitle">Fatou at Lebesgue points</span></div>
+    <div class="thm_thmcontent"><p>   Let \(k\in L^1(d\theta /2\pi )\). Then at every Lebesgue point \(\zeta \) of \(k\), and hence almost everywhere, </p>
+<div class="displaymath" id="a0000000016">
+  \[  \operatorname {nt}\lim _{z\to \zeta }P\bigl[k\, d\theta /2\pi \bigr](z)=k(\zeta ).  \]
+</div>
+<div class="proof_wrapper" id="a0000000017">
+  <div class="proof_heading">
+    <span class="proof_caption">
+    Proof
+    </span>
+    <span class="expand-proof">▶</span>
+  </div>
+  <div class="proof_content">
+  <p>Estimate \(|P[k](z)-k(\zeta )|\le \int P_z(\theta )|k(\theta )-k(\zeta )| \, d\theta /2\pi \) using \(\int P_z\, d\theta /2\pi =1\), and split the integral into dyadic arcs around \(\zeta \); the majorant of Lemma&#160;<a href="sect0001.html#lem:poisson_stolz_bound">6</a> converts the Lebesgue-point condition into a convergent sum. This is the standard approximate-identity argument and it avoids the maximal function entirely. </p>
+
+  </div>
+</div>
+</div>
+
+    <a class="latex_link" href="sect0001.html#thm:I_5_3_ac">LaTeX</a>
     
     
   
@@ -395,13 +748,13 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">2</span><span class="theorem_thmtitle">Harmonic majorants of subharmonic functions, Garnett I.6.7</span></div>
+      <span class="theorem_thmlabel">1</span><span class="theorem_thmtitle">Harmonic majorants of subharmonic functions, Garnett I.6.7</span></div>
     <div class="thm_thmcontent"><p>   Source: Garnett, Chapter I, Section 6, PDF page 36. Let \(v\) be subharmonic on \(\mathbb {D}\). Then \(v\) has a harmonic majorant on \(\mathbb {D}\) if and only if </p>
-<div class="displaymath" id="a0000000006">
+<div class="displaymath" id="a0000000004">
   \[  \sup _{0{\lt}r{\lt}1}\frac{1}{2\pi } \int _0^{2\pi }v(r e^{i\theta })\, d\theta = \sup _{0{\lt}r{\lt}1} v_r(0) {\lt} \infty ,  \]
 </div>
 <p> where \(v_r\) is the Poisson extension to \(|z|{\lt}r\) of the boundary values of \(v\) on \(|z|=r\). When this condition holds, the least harmonic majorant \(u\) of \(v\) is given by </p>
-<div class="displaymath" id="a0000000007">
+<div class="displaymath" id="a0000000005">
   \[  u(z)=\lim _{r\to 1} \frac{1}{2\pi }\int _0^{2\pi } P_{z/r}(\theta )v(r e^{i\theta })\, d\theta =\lim _{r\to 1}v_r(z).  \]
 </div>
 </div>
@@ -441,17 +794,17 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">4</span><span class="theorem_thmtitle">Garnett II.2.1: harmonic majorants imply the Blaschke condition</span></div>
+      <span class="theorem_thmlabel">14</span><span class="theorem_thmtitle">Garnett II.2.1: harmonic majorants imply the Blaschke condition</span></div>
     <div class="thm_thmcontent"><p>    Source: Garnett, Chapter II, Section 2, PDF page 63. Let \(f\) be a nonzero analytic function on \(\mathbb {D}\), and let \(\{ a_n\} \) be its zeros, counted with multiplicity. If \(\log |f|\) has a harmonic majorant on \(\mathbb {D}\), then </p>
-<div class="displaymath" id="a0000000009">
+<div class="displaymath" id="a0000000023">
   \[  \sum _n (1-|a_n|){\lt}\infty .  \]
 </div>
 <p> Moreover, if \(f(0)\ne 0\) and \(u\) is the least harmonic majorant of \(\log |f|\), then </p>
-<div class="displaymath" id="a0000000010">
+<div class="displaymath" id="a0000000024">
   \[  \sum _n (1-|a_n|) \le u(0)-\log |f(0)|.  \]
 </div>
-<p> By Theorem&#160;<a href="sect0001.html#thm:II_5_1">13</a>, the harmonic-majorant hypothesis is equivalent to \(f\) belonging to the Nevanlinna class \(N\). </p>
-<div class="proof_wrapper" id="a0000000011">
+<p> By Theorem&#160;<a href="sect0001.html#thm:II_5_1">23</a>, the harmonic-majorant hypothesis is equivalent to \(f\) belonging to the Nevanlinna class \(N\). </p>
+<div class="proof_wrapper" id="a0000000025">
   <div class="proof_heading">
     <span class="proof_caption">
     Proof
@@ -460,10 +813,10 @@
   </div>
   <div class="proof_content">
   <p>After removing a possible zero at the origin, fix \(r{\lt}1\) avoiding the moduli of the zeros and divide \(f(rz)\) by the finite Blaschke product with the same zeros. The logarithm of the modulus of the resulting zero-free analytic function is harmonic, so the mean-value formula gives the familiar Jensen identity </p>
-<div class="displaymath" id="a0000000012">
+<div class="displaymath" id="a0000000026">
   \[  \log |f(0)|+\sum _{|a_j|{\lt}r}\log \frac{r}{|a_j|} =\frac{1}{2\pi }\int _0^{2\pi }\log |f(r e^{i\theta })|\, d\theta .  \]
 </div>
-<p> Theorem&#160;<a href="sect0001.html#thm:I_6_7">2</a> identifies the limit of the right-hand side with \(u(0)\). Letting \(r\to 1\) and using \(1-|a_j|\le \log (1/|a_j|)\) proves both conclusions. </p>
+<p> Theorem&#160;<a href="sect0001.html#thm:I_6_7">1</a> identifies the limit of the right-hand side with \(u(0)\). Letting \(r\to 1\) and using \(1-|a_j|\le \log (1/|a_j|)\) proves both conclusions. </p>
 
   </div>
 </div>
@@ -504,7 +857,7 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">5</span><span class="theorem_thmtitle">Garnett II.2.2: convergence and boundary size of Blaschke products</span></div>
+      <span class="theorem_thmlabel">15</span><span class="theorem_thmtitle">Garnett II.2.2: convergence and boundary size of Blaschke products</span></div>
     <div class="thm_thmcontent"><p>  Source: Garnett, Chapter II, Section 2, PDF page 64. If \(\{ a_n\} \subset \mathbb {D}\) satisfies the Blaschke condition, then the associated Blaschke product converges uniformly on compact subsets of \(\mathbb {D}\) to a bounded analytic function whose zeros are exactly the \(a_n\) with the prescribed multiplicities, and whose boundary modulus is one almost everywhere. </p>
 </div>
 
@@ -534,9 +887,9 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">6</span><span class="theorem_thmtitle">Garnett II.2.3 (F. Riesz): division by the Blaschke factor</span></div>
+      <span class="theorem_thmlabel">16</span><span class="theorem_thmtitle">Garnett II.2.3 (F. Riesz): division by the Blaschke factor</span></div>
     <div class="thm_thmcontent"><p>   Source: Garnett, Chapter II, Section 2, PDF page 66. Let \(0{\lt}p{\lt}\infty \), let \(f\in H^p(\mathbb D)\) be nonzero, and let \(B\) be the Blaschke product formed from all zeros of \(f\), counted with multiplicity. Then \(g=f/B\) extends analytically across the removable singularities, belongs to \(H^p(\mathbb D)\), and satisfies </p>
-<div class="displaymath" id="a0000000013">
+<div class="displaymath" id="a0000000027">
   \[  \lVert g\rVert _{H^p}=\lVert f\rVert _{H^p}.  \]
 </div>
 </div>
@@ -567,19 +920,19 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">7</span><span class="theorem_thmtitle">Garnett II.2.4: characterization of Blaschke products</span></div>
+      <span class="theorem_thmlabel">17</span><span class="theorem_thmtitle">Garnett II.2.4: characterization of Blaschke products</span></div>
     <div class="thm_thmcontent"><p>   Source: Garnett, Chapter II, Section 2, PDF page 66. Let \(f\in H^\infty (\mathbb D)\) with \(\lVert f\rVert _\infty \le 1\). Then the following are equivalent: </p>
 <ol class="enumerate">
   <li><p>\(f=\lambda B\), where \(|\lambda |=1\) and \(B\) is a Blaschke product; </p>
 </li>
-  <li><div class="displaymath" id="a0000000014">
+  <li><div class="displaymath" id="a0000000028">
   \[  \lim _{r\to 1}\frac{1}{2\pi }\int _0^{2\pi } \log |f(r e^{i\theta })|\, d\theta =0;  \]
 </div>
 </li>
   <li><p>the least harmonic majorant of \(\log |f|\) is the zero function. </p>
 </li>
 </ol>
-<p> The equivalence of the last two conditions is the direct use of Theorem&#160;<a href="sect0001.html#thm:I_6_7">2</a>; condition (3) is the form used in Lemma&#160;<a href="sect0001.html#lem:II_5_2">16</a>. </p>
+<p> The equivalence of the last two conditions is the direct use of Theorem&#160;<a href="sect0001.html#thm:I_6_7">1</a>; condition (3) is the form used in Lemma&#160;<a href="sect0001.html#lem:II_5_2">26</a>. </p>
 </div>
 
     <a class="latex_link" href="sect0001.html#thm:II_2_4">LaTeX</a>
@@ -608,7 +961,7 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">10</span><span class="theorem_thmtitle">Garnett II.4.4: construction from logarithmic data</span></div>
+      <span class="theorem_thmlabel">20</span><span class="theorem_thmtitle">Garnett II.4.4: construction from logarithmic data</span></div>
     <div class="thm_thmcontent"><p>  Source: Garnett, Chapter II, Section 4, PDF page 75. Given a nonnegative boundary function \(\varphi \) with \(\log \varphi \in L^1(\partial \mathbb {D})\), there is an outer analytic function \(F\) on \(\mathbb {D}\) whose a.e. boundary modulus is \(\varphi \). Equivalently, \(F\) is obtained by exponentiating the analytic function whose real part is the Poisson integral of \(\log \varphi \). </p>
 </div>
 
@@ -638,7 +991,7 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">13</span><span class="theorem_thmtitle">Garnett II.5.1: harmonic-majorant characterization of \(N\)</span></div>
+      <span class="theorem_thmlabel">23</span><span class="theorem_thmtitle">Garnett II.5.1: harmonic-majorant characterization of \(N\)</span></div>
     <div class="thm_thmcontent"><p>   Source: Garnett, Chapter II, Section 5, PDF page 78. For an analytic function \(f\) on \(\mathbb {D}\), the following are equivalent: \(f\) belongs to the Nevanlinna class \(N\), and the subharmonic function \(\log |f|\) admits a harmonic majorant on \(\mathbb {D}\). When such a majorant exists, there is a least harmonic majorant. </p>
 </div>
 
@@ -668,20 +1021,43 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">18</span><span class="theorem_thmtitle">Garnett II.5.3: boundary values and the least-majorant measure</span></div>
-    <div class="thm_thmcontent"><p>   Source: Garnett, Chapter II, Section 5, PDF page 79. If \(f\in N\) and \(f\) is not identically zero, then \(f\) has nontangential boundary values \(f(e^{i\theta })\) almost everywhere, and </p>
-<div class="displaymath" id="a0000000018">
-  \[  \log |f(e^{i\theta })|\in L^1(d\theta ).  \]
+      <span class="theorem_thmlabel">28</span><span class="theorem_thmtitle">Garnett II.5.3: boundary values and the least-majorant measure</span></div>
+    <div class="thm_thmcontent"><p>   Source: Garnett, Chapter II, Section 5, PDF page 79. Let \(f\in N\), \(f\not\equiv 0\). Then: </p>
+<ol class="enumerate">
+  <li><p>\(f\) has a nontangential limit \(f^*(\zeta )\) at almost every \(\zeta \in \partial \mathbb {D}\), and \(f^*\ne 0\) almost everywhere; </p>
+</li>
+  <li><p>\(\log |f^*|\in L^1(d\theta /2\pi )\); </p>
+</li>
+  <li><p>the least harmonic majorant of \(\log |f|\) is \(P[\mu ]\) for a unique finite signed measure \(\mu \) on \(\partial \mathbb {D}\), and </p>
+<div class="equation" id="<plasTeX.TeXFragment object at 0x107bcbbe0>">
+<p>
+  <div class="equation_content">
+    \begin{equation}  \label{eq:II_5_3_decomposition} d\mu =\log |f^*|\, \frac{d\theta }{2\pi }+d\mu _s, \qquad \mu _s\perp d\theta . \end{equation}
+  </div>
+  <span class="equation_label">1</span>
+</p>
 </div>
-<p> If \(u\) is the least harmonic majorant of \(\log |f|\), then </p>
-<div class="displaymath" id="a0000000019">
-  \[  u(z)=\int _{0}^{2\pi }P_z(\theta )\, d\mu (\theta ),  \]
+</li>
+</ol>
+<p> In other words, the absolutely continuous part of the representing measure is exactly the boundary logarithm, and the whole obstruction to the inequality \(\log |f(z)|\le \int \log |f^*|P_z\, d\theta /2\pi \) is concentrated in the singular part; Garnett’s class \(N^+\) is the subclass where \(\mu _s\le 0\). </p>
+<div class="proof_wrapper" id="a0000000034">
+  <div class="proof_heading">
+    <span class="proof_caption">
+    Proof
+    </span>
+    <span class="expand-proof">▶</span>
+  </div>
+  <div class="proof_content">
+  <p>Let \(B\) be the Blaschke product over the zeros of \(f\) and \(g=f/B\). By Theorem&#160;<a href="sect0001.html#thm:II_5_1">23</a> and Lemma&#160;<a href="sect0001.html#lem:II_5_2">26</a>, \(g\) is zero-free and \(\log |g|=P[\mu ]\) is the least harmonic majorant of \(\log |f|\); by Theorem&#160;<a href="sect0001.html#thm:poisson_measure_unique">13</a> the measure \(\mu \) is unique. Write \(d\mu =k\, d\theta /2\pi +d\mu _s\) using Theorem&#160;<a href="sect0001.html#thm:signed_lebesgue_decomposition">10</a>. By Theorem&#160;<a href="sect0001.html#thm:I_5_3">11</a>, \(\log |g|\) has nontangential limit \(k\) almost everywhere, and since \(|B^*|=1\) almost everywhere (Theorem&#160;<a href="sect0001.html#thm:II_2_2">15</a>) the same holds for \(\log |f|\). So \(k\in L^1\) and ?? follow once \(f\) itself is known to have nontangential limits. </p>
+<p>For that, decompose \(\log |g|=u_1-u_2\) with \(u_j=P[\mu _j]\ge 0\) harmonic, \(\mu =\mu _1-\mu _2\) the Jordan decomposition. Choose harmonic conjugates \(v_j\) with \(v_j(0)=0\), which exist because the disc is simply connected and which mathlib provides as <span class="ttfamily">InnerProductSpace.HarmonicOnNhd.exists_analyticOnNhd_ball_re_eq</span>; then \(\log g=(u_1+iv_1)-(u_2+iv_2)+ic\) for a real constant \(c\), so that </p>
+<div class="displaymath" id="a0000000035">
+  \[  g=e^{ic}\, \frac{e^{-(u_2+iv_2)}}{e^{-(u_1+iv_1)}} .  \]
 </div>
-<p> where the finite real representing measure has the decomposition </p>
-<div class="displaymath" id="a0000000020">
-  \[  d\mu (\theta ) =\log |f(e^{i\theta })|\, \frac{d\theta }{2\pi }+d\mu _s(\theta ),  \]
+<p> Each \(e^{-(u_j+iv_j)}\) has modulus \(e^{-u_j}\le 1\), hence lies in \(H^\infty \) and has nontangential limits almost everywhere by Corollary&#160;<a href="sect0001.html#cor:II_3_2">27</a>. Those limits are nonzero almost everywhere: \(\log |e^{-(u_j+iv_j)}|=-P[\mu _j]\) has a finite nontangential limit almost everywhere by Theorem&#160;<a href="sect0001.html#thm:I_5_3">11</a> again, so the boundary modulus is \(e^{-k_j}{\gt}0\) almost everywhere. Hence \(g\), and then \(f=Bg\), have nontangential limits almost everywhere. </p>
+<p>Garnett obtains the nonvanishing from the boundary uniqueness theorem (Corollary&#160;<a href="sect0001.html#cor:II_4_2">19</a>) instead. Using Theorem&#160;<a href="sect0001.html#thm:I_5_3">11</a> as above keeps II.5.3 independent of the \(H^p\) boundary uniqueness theory, which is why <span class="ttfamily">cor:II_4_2</span> is not among the dependencies above; it is still needed for the outer factor. </p>
+
+  </div>
 </div>
-<p> with \(\mu _s\) singular with respect to Lebesgue measure. </p>
 </div>
 
     <a class="latex_link" href="sect0001.html#thm:II_5_3">LaTeX</a>
@@ -710,7 +1086,7 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">19</span><span class="theorem_thmtitle">Jordan decomposition of singular measures</span></div>
+      <span class="theorem_thmlabel">29</span><span class="theorem_thmtitle">Jordan decomposition of singular measures</span></div>
     <div class="thm_thmcontent"><p>  If \(\nu \) is a finite real signed measure on \(\partial \mathbb {D}\) and is singular with respect to Lebesgue measure, then its Jordan decomposition \(\nu =\nu ^+-\nu ^-\) has \(\nu ^+\) and \(\nu ^-\) finite positive singular measures. </p>
 </div>
 
@@ -740,9 +1116,9 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">14</span><span class="theorem_thmtitle">Logarithm of modulus is subharmonic</span></div>
+      <span class="theorem_thmlabel">24</span><span class="theorem_thmtitle">Logarithm of modulus is subharmonic</span></div>
     <div class="thm_thmcontent"><p>   If \(f\) is analytic on an open subset of \(\mathbb {C}\), then \(z\mapsto \log \lVert f(z)\rVert \), interpreted as \(-\infty \) at zeros, is subharmonic there. This has been formalized both for complex-valued functions and, more generally, for functions taking values in a complex Banach space. </p>
-<div class="proof_wrapper" id="a0000000017">
+<div class="proof_wrapper" id="a0000000032">
   <div class="proof_heading">
     <span class="proof_caption">
     Proof
@@ -791,9 +1167,9 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">26</span><span class="theorem_thmtitle">Garnett II.5.5: canonical factorization in \(N\)</span></div>
+      <span class="theorem_thmlabel">36</span><span class="theorem_thmtitle">Garnett II.5.5: canonical factorization in \(N\)</span></div>
     <div class="thm_thmcontent"><p>   Source: Garnett, Chapter II, Section 5, PDF page 83. If \(f\in N\) and \(f\) is not identically zero, then there exist a unimodular constant \(C\), a Blaschke product \(B\), an outer function \(F\), and singular functions \(S_1,S_2\) such that </p>
-<div class="displaymath" id="a0000000025">
+<div class="displaymath" id="a0000000040">
   \[  f = C\, B\, F\, S_1/S_2.  \]
 </div>
 <p> Conversely, every expression of this form belongs to the Nevanlinna class. The factors are unique after fixing the standard normalizations. </p>
@@ -825,7 +1201,7 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">25</span><span class="theorem_thmtitle">Uniqueness of Nevanlinna factorization</span></div>
+      <span class="theorem_thmlabel">35</span><span class="theorem_thmtitle">Uniqueness of Nevanlinna factorization</span></div>
     <div class="thm_thmcontent"><p>   In the canonical factorization, the Blaschke factor is determined by the zero multiset, the outer factor by the a.e. boundary modulus, and the singular factors by the singular part of the representing measure. The only remaining ambiguity is the conventional unimodular constant. </p>
 </div>
 
@@ -855,11 +1231,41 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">11</span><span class="theorem_thmtitle">Outer uniqueness</span></div>
-    <div class="thm_thmcontent"><p>  If two outer functions have the same boundary modulus almost everywhere, then their quotient is a unimodular constant. Equivalently, the boundary modulus determines the outer factor up to the expected constant. </p>
+      <span class="theorem_thmlabel">21</span><span class="theorem_thmtitle">Outer uniqueness</span></div>
+    <div class="thm_thmcontent"><p>   If two outer functions have the same boundary modulus almost everywhere, then their quotient is a unimodular constant. Equivalently, the boundary modulus determines the outer factor up to the expected constant. </p>
 </div>
 
     <a class="latex_link" href="sect0001.html#thm:outer_uniqueness">LaTeX</a>
+    
+    
+  
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm:poisson_measure_unique_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm:poisson_measure_unique" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">13</span><span class="theorem_thmtitle">A boundary measure is determined by its Poisson integral</span></div>
+    <div class="thm_thmcontent"><p>  If \(\mu \) and \(\nu \) are finite signed measures on \(\partial \mathbb {D}\) with \(P[\mu ]=P[\nu ]\) on \(\mathbb {D}\), then \(\mu =\nu \). The proof is the standard weak-star argument: \(P[\mu ](r\, \cdot )\, d\theta /2\pi \to \mu \) when tested against continuous functions on the circle. This is what licenses speaking of <em>the</em> representing measure in Theorem&#160;<a href="sect0001.html#thm:II_5_3">28</a>, and it is used again for the uniqueness of the singular factors (Theorem&#160;<a href="sect0001.html#thm:singular_measure_determines_factors">34</a>) and in Garnett’s Theorem II.5.4. </p>
+</div>
+
+    <a class="latex_link" href="sect0001.html#thm:poisson_measure_unique">LaTeX</a>
     
     
   
@@ -885,11 +1291,59 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">15</span><span class="theorem_thmtitle">Garnett I.3.5(c): positive harmonic functions as Poisson integrals, disc form</span></div>
-    <div class="thm_thmcontent"><p>  Source: Garnett, Chapter I, Section 3, Theorem 3.5(c), especially the disc-version argument in its proof, printed pages 17–19 (PDF pages approximately 29–31). If \(u\) is a positive harmonic function on \(\mathbb {D}\), then there is a finite positive measure \(\mu \) on \(\partial \mathbb {D}\) such that \(u=P[\mu ]\). Conversely, the Poisson integral of any finite positive boundary measure is positive and harmonic. </p>
+      <span class="theorem_thmlabel">25</span><span class="theorem_thmtitle">Garnett I.3.5(c): positive harmonic functions as Poisson integrals, disc form</span></div>
+    <div class="thm_thmcontent"><p>   Source: Garnett, Chapter I, Section 3, Theorem 3.5(c), especially the disc-version argument in its proof, printed pages 17–19 (PDF pages approximately 29–31). If \(u\) is a positive harmonic function on \(\mathbb {D}\), then there is a finite positive measure \(\mu \) on \(\partial \mathbb {D}\) such that \(u=P[\mu ]\). Conversely, the Poisson integral of any finite positive boundary measure is positive and harmonic. </p>
+<p>Formalization status: the Lean statements are in place, the boundary measure being modelled as a finite measure on \(\mathbb {C}\) carried by the circle. The converse direction is proved; the analyticity of the Herglotz–Riesz transform of a boundary measure, which is the engine of that direction, is available as <span class="ttfamily">analyticOnNhd_integral_herglotzRieszKernel</span>. The existence direction, whose proof needs weak-\(*\) compactness of the approximating measures \(u(r\, \cdot )\, d\sigma \), is still open. </p>
 </div>
 
     <a class="latex_link" href="sect0001.html#thm:positive_harmonic_poisson_measure">LaTeX</a>
+    
+    
+  <div class="tooltip">
+      <span class="lean_link">Lean</span>
+      <ul class="tooltip_list">
+        
+           <li><a href="https://SHW715.github.io/HardySpace_formalization/docs/find/#doc/harmonicOnNhd_nonneg_iff_exists_eq_poissonIntegral" class="lean_decl">harmonicOnNhd_nonneg_iff_exists_eq_poissonIntegral</a></li>
+        
+           <li><a href="https://SHW715.github.io/HardySpace_formalization/docs/find/#doc/exists_isFiniteMeasure_eq_poissonIntegral_of_harmonicOnNhd_nonneg" class="lean_decl">exists_isFiniteMeasure_eq_poissonIntegral_of_harmonicOnNhd_nonneg</a></li>
+        
+           <li><a href="https://SHW715.github.io/HardySpace_formalization/docs/find/#doc/harmonicOnNhd_poissonIntegral_measure" class="lean_decl">harmonicOnNhd_poissonIntegral_measure</a></li>
+        
+           <li><a href="https://SHW715.github.io/HardySpace_formalization/docs/find/#doc/poissonIntegral_nonneg" class="lean_decl">poissonIntegral_nonneg</a></li>
+        
+      </ul>
+  </div>
+    
+    
+  
+    
+  </div>
+    
+      </div>
+    </div>
+
+
+    
+    <div class="dep-modal-container" id="thm:signed_lebesgue_decomposition_modal">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">
+<svg  class="icon icon-cross "><use xlink:href="symbol-defs.svg#icon-cross"></use></svg>
+</button>
+        
+  <div class="thm" id="thm:signed_lebesgue_decomposition" style="display: none">
+    <div class="thm_thmheading">
+      <span class="theorem_thmcaption">
+      Theorem
+      </span>
+      <span class="theorem_thmlabel">10</span><span class="theorem_thmtitle">Lebesgue decomposition of a finite boundary measure</span></div>
+    <div class="thm_thmcontent"><p>  A finite signed Borel measure \(\mu \) on \(\partial \mathbb {D}\) decomposes uniquely as </p>
+<div class="displaymath" id="a0000000018">
+  \[  d\mu =k\, \frac{d\theta }{2\pi }+d\mu _s, \qquad k\in L^1(d\theta /2\pi ),\quad \mu _s\perp d\theta .  \]
+</div>
+<p> This is available in mathlib: <span class="ttfamily">MeasureTheory.SignedMeasure.singularPart_add_withDensity_rnDeriv_eq</span>, <span class="ttfamily">SignedMeasure.rnDeriv</span>, <span class="ttfamily">SignedMeasure.integrable_rnDeriv</span>, the signed density operator <span class="ttfamily">Measure.withDensity</span> for vector measures, and the mutual-singularity relation <span class="ttfamily">VectorMeasure.MutuallySingular</span>. Only the ambient space has to be fixed, which the convention at the head of this section does. </p>
+</div>
+
+    <a class="latex_link" href="sect0001.html#thm:signed_lebesgue_decomposition">LaTeX</a>
     
     
   
@@ -915,7 +1369,7 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">24</span><span class="theorem_thmtitle">Singular measure determines singular factors</span></div>
+      <span class="theorem_thmlabel">34</span><span class="theorem_thmtitle">Singular measure determines singular factors</span></div>
     <div class="thm_thmcontent"><p>   The positive and negative singular parts of the representing measure determine \(S_1\) and \(S_2\). Conversely, equality of the corresponding singular functions forces equality of the singular measures, modulo the normalization convention. </p>
 </div>
 
@@ -945,7 +1399,7 @@
       <span class="theorem_thmcaption">
       Theorem
       </span>
-      <span class="theorem_thmlabel">22</span><span class="theorem_thmtitle">Zeros determine the Blaschke factor</span></div>
+      <span class="theorem_thmlabel">32</span><span class="theorem_thmtitle">Zeros determine the Blaschke factor</span></div>
     <div class="thm_thmcontent"><p>  The multiset of zeros in \(\mathbb {D}\) determines the associated Blaschke product up to the chosen unimodular normalization. With a fixed convention for elementary factors, the product is uniquely determined. </p>
 </div>
 
@@ -980,7 +1434,7 @@ graphContainer.graphviz({useWorker: true})
     .width(width)
     .height(height)
     .fit(true)
-    .renderDot(`strict digraph "" {	graph [bgcolor=transparent];	node [label="\N",		penwidth=1.8	];	edge [arrowhead=vee];	"def:blaschke_factor"	[color=steelblue,		fillcolor=lightblue,		label=blaschke_factor,		shape=box,		style=filled];	"lem:II_5_2"	[color=orange,		label=II_5_2,		shape=ellipse];	"thm:II_5_3"	[color=orange,		label=II_5_3,		shape=ellipse];	"lem:II_5_2" -> "thm:II_5_3"	[style=dashed];	"thm:nevanlinna_canonical_factorization"	[color=orange,		label=nevanlinna_canonical_factorization,		shape=ellipse];	"thm:II_5_3" -> "thm:nevanlinna_canonical_factorization"	[style=dashed];	"thm:outer_uniqueness"	[color=orange,		label=outer_uniqueness,		shape=ellipse];	"def:outer_factor"	[color=orange,		label=outer_factor,		shape=box];	"thm:outer_uniqueness" -> "def:outer_factor"	[style=dashed];	"thm:boundary_modulus_determines_outer"	[color=orange,		label=boundary_modulus_determines_outer,		shape=ellipse];	"thm:outer_uniqueness" -> "thm:boundary_modulus_determines_outer"	[style=dashed];	"def:outer_factor" -> "thm:nevanlinna_canonical_factorization"	[style=dashed];	"thm:nevanlinna_factorization_uniqueness"	[color=orange,		label=nevanlinna_factorization_uniqueness,		shape=ellipse];	"thm:boundary_modulus_determines_outer" -> "thm:nevanlinna_factorization_uniqueness"	[style=dashed];	"thm:nevanlinna_factorization_uniqueness" -> "thm:nevanlinna_canonical_factorization"	[style=dashed];	"thm:singular_measure_determines_factors"	[color=orange,		label=singular_measure_determines_factors,		shape=ellipse];	"thm:singular_measure_determines_factors" -> "thm:nevanlinna_factorization_uniqueness"	[style=dashed];	"thm:II_2_4"	[color=orange,		label=II_2_4,		shape=ellipse];	"thm:II_2_4" -> "def:blaschke_factor"	[style=dashed];	"thm:II_2_4" -> "lem:II_5_2"	[style=dashed];	"thm:II_4_4"	[color=orange,		label=II_4_4,		shape=ellipse];	"thm:II_4_4" -> "def:outer_factor"	[style=dashed];	"def:singular_function_formula"	[color=orange,		label=singular_function_formula,		shape=box];	"def:singular_factors"	[color=orange,		label=singular_factors,		shape=box];	"def:singular_function_formula" -> "def:singular_factors"	[style=dashed];	"def:singular_factors" -> "thm:singular_measure_determines_factors"	[style=dashed];	"thm:I_5_3"	[color=orange,		label=I_5_3,		shape=ellipse];	"thm:I_5_3" -> "thm:II_5_3"	[style=dashed];	"thm:II_2_2"	[color=orange,		label=II_2_2,		shape=ellipse];	"thm:II_2_2" -> "thm:II_2_4"	[style=dashed];	"thm:II_2_3"	[color=orange,		label=II_2_3,		shape=ellipse];	"thm:II_2_2" -> "thm:II_2_3"	[style=dashed];	"thm:II_2_3" -> "def:blaschke_factor"	[style=dashed];	"thm:II_5_1"	[color=orange,		label=II_5_1,		shape=ellipse];	"thm:II_5_1" -> "lem:II_5_2"	[style=dashed];	"thm:zeros_determine_blaschke"	[color=orange,		label=zeros_determine_blaschke,		shape=ellipse];	"thm:zeros_determine_blaschke" -> "thm:nevanlinna_factorization_uniqueness"	[style=dashed];	"cor:II_3_2"	[color=orange,		label=II_3_2,		shape=ellipse];	"cor:II_3_2" -> "thm:II_5_3"	[style=dashed];	"lem:I_5_4"	[color=orange,		label=I_5_4,		shape=ellipse];	"lem:I_5_4" -> "def:singular_factors"	[style=dashed];	"lem:I_5_4" -> "thm:I_5_3"	[style=dashed];	"thm:II_2_1"	[color=steelblue,		label=II_2_1,		shape=ellipse];	"thm:II_2_1" -> "thm:II_2_4"	[style=dashed];	"thm:II_2_1" -> "thm:II_2_3"	[style=dashed];	"thm:I_6_7"	[color=steelblue,		label=I_6_7,		shape=ellipse];	"thm:I_6_7" -> "thm:II_5_1"	[style=dashed];	"thm:I_6_7" -> "thm:II_2_1"	[style=dashed];	"thm:jordan_decomposition_singular_measure"	[color=orange,		label=jordan_decomposition_singular_measure,		shape=ellipse];	"thm:jordan_decomposition_singular_measure" -> "def:singular_factors"	[style=dashed];	"thm:log_abs_subharmonic"	[color=steelblue,		fillcolor=mediumseagreen,		label=log_abs_subharmonic,		shape=ellipse,		style=filled];	"thm:log_abs_subharmonic" -> "thm:II_5_1"	[style=dashed];	"thm:positive_harmonic_poisson_measure"	[color=orange,		label=positive_harmonic_poisson_measure,		shape=ellipse];	"thm:positive_harmonic_poisson_measure" -> "thm:II_5_1"	[style=dashed];	"cor:II_4_2"	[color=orange,		label=II_4_2,		shape=ellipse];	"cor:II_4_2" -> "thm:II_5_3"	[style=dashed];}`)
+    .renderDot(`strict digraph "" {	graph [bgcolor=transparent];	node [label="\N",		penwidth=1.8	];	edge [arrowhead=vee];	"def:nt_region"	[color=orange,		label=nt_region,		shape=box];	"def:nt_limit"	[color=orange,		label=nt_limit,		shape=box];	"def:nt_region" -> "def:nt_limit"	[style=dashed];	"lem:poisson_stolz_bound"	[color=orange,		label=poisson_stolz_bound,		shape=ellipse];	"def:nt_region" -> "lem:poisson_stolz_bound"	[style=dashed];	"lem:I_5_4"	[color=orange,		label=I_5_4,		shape=ellipse];	"def:nt_limit" -> "lem:I_5_4"	[style=dashed];	"def:boundary_function"	[color=orange,		label=boundary_function,		shape=box];	"def:nt_limit" -> "def:boundary_function"	[style=dashed];	"thm:I_5_3_ac"	[color=orange,		label=I_5_3_ac,		shape=ellipse];	"def:nt_limit" -> "thm:I_5_3_ac"	[style=dashed];	"lem:poisson_stolz_bound" -> "lem:I_5_4"	[style=dashed];	"lem:poisson_stolz_bound" -> "thm:I_5_3_ac"	[style=dashed];	"def:singular_factors"	[color=orange,		label=singular_factors,		shape=box];	"lem:I_5_4" -> "def:singular_factors"	[style=dashed];	"thm:I_5_3"	[color=orange,		label=I_5_3,		shape=ellipse];	"lem:I_5_4" -> "thm:I_5_3"	[style=dashed];	"def:boundary_function" -> "thm:I_5_3"	[style=dashed];	"lem:boundary_function_measurable"	[color=orange,		label=boundary_function_measurable,		shape=ellipse];	"def:boundary_function" -> "lem:boundary_function_measurable"	[style=dashed];	"thm:I_5_3_ac" -> "thm:I_5_3"	[style=dashed];	"lem:II_5_2"	[color=orange,		label=II_5_2,		shape=ellipse];	"thm:II_5_3"	[color=orange,		label=II_5_3,		shape=ellipse];	"lem:II_5_2" -> "thm:II_5_3"	[style=dashed];	"cor:II_4_2"	[color=orange,		label=II_4_2,		shape=ellipse];	"thm:II_5_3" -> "cor:II_4_2"	[style=dashed];	"thm:outer_uniqueness"	[color=orange,		label=outer_uniqueness,		shape=ellipse];	"cor:II_4_2" -> "thm:outer_uniqueness"	[style=dashed];	"thm:nevanlinna_canonical_factorization"	[color=orange,		label=nevanlinna_canonical_factorization,		shape=ellipse];	"thm:I_6_7"	[color=steelblue,		label=I_6_7,		shape=ellipse];	"thm:II_5_1"	[color=orange,		label=II_5_1,		shape=ellipse];	"thm:I_6_7" -> "thm:II_5_1"	[style=dashed];	"thm:II_2_1"	[color=steelblue,		label=II_2_1,		shape=ellipse];	"thm:I_6_7" -> "thm:II_2_1"	[style=dashed];	"thm:II_5_1" -> "lem:II_5_2"	[style=dashed];	"thm:II_2_4"	[color=orange,		label=II_2_4,		shape=ellipse];	"thm:II_2_1" -> "thm:II_2_4"	[style=dashed];	"thm:II_2_3"	[color=orange,		label=II_2_3,		shape=ellipse];	"thm:II_2_1" -> "thm:II_2_3"	[style=dashed];	"thm:II_2_4" -> "lem:II_5_2"	[style=dashed];	"def:blaschke_factor"	[color=steelblue,		fillcolor=lightblue,		label=blaschke_factor,		shape=box,		style=filled];	"thm:II_2_4" -> "def:blaschke_factor"	[style=dashed];	"thm:II_2_3" -> "def:blaschke_factor"	[style=dashed];	"thm:log_abs_subharmonic"	[color=steelblue,		fillcolor=mediumseagreen,		label=log_abs_subharmonic,		shape=ellipse,		style=filled];	"thm:log_abs_subharmonic" -> "thm:II_5_1"	[style=dashed];	"thm:jordan_decomposition_singular_measure"	[color=orange,		label=jordan_decomposition_singular_measure,		shape=ellipse];	"thm:jordan_decomposition_singular_measure" -> "def:singular_factors"	[style=dashed];	"thm:singular_measure_determines_factors"	[color=orange,		label=singular_measure_determines_factors,		shape=ellipse];	"def:singular_factors" -> "thm:singular_measure_determines_factors"	[style=dashed];	"thm:nevanlinna_factorization_uniqueness"	[color=orange,		label=nevanlinna_factorization_uniqueness,		shape=ellipse];	"thm:singular_measure_determines_factors" -> "thm:nevanlinna_factorization_uniqueness"	[style=dashed];	"thm:bounded_harmonic_poisson_Linfty"	[color=orange,		label=bounded_harmonic_poisson_Linfty,		shape=ellipse];	"cor:II_3_2"	[color=orange,		label=II_3_2,		shape=ellipse];	"thm:bounded_harmonic_poisson_Linfty" -> "cor:II_3_2"	[style=dashed];	"cor:II_3_2" -> "thm:II_5_3"	[style=dashed];	"thm:I_5_3" -> "cor:II_3_2"	[style=dashed];	"lem:boundary_function_measurable" -> "cor:II_3_2"	[style=dashed];	"thm:nevanlinna_factorization_uniqueness" -> "thm:nevanlinna_canonical_factorization"	[style=dashed];	"thm:II_4_4"	[color=orange,		label=II_4_4,		shape=ellipse];	"def:outer_factor"	[color=orange,		label=outer_factor,		shape=box];	"thm:II_4_4" -> "def:outer_factor"	[style=dashed];	"def:outer_factor" -> "thm:nevanlinna_canonical_factorization"	[style=dashed];	"thm:signed_lebesgue_decomposition"	[color=purple,		label=signed_lebesgue_decomposition,		shape=ellipse];	"thm:signed_lebesgue_decomposition" -> "thm:I_5_3"	[style=dashed];	"thm:outer_uniqueness" -> "def:outer_factor"	[style=dashed];	"thm:boundary_modulus_determines_outer"	[color=orange,		label=boundary_modulus_determines_outer,		shape=ellipse];	"thm:outer_uniqueness" -> "thm:boundary_modulus_determines_outer"	[style=dashed];	"thm:boundary_modulus_determines_outer" -> "thm:nevanlinna_factorization_uniqueness"	[style=dashed];	"thm:positive_harmonic_poisson_measure"	[color=steelblue,		label=positive_harmonic_poisson_measure,		shape=ellipse];	"thm:positive_harmonic_poisson_measure" -> "thm:II_5_1"	[style=dashed];	"thm:positive_harmonic_poisson_measure" -> "thm:bounded_harmonic_poisson_Linfty"	[style=dashed];	"thm:II_2_2"	[color=orange,		label=II_2_2,		shape=ellipse];	"thm:II_2_2" -> "thm:II_2_4"	[style=dashed];	"thm:II_2_2" -> "thm:II_2_3"	[style=dashed];	"thm:zeros_determine_blaschke"	[color=orange,		label=zeros_determine_blaschke,		shape=ellipse];	"thm:zeros_determine_blaschke" -> "thm:nevanlinna_factorization_uniqueness"	[style=dashed];	"def:singular_function_formula"	[color=orange,		label=singular_function_formula,		shape=box];	"def:singular_function_formula" -> "def:singular_factors"	[style=dashed];	"thm:circle_differentiation"	[color=orange,		label=circle_differentiation,		shape=ellipse];	"thm:circle_differentiation" -> "lem:I_5_4"	[style=dashed];	"thm:circle_differentiation" -> "thm:I_5_3_ac"	[style=dashed];	"thm:poisson_measure_unique"	[color=orange,		label=poisson_measure_unique,		shape=ellipse];	"thm:poisson_measure_unique" -> "thm:II_5_3"	[style=dashed];}`)
     .on("end", interactive);
 
 latexLabelEscaper = function(label) {

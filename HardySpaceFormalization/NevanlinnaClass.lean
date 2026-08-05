@@ -242,10 +242,6 @@ lemma nevanlinnaCharacteristic_mul_le {f : ℂ → F} (g : ℂ → F)
     (add_le_add (nevanlinnaRadialMean_le_characteristic f hr)
       (nevanlinnaRadialMean_le_characteristic g hr))
 
-
-
-
-
 /-- The Nevanlinna characteristic under scalar multiplication. -/
 lemma nevanlinnaCharacteristic_smul_le (c : ℂ) (f : ℂ → E) :
     nevanlinnaCharacteristic (c • f) ≤
@@ -254,7 +250,7 @@ lemma nevanlinnaCharacteristic_smul_le (c : ℂ) (f : ℂ → E) :
   exact (nevanlinnaRadialMean_smul_le c f r).trans
     (add_le_add le_rfl (nevanlinnaRadialMean_le_characteristic f hr))
 
-/-- The zero function belongs to the Nevanlinna class. -/
+/-- The `0` function belongs to the Nevanlinna class. -/
 theorem MemNevanlinnaDisc.zero : MemNevanlinnaDisc (0 : ℂ → E) := by
   refine ⟨analyticOn_const, ?_, fun z _ => rfl⟩
   simp [nevanlinnaCharacteristic_zero]
@@ -294,10 +290,7 @@ theorem MemNevanlinnaDisc.mul {f g : ℂ → F} [NormedAlgebra ℂ F]
 variable [NormedAlgebra ℂ F]
 
 /-- The Nevanlinna class on the unit disc as a non-unital `ℂ`-subalgebra of
-`ℂ → F`.  It is not a `Subalgebra`: the *ambient* unit, the constant function
-`1`, does not vanish outside the disc, hence is not a member.  It is, however,
-a unital ring in its own right, with unit the idempotent
-`unitDisc.indicator 1`. -/
+`ℂ → F`. -/
 def NevanlinnaDisc : NonUnitalSubalgebra ℂ (ℂ → F) where
   carrier := {f | MemNevanlinnaDisc f}
   add_mem' hf hg := MemNevanlinnaDisc.add hf hg
@@ -305,26 +298,26 @@ def NevanlinnaDisc : NonUnitalSubalgebra ℂ (ℂ → F) where
   smul_mem' c _ hf := MemNevanlinnaDisc.smul hf c
   mul_mem' hf hg := MemNevanlinnaDisc.mul hf hg
 
+/- # It is not a `Subalgebra`:
+the *ambient* unit, the constant function `1`, does not vanish outside the disc,
+hence is not a member.  It is, however, a unital ring in its own right,
+with unit `unitDisc.indicator 1`.-/
+
 @[simp] lemma memNevanlinnaDisc_iff {f : ℂ → F} :
     f ∈ NevanlinnaDisc ↔ MemNevanlinnaDisc f := Iff.rfl
 
 /-- As `ℂ`-submodules, `H^p ≤ N` for all `p > 0`, including `p = ∞`. -/
 theorem hpDisc_le_nevanlinnaDisc {p : ℝ≥0∞} (hp : 0 < p) :
-    HpDisc (E := F) p ≤ NevanlinnaDisc.toSubmodule := by
-  intro f hf
-  exact memNevanlinnaDisc_of_memHpDisc hp hf
+    HpDisc (E := F) p ≤ NevanlinnaDisc.toSubmodule := fun _ h => memNevanlinnaDisc_of_memHpDisc hp h
 
 
 /-!
 ### The local identity of the Nevanlinna class
 
 Although `N` is not a *unital subalgebra* of `ℂ → ℂ` (the ambient unit, the
-constant function `1`, does not vanish outside the disc so it is not a member),
-`N` is a unital ring in its own right.  Its unit is the idempotent
-`unitDisc.indicator 1`, the indicator of the disc: for `f ∈ N` (which vanishes
-outside the disc) one has `unitDisc.indicator 1 * f = f` on the nose.  This is
-the standard "corner ring `eRe`" phenomenon for an idempotent `e` of the
-ambient ring.
+constant function `1`, does not vanish outside the disc),`N` is a unital ring
+in its own right.  Its unit is `unitDisc.indicator 1`: for `f ∈ N`,
+one has `unitDisc.indicator 1 * f = f`.
 -/
 
 omit [NormedAlgebra ℂ F] in
@@ -364,16 +357,14 @@ instance : One (NevanlinnaDisc (F := F)) :=
 @[simp] lemma coe_one :
     ((1 : NevanlinnaDisc (F := F)) : ℂ → F) = unitDisc.indicator 1 := rfl
 
-/-- `↥N` is a unital commutative ring in its own right — with unit the disc
-indicator, not the ambient `1`.  The `NonUnitalCommRing` structure is supplied
+/-- `N` is a unital commutative ring in its own right — with unit the disc
+indicator.  The `NonUnitalCommRing` structure is supplied
 for free by the `NonUnitalSubalgebra` bundle; we only add the unit. -/
 instance : CommRing (NevanlinnaDisc (F := F)) where
   __ := (inferInstance : NonUnitalCommRing (NevanlinnaDisc (F := F)))
   one := 1
   one_mul a := Subtype.ext (indicator_unitDisc_mul (memNevanlinnaDisc_iff.mp a.2).2.2)
-  mul_one a := Subtype.ext (by
-    show a.1 * unitDisc.indicator 1 = a.1
-    rw [mul_comm]; exact indicator_unitDisc_mul (memNevanlinnaDisc_iff.mp a.2).2.2)
+  mul_one a := Subtype.ext (by rw [mul_comm]; exact indicator_unitDisc_mul (memNevanlinnaDisc_iff.mp a.2).2.2)
 
 /-- `N` is a commutative `ℂ`-algebra, with `algebraMap c = c • (unitDisc.indicator 1)`. -/
 instance : Algebra ℂ (NevanlinnaDisc (F := F)) :=
