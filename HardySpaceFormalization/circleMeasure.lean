@@ -6,6 +6,8 @@ open scoped ENNReal
 
 noncomputable section
 
+variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+
 /-- The normalized angular measure on one full turn.  This is the measure used by
 `circleAverage` before pushing forward by `circleMap`. -/
 def angularMeasure : Measure ℝ :=
@@ -19,7 +21,7 @@ def circleMeasure (c : ℂ) (R : ℝ) : Measure ℂ := Measure.map (circleMap c 
 /-- Integration against `circleMeasure` is integration of the pullback along `circleMap` against
 the normalized angular measure. -/
 lemma integral_circleMeasure_eq_integral_angularMeasure
-    {c : ℂ} {R : ℝ} {f : ℂ → ℝ}
+    {c : ℂ} {R : ℝ} {f : ℂ → E}
     (hf : AEStronglyMeasurable f (circleMeasure c R)) :
     ∫ z, f z ∂circleMeasure c R = ∫ θ, f (circleMap c R θ) ∂angularMeasure := by
   simpa [circleMeasure] using
@@ -27,7 +29,7 @@ lemma integral_circleMeasure_eq_integral_angularMeasure
       (measurable_circleMap c R).aemeasurable hf)
 
 /-- The normalized angular measure is a probability measure. -/
-lemma isProbabilityMeasure_angularProbabilityMeasure :
+instance isProbabilityMeasure_angularMeasure :
     IsProbabilityMeasure angularMeasure := by
   unfold angularMeasure
   rw [isProbabilityMeasure_iff]
@@ -39,16 +41,16 @@ lemma isProbabilityMeasure_angularProbabilityMeasure :
   rw [hreal, ENNReal.ofReal_one]
 
 /-- The circle measure is a probability measure. -/
-lemma isProbabilityMeasure_circleMeasure {c : ℂ} {R : ℝ} :
+instance isProbabilityMeasure_circleMeasure {c : ℂ} {R : ℝ} :
     IsProbabilityMeasure (circleMeasure c R) := by
   rw [circleMeasure]
-  haveI : IsProbabilityMeasure angularMeasure := isProbabilityMeasure_angularProbabilityMeasure
   exact Measure.isProbabilityMeasure_map (measurable_circleMap c R).aemeasurable
 
+omit [NormedSpace ℝ E] in
 /-- Circle-integrability gives almost-everywhere strong measurability of the pullback to the
 angular parameter measure. -/
 lemma CircleIntegrable.aestronglyMeasurable_comp_circleMap_angularMeasure
-    {c : ℂ} {R : ℝ} {f : ℂ → ℝ} (hf : CircleIntegrable f c R) :
+    {c : ℂ} {R : ℝ} {f : ℂ → E} (hf : CircleIntegrable f c R) :
     AEStronglyMeasurable (fun θ : ℝ => f (circleMap c R θ)) angularMeasure := by
   have hIco :
       IntegrableOn (fun θ : ℝ => f (circleMap c R θ)) (Set.Ico 0 (2 * π)) volume := by
@@ -65,15 +67,15 @@ lemma measurableEmbedding_circleMap_Ico {c : ℂ} {R : ℝ} (hR : R ≠ 0) :
     (continuous_circleMap c R).continuousOn ?_
   exact injOn_circleMap_of_abs_sub_le' (c := c) (R := R) hR (by linarith)
 
+omit [NormedSpace ℝ E] in
 /-- Circle-integrability gives almost-everywhere strong measurability with respect to the
 normalized circle measure. -/
 lemma CircleIntegrable.aestronglyMeasurable_circleMeasure
-    {c : ℂ} {R : ℝ} {f : ℂ → ℝ} (hf : CircleIntegrable f c R) :
+    {c : ℂ} {R : ℝ} {f : ℂ → E} (hf : CircleIntegrable f c R) :
     AEStronglyMeasurable f (circleMeasure c R) := by
   -- codex without review
   by_cases hR : R = 0
   · subst R
-    haveI : IsProbabilityMeasure angularMeasure := isProbabilityMeasure_angularProbabilityMeasure
     have hmap0 :
         Measure.map (Function.const ℝ c) angularMeasure = Measure.dirac c := by
       change Measure.map (fun _ : ℝ => c) angularMeasure = Measure.dirac c
@@ -127,7 +129,7 @@ lemma CircleIntegrable.aestronglyMeasurable_circleMeasure
       (by rw [hcircle_eq]; exact Measure.smul_absolutelyContinuous) hcircle_base
 
 /-- `circleAverage` is integration with respect to the normalized circle measure. -/
-lemma circleAverage_eq_integral_circleMeasure {c : ℂ} {R : ℝ} {f : ℂ → ℝ}
+lemma circleAverage_eq_integral_circleMeasure {c : ℂ} {R : ℝ} {f : ℂ → E}
     (hf : CircleIntegrable f c R) :
     circleAverage f c R = ∫ z, f z ∂circleMeasure c R := by
   rw [integral_circleMeasure_eq_integral_angularMeasure

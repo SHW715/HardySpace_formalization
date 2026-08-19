@@ -5,7 +5,9 @@ import Mathlib.Analysis.InnerProductSpace.Harmonic.Constructions
 import Mathlib.LinearAlgebra.Complex.FiniteDimensional
 import Mathlib.MeasureTheory.Integral.Prod
 import HardySpaceFormalization.Harmonic_max_principle
+import HardySpaceFormalization.circleMeasure
 import Mathlib.MeasureTheory.VectorMeasure.Integral
+import Mathlib.MeasureTheory.VectorMeasure.WithDensity
 
 
 
@@ -19,10 +21,56 @@ open Complex Metric Real Set MeasureTheory
 open scoped Topology
 
 variable
-  {E : Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
+  {E F: Type*} [NormedAddCommGroup E] [NormedSpace ℂ E]
+  [NormedAddCommGroup F] [NormedSpace ℝ F]
   {f : ℂ → E} {R : ℝ} {w c : ℂ} {s : Set ℂ}
 
 
+
+/-!
+### Basic properties of the Poisson kernel
+
+Measurability, nonnegativity and the uniform bound over the boundary circle at an interior point.
+-/
+
+/-- The Poisson kernel is measurable in the boundary variable. -/
+theorem measurable_poissonKernel (c w : ℂ) : Measurable (fun z : ℂ => poissonKernel c w z) := by
+  unfold poissonKernel
+  fun_prop
+
+/-- The Poisson kernel is nonnegative for an interior point and a boundary point. -/
+theorem poissonKernel_nonneg (hw : w ∈ ball c R) {z : ℂ} (hz : z ∈ sphere c R) :
+    0 ≤ poissonKernel c w z := by
+  have hz_norm : ‖z - c‖ = R := by simpa [Metric.mem_sphere, dist_eq_norm] using hz
+  have hw_norm : ‖w - c‖ < R := by simpa [Metric.mem_ball, dist_eq_norm] using hw
+  rw [poissonKernel_def]
+  refine div_nonneg ?_ (by positivity)
+  nlinarith [norm_nonneg (w - c)]
+
+/-- Uniform bound for the Poisson kernel over the boundary circle, at an interior point. -/
+theorem poissonKernel_le_of_mem_ball (hw : w ∈ ball c R) {z : ℂ} (hz : z ∈ sphere c R) :
+    poissonKernel c w z ≤ (R + ‖w - c‖) / (R - ‖w - c‖) := by
+  simpa [poissonKernel_eq_re_herglotzRieszKernel, Function.comp_apply, herglotzRieszKernel_def]
+    using re_herglotzRieszKernel_le hz hw
+
+/-- Norm form of `poissonKernel_le_of_mem_ball`, for use with dominated-convergence and
+boundedness lemmas. -/
+theorem norm_poissonKernel_le_of_mem_ball (hw : w ∈ ball c R) {z : ℂ} (hz : z ∈ sphere c R) :
+    ‖poissonKernel c w z‖ ≤ (R + ‖w - c‖) / (R - ‖w - c‖) := by
+  rw [Real.norm_eq_abs, abs_of_nonneg (poissonKernel_nonneg hw hz)]
+  exact poissonKernel_le_of_mem_ball hw hz
+
+/-!
+### The Poisson integral of boundary data given as a function
+
+`poissonIntegral c μ f` is the classical `P[f dμ]`: boundary data presented as a function against a
+reference measure.
+-/
+
+/-- The Poisson integral of the boundary data `f` with respect to `μ`, at the point `w`, for the
+Poisson kernel centred at `c`.-/
+noncomputable def poissonIntegral (c : ℂ) (μ : Measure ℂ) (f : ℂ → F) (w : ℂ) : F :=
+  ∫ z, poissonKernel c w z • f z ∂μ
 
 /-!
 ### The Herglotz-Riesz kernel
@@ -347,14 +395,25 @@ theorem harmonicOnNhd_circleAverage_of_harmonicOnNhd
     (a := 0) (b := 2 * π) (s := s) hs hcont'
     (fun θ _hθ => hΦ (circleMap c R θ) (circleMap_mem_sphere c hR θ))).const_smul
 
-/-- The Poisson integral of continuous boundary data on a circle is harmonic in the open disk. -/
+/-- For continuous boundary data at an interior point, the Poisson integral against the normalized
+circle measure is the corresponding circle average. -/
+theorem poissonIntegral_eq_circleAverage (hR : 0 ≤ R) (hw : w ∈ ball c R)
+  (hf : ContinuousOn f (sphere c R)) :
+  poissonIntegral c (circleMeasure c R) f w
+    = circleAverage (fun z : ℂ => poissonKernel c w z • f z) c R :=
+  (circleAverage_eq_integral_circleMeasure (ContinuousOn.circleIntegrable hR
+    ((continuousOn_poissonKernel_right_of_mem_ball hw).smul hf))).symm
+
+/--The Poisson integral of continuous boundary data on a circle is harmonic in the open
+disk.-/
 theorem harmonicOnNhd_poissonIntegral (hf : ContinuousOn f (sphere c R)) :
-    InnerProductSpace.HarmonicOnNhd
-      (fun w : ℂ => circleAverage (fun z : ℂ => poissonKernel c w z • f z) c R)
-      (ball c R) := by
+    InnerProductSpace.HarmonicOnNhd (poissonIntegral c (circleMeasure c R) f) (ball c R) := by
   -- Claude without review
-  by_cases hR : 0 ≤ R
-  · have hcont : ContinuousOn (fun p : ℂ × ℂ => poissonKernel c p.1 p.2 • f p.2)
+  intro w hw
+  have hR : 0 ≤ R := dist_nonneg.trans (mem_ball.mp hw).le
+  have hCA : InnerProductSpace.HarmonicOnNhd
+      (fun w : ℂ => circleAverage (fun z : ℂ => poissonKernel c w z • f z) c R) (ball c R) := by
+    have hcont : ContinuousOn (fun p : ℂ × ℂ => poissonKernel c p.1 p.2 • f p.2)
       ((ball c R) ×ˢ sphere c R) := by
       unfold poissonKernel
       refine ContinuousOn.smul ?_ ?_
@@ -377,10 +436,9 @@ theorem harmonicOnNhd_poissonIntegral (hf : ContinuousOn f (sphere c R)) :
         (ContinuousLinearMap.toSpanSingleton ℝ (f z) : ℝ →L[ℝ] E) using 1
     ext w
     simp [Function.comp_apply]
-  · intro w hw
-    simp at hR
-    have hw_dist_lt : dist w c < R := by simpa [Metric.mem_ball] using hw
-    exact False.elim ((not_lt_of_ge dist_nonneg) (hw_dist_lt.trans hR))
+  refine (InnerProductSpace.harmonicAt_congr_nhds ?_).1 (hCA w hw)
+  filter_upwards [isOpen_ball.mem_nhds hw] with y hy
+  exact (poissonIntegral_eq_circleAverage hR hy hf).symm
 
 /-- The Poisson integral of continuous real-valued boundary data has a continuous extension to the
 closed disk whose boundary values are the original boundary data. -/
@@ -391,18 +449,6 @@ theorem poissonIntegral_continuousOn_closedBall_eq_boundary
     ∧ (∀ y ∈ sphere c R, h y = u y) := by
   sorry
 
-/-- If a function is represented inside the disk by its Poisson integral over the boundary circle,
-then it is harmonic on the open disk. -/
-theorem harmonicOnNhd_of_circleAverage_poissonKernel
-    (hf_cont : ContinuousOn f (sphere c R))
-    (hrepr : ∀ w ∈ ball c R, circleAverage (fun z : ℂ => poissonKernel c w z • f z) c R = f w) :
-    InnerProductSpace.HarmonicOnNhd f (ball c R) := by
-  let P : ℂ → E := fun w => circleAverage (fun z : ℂ => poissonKernel c w z • f z) c R
-  have hP : InnerProductSpace.HarmonicOnNhd P (ball c R) := harmonicOnNhd_poissonIntegral hf_cont
-  intro w hw
-  refine (InnerProductSpace.harmonicAt_congr_nhds ?_).1 (hP w hw)
-  filter_upwards [isOpen_ball.mem_nhds hw] with y hy
-  exact hrepr y hy
 
 
 -- The rest is given in the help of Claude
@@ -413,21 +459,83 @@ theorem harmonicOnNhd_of_circleAverage_poissonKernel
 This is the disc form of Garnett, *Bounded Analytic Functions*, Theorem I.3.5(c).
 -/
 
-/-- The Poisson integral of a measure `μ` at the point `w`, for the Poisson kernel centred at `c`.-/
-noncomputable def poissonIntegral (c : ℂ) (μ : Measure ℂ) (w : ℂ) : ℝ :=
-  ∫ z, poissonKernel c w z ∂μ
-
 /-- The Poisson integral of a *signed* measure `μ` at the point `w`, for the Poisson kernel centred
-at `c`, defined through the Jordan decomposition `μ = μ⁺ - μ⁻`. -/
+at `c`, as an integral against the vector measure `μ`. -/
 noncomputable def poissonIntegralSigned (c : ℂ) (μ : SignedMeasure ℂ) (w : ℂ) : ℝ :=
-  poissonIntegral c μ.toJordanDecomposition.posPart w -
-    poissonIntegral c μ.toJordanDecomposition.negPart w
-
-/-- *Test version* of `poissonIntegralSigned`. -/
-noncomputable def poissonIntegralSigned' (c : ℂ) (μ : SignedMeasure ℂ) (w : ℂ) : ℝ :=
   ∫ᵛ z, poissonKernel c w z ∂<•μ
 
--- # At the moment I don't know choose which one as our definition.
+/-- For an interior point, the Poisson kernel is integrable against any finite measure carried by
+the boundary circle. -/
+theorem integrable_poissonKernel {μ : Measure ℂ} [IsFiniteMeasure μ]
+    (hμ : μ (sphere c R)ᶜ = 0) (hw : w ∈ ball c R) :
+    Integrable (fun z : ℂ => poissonKernel c w z) μ := by
+  refine (integrable_const ((R + ‖w - c‖) / (R - ‖w - c‖))).mono'
+    (measurable_poissonKernel c w).aestronglyMeasurable ?_
+  filter_upwards [ae_iff.2 hμ] with z hz
+  exact norm_poissonKernel_le_of_mem_ball hw hz
+
+/-- For an interior point, the Poisson kernel times an integrable boundary density is integrable
+against any finite measure carried by the boundary circle. -/
+theorem integrable_poissonKernel_mul {μ : Measure ℂ} [IsFiniteMeasure μ] {k : ℂ → ℝ}
+    (hμ : μ (sphere c R)ᶜ = 0) (hw : w ∈ ball c R) (hk : Integrable k μ) :
+    Integrable (fun z : ℂ => poissonKernel c w z * k z) μ := by
+  have hbdd : ∀ᵐ z ∂μ, ‖poissonKernel c w z‖ ≤ (R + ‖w - c‖) / (R - ‖w - c‖) := by
+    filter_upwards [ae_iff.2 hμ] with z hz
+    exact norm_poissonKernel_le_of_mem_ball hw hz
+  exact hk.bdd_mul (measurable_poissonKernel c w).aestronglyMeasurable hbdd
+
+/-- **The Poisson integral of a density is the Poisson integral of the associated signed measure.**
+This identifies `poissonIntegral`, boundary data as a function, with `poissonIntegralSigned`,
+boundary data as a measure, and is what lets statements about `P[k dμ]` be phrased without an
+explicit `withDensityᵥ`. -/
+theorem poissonIntegral_eq_poissonIntegralSigned_withDensityᵥ {μ : Measure ℂ} [IsFiniteMeasure μ]
+    {k : ℂ → ℝ} (hμ : μ (sphere c R)ᶜ = 0) (hw : w ∈ ball c R) (hk : Integrable k μ) :
+    poissonIntegral c μ k w = poissonIntegralSigned c (μ.withDensityᵥ k) w := by
+  set P : ℂ → ℝ := fun z => poissonKernel c w z with hP
+  -- The two positive parts of `k dμ`, as finite measures carried by the circle.
+  set μ₁ : Measure ℂ := μ.withDensity fun x => ENNReal.ofReal (k x) with hμ₁
+  set μ₂ : Measure ℂ := μ.withDensity fun x => ENNReal.ofReal (-k x) with hμ₂
+  haveI hfin₁ : IsFiniteMeasure μ₁ := isFiniteMeasure_withDensity_ofReal hk.2
+  haveI hfin₂ : IsFiniteMeasure μ₂ := isFiniteMeasure_withDensity_ofReal hk.neg.2
+  have hcar₁ : μ₁ (sphere c R)ᶜ = 0 := withDensity_absolutelyContinuous μ _ hμ
+  have hcar₂ : μ₂ (sphere c R)ᶜ = 0 := withDensity_absolutelyContinuous μ _ hμ
+  -- Integrability of the kernel against each part, in the measure and the vector-measure sense.
+  have hV₁ : (μ₁.toSignedMeasure).Integrable P := by
+    show Integrable P (μ₁.toSignedMeasure).variation
+    rw [Measure.variation_toSignedMeasure]
+    exact integrable_poissonKernel hcar₁ hw
+  have hV₂ : (μ₂.toSignedMeasure).Integrable P := by
+    show Integrable P (μ₂.toSignedMeasure).variation
+    rw [Measure.variation_toSignedMeasure]
+    exact integrable_poissonKernel hcar₂ hw
+  -- The two weighted integrals over `μ`, which the difference has to be reassembled from.
+  have hsm₁ : Integrable (fun z : ℂ => (ENNReal.ofReal (k z)).toReal • P z) μ := by
+    simpa [hP, ENNReal.toReal_ofReal', mul_comm] using
+      integrable_poissonKernel_mul hμ hw hk.pos_part
+  have hsm₂ : Integrable (fun z : ℂ => (ENNReal.ofReal (-k z)).toReal • P z) μ := by
+    simpa [hP, ENNReal.toReal_ofReal', mul_comm] using
+      integrable_poissonKernel_mul hμ hw hk.neg_part
+  -- The densities have to be presented in exactly the form appearing in `μ₁`, `μ₂`.
+  have hm₁ : AEMeasurable (fun x : ℂ => ENNReal.ofReal (k x)) μ :=
+    hk.1.aemeasurable.ennreal_ofReal
+  have hm₂ : AEMeasurable (fun x : ℂ => ENNReal.ofReal (-k x)) μ :=
+    hk.1.aemeasurable.neg.ennreal_ofReal
+  rw [poissonIntegralSigned, withDensityᵥ_eq_withDensity_pos_part_sub_withDensity_neg_part hk,
+    VectorMeasure.integral_sub_vectorMeasure hV₁ hV₂,
+    VectorMeasure.integral_toSignedMeasure, VectorMeasure.integral_toSignedMeasure,
+    integral_withDensity_eq_integral_toReal_smul₀ hm₁
+      (ae_of_all _ fun _ => ENNReal.ofReal_lt_top) P,
+    integral_withDensity_eq_integral_toReal_smul₀ hm₂
+      (ae_of_all _ fun _ => ENNReal.ofReal_lt_top) P,
+    ← integral_sub hsm₁ hsm₂, poissonIntegral]
+  refine integral_congr_ae (Filter.Eventually.of_forall fun z => ?_)
+  simp only [hP, ENNReal.toReal_ofReal', smul_eq_mul]
+  by_cases h : 0 ≤ k z
+  · rw [max_eq_left h, max_eq_right (by linarith : -k z ≤ 0)]
+    ring
+  · have h' : k z < 0 := not_le.mp h
+    rw [max_eq_right h'.le, max_eq_left (by linarith : (0 : ℝ) ≤ -k z)]
+    ring
 
 /-- For an interior point, the Poisson kernel is integrable against the total variation of a signed
 measure carried by the boundary circle. -/
@@ -480,11 +588,13 @@ theorem toJordanDecomposition_le_variation {α : Type*} [MeasurableSpace α] (μ
       _ ≤ μ.variation (iᶜ ∩ E) := VectorMeasure.enorm_measure_le_variation _ _
       _ ≤ μ.variation E := measure_mono Set.inter_subset_right
 
-/-- The two definitions of the Poisson integral of a signed boundary measure agree whenever the
-Poisson kernel is integrable against the total variation of `μ`. -/
-theorem poissonIntegralSigned_eq_poissonIntegralSigned' {μ : SignedMeasure ℂ}
+/-- The Poisson integral of a signed boundary measure splits along the Jordan decomposition
+`μ = μ⁺ - μ⁻`, whenever the Poisson kernel is integrable against the total variation of `μ`. -/
+theorem poissonIntegralSigned_eq_posPart_sub_negPart {μ : SignedMeasure ℂ}
     (hint : μ.Integrable (fun z : ℂ => poissonKernel c w z)) :
-    poissonIntegralSigned c μ w = poissonIntegralSigned' c μ w := by
+    poissonIntegralSigned c μ w =
+      (∫ z, poissonKernel c w z ∂μ.toJordanDecomposition.posPart) -
+        ∫ z, poissonKernel c w z ∂μ.toJordanDecomposition.negPart := by
   -- Claude without review
   obtain ⟨hpos_le, hneg_le⟩ := toJordanDecomposition_le_variation μ
   have hpos : Integrable (fun z : ℂ => poissonKernel c w z) μ.toJordanDecomposition.posPart :=
@@ -501,45 +611,33 @@ theorem poissonIntegralSigned_eq_poissonIntegralSigned' {μ : SignedMeasure ℂ}
     show Integrable (fun z : ℂ => poissonKernel c w z)
       (μ.toJordanDecomposition.negPart.toSignedMeasure).variation
     rwa [Measure.variation_toSignedMeasure]
-  have key : (∫ᵛ z, poissonKernel c w z ∂<•μ)
-      = (∫ z, poissonKernel c w z ∂μ.toJordanDecomposition.posPart)
-        - ∫ z, poissonKernel c w z ∂μ.toJordanDecomposition.negPart := by
-    conv_lhs => rw [← μ.toSignedMeasure_toJordanDecomposition]
-    rw [show μ.toJordanDecomposition.toSignedMeasure
-        = μ.toJordanDecomposition.posPart.toSignedMeasure
-          - μ.toJordanDecomposition.negPart.toSignedMeasure from rfl,
-      VectorMeasure.integral_sub_vectorMeasure hpos' hneg',
-      VectorMeasure.integral_toSignedMeasure, VectorMeasure.integral_toSignedMeasure]
-  rw [poissonIntegralSigned, poissonIntegralSigned', poissonIntegral, poissonIntegral, key]
-
-/-- The Poisson kernel is nonnegative for an interior point and a boundary point. -/
-theorem poissonKernel_nonneg (hw : w ∈ ball c R) {z : ℂ} (hz : z ∈ sphere c R) :
-    0 ≤ poissonKernel c w z := by
-  have hz_norm : ‖z - c‖ = R := by simpa [Metric.mem_sphere, dist_eq_norm] using hz
-  have hw_norm : ‖w - c‖ < R := by simpa [Metric.mem_ball, dist_eq_norm] using hw
-  rw [poissonKernel_def]
-  refine div_nonneg ?_ (by positivity)
-  nlinarith [norm_nonneg (w - c)]
+  rw [poissonIntegralSigned]
+  conv_lhs => rw [← μ.toSignedMeasure_toJordanDecomposition]
+  rw [show μ.toJordanDecomposition.toSignedMeasure
+      = μ.toJordanDecomposition.posPart.toSignedMeasure
+        - μ.toJordanDecomposition.negPart.toSignedMeasure from rfl,
+    VectorMeasure.integral_sub_vectorMeasure hpos' hneg',
+    VectorMeasure.integral_toSignedMeasure, VectorMeasure.integral_toSignedMeasure]
 
 /-- The Poisson integral of a finite measure carried by the boundary circle is nonnegative on the
 open disc. -/
-theorem poissonIntegral_nonneg {μ : Measure ℂ} [IsFiniteMeasure μ]
+theorem integral_poissonKernel_nonneg {μ : Measure ℂ} [IsFiniteMeasure μ]
     (hμ : μ (sphere c R)ᶜ = 0) (hw : w ∈ ball c R) :
-    0 ≤ poissonIntegral c μ w := by
+    0 ≤ ∫ z, poissonKernel c w z ∂μ := by
   refine integral_nonneg_of_ae ?_
   filter_upwards [ae_iff.2 hμ] with z hz using poissonKernel_nonneg hw hz
 
 /-- The Poisson integral of a finite measure carried by the boundary circle is harmonic on the open
 disc.  This is the easy direction of Garnett I.3.5(c), disc form. -/
-theorem harmonicOnNhd_poissonIntegral_measure {μ : Measure ℂ} [IsFiniteMeasure μ]
+theorem harmonicOnNhd_integral_poissonKernel {μ : Measure ℂ} [IsFiniteMeasure μ]
     (hμ : μ (sphere c R)ᶜ = 0) :
-    InnerProductSpace.HarmonicOnNhd (poissonIntegral c μ) (ball c R) := by
+    InnerProductSpace.HarmonicOnNhd (fun w => ∫ z, poissonKernel c w z ∂μ) (ball c R) := by
   intro w hw
   have hharm := (analyticOnNhd_integral_herglotzRieszKernel hμ w hw).harmonicAt_re
   refine (InnerProductSpace.harmonicAt_congr_nhds ?_).2 hharm
   filter_upwards [isOpen_ball.mem_nhds hw] with x hx
-  show poissonIntegral c μ x = (∫ z, herglotzRieszKernel c x z ∂μ).re
-  rw [poissonIntegral, ← RCLike.re_eq_complex_re,
+  show (∫ z, poissonKernel c x z ∂μ) = (∫ z, herglotzRieszKernel c x z ∂μ).re
+  rw [← RCLike.re_eq_complex_re,
     ← integral_re (integrable_herglotzRieszKernel hμ hx)]
   refine integral_congr_ae (Filter.Eventually.of_forall fun z => ?_)
   simpa [RCLike.re_eq_complex_re] using
@@ -549,10 +647,10 @@ theorem harmonicOnNhd_poissonIntegral_measure {μ : Measure ℂ} [IsFiniteMeasur
 /-- **Garnett I.3.5(c), disc form**: the nonnegative harmonic functions
 on `ball c R` are exactly the Poisson integrals of finite nonnegative measures carried by
 `sphere c R`. -/
-theorem harmonicOnNhd_nonneg_iff_exists_eq_poissonIntegral (hR : 0 < R) {u : ℂ → ℝ} :
+theorem harmonicOnNhd_nonneg_iff_exists_eq_integral_poissonKernel (hR : 0 < R) {u : ℂ → ℝ} :
     (InnerProductSpace.HarmonicOnNhd u (ball c R) ∧ ∀ w ∈ ball c R, 0 ≤ u w) ↔
       ∃ μ : Measure ℂ, IsFiniteMeasure μ ∧ μ (sphere c R)ᶜ = 0 ∧
-        ∀ w ∈ ball c R, u w = poissonIntegral c μ w := by
+        ∀ w ∈ ball c R, u w = ∫ z, poissonKernel c w z ∂μ := by
   sorry
 
 

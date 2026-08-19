@@ -50,54 +50,10 @@ and are not verbatim reproductions of the source.
 
 \section{Nontangential limits and boundary values}
 
-\noindent\textbf{Route.} Garnett proves Fatou's theorem (I.5.3) from the
-nontangential maximal function: $u^*\le A_\alpha M(d\mu)$ (I.4.2), the
-Hardy--Littlewood weak-type estimate (I.4.3, via the Vitali covering lemma
-I.4.4 and the Marcinkiewicz interpolation theorem I.4.5), and a $C_0$ density
-argument. None of the $L^p$ statements with $p>1$ are used downstream in this
-project, and mathlib does not currently carry the Hardy--Littlewood maximal
-theorem. We therefore take the equivalent \emph{approximate identity} route:
-a single quantitative bound on the Poisson kernel over a Stolz region
-(Lemma~\ref{lem:poisson_stolz_bound}) plus the differentiation theorem for
-measures (Theorem~\ref{thm:circle_differentiation}), which mathlib does have.
-
-Consequently the nontangential maximal function $u^*_\alpha(\zeta)=
-\sup_{\Gamma_\alpha(\zeta)}\|u\|$ is deliberately absent from this blueprint.
-Checking Garnett chapter by chapter, it is load-bearing in exactly two places
-that touch the present development, and both are bypassed. It is used in
-Theorem II.3.1, the boundary-value theorem for $H^p$ with $0<p\le\infty$,
-which is stated through $\|f^*\|_p\le A_\alpha\|f\|_{H^p}$; we only need the
-$H^\infty$ case, obtained in Corollary~\ref{cor:II_3_2} from
-Theorem~\ref{thm:bounded_harmonic_poisson_Linfty} and
-Theorem~\ref{thm:I_5_3}. And it is used in Theorem II.4.1, where
-$(1/p)|f^*|^p$ is the dominating function in a convergence argument; the
-consequence we need, Corollary~\ref{cor:II_4_2}, instead follows from part
-(2) of Theorem~\ref{thm:II_5_3}, since $\log|f^*|\in L^1$ forces $f^*\ne0$
-almost everywhere, and $H^p\subseteq N$ is already formalized. Chapter II,
-Section 5 never mentions the maximal function at all. It becomes unavoidable
-only if this project is extended to the $N^+$ and $H^p$ refinements
-(Garnett II.5.7, II.3.6, the $H^p\cong$ closed subspace of $L^p$ isometry) or
-to Carleson measures, and each of those additionally needs the
-Hardy--Littlewood maximal theorem, which mathlib does not have.
-
-\medskip
-\noindent\textbf{Convention.} Boundary measures and boundary functions are
-modelled on $\mathbb{C}$ rather than on $[0,2\pi)$: the normalized arclength
-measure $d\theta/2\pi$ on $\partial\D$ is \texttt{circleMeasure 0 1}, the
-pushforward of the normalized angular measure \texttt{angularMeasure} along
-$\theta\mapsto e^{i\theta}$, a probability measure carried by the unit circle.
-This is the convention already used for the representing measures of
-Theorem~\ref{thm:positive_harmonic_poisson_measure} and
-Theorem~\ref{thm:II_5_1}, and it is what allows the two summands of
-\eqref{eq:II_5_3_decomposition} below to be added. Statements phrased in
-$\theta$, such as $\log|f(e^{i\theta})|\in L^1(d\theta)$, are obtained by
-pulling back along $\theta\mapsto e^{i\theta}$; transferring null sets and
-integrability between the two pictures is a small piece of Lean infrastructure
-to be added next to \texttt{circleMeasure}, not a mathematical step.
-
 \begin{definition}[Nontangential approach region]
   \label{def:nt_region}
-  \notready
+  \lean{Complex.stolzSetAt}
+  \leanok
   Source: Garnett, Chapter I, Section 4, PDF page 23 (disc form).
   For $\zeta\in\partial\D$ and $\alpha>1$ put
   \[
@@ -115,57 +71,98 @@ to be added next to \texttt{circleMeasure}, not a mathematical step.
 
 \begin{definition}[Nontangential limit]
   \label{def:nt_limit}
-  \notready
+  \lean{HasNontangentialLimitWithin, nontangentially, HasNontangentialLimit,
+    hasNontangentialLimit_iff_forall}
+  \leanok
   \uses{def:nt_region}
   Source: Garnett, Chapter I, Section 5, PDF page 27.
-  The \emph{nontangential filter} at $\zeta\in\partial\D$ is
+  Write $\mathcal{N}_{\Gamma_\alpha(\zeta)}(\zeta)$ for the neighbourhood filter
+  of $\zeta$ within $\Gamma_\alpha(\zeta)$. The \emph{nontangential filter} at
+  $\zeta$ is their supremum in the lattice of filters,
   \[
-    \mathcal{N}_\zeta=\sup_{\alpha>1}\ \mathcal{N}_{\Gamma_\alpha(\zeta)}(\zeta),
+    \mathcal{N}_\zeta=\sup_{\alpha>1}\ \mathcal{N}_{\Gamma_\alpha(\zeta)}(\zeta).
   \]
-  the supremum, in the lattice of filters, of the neighbourhood filters of
-  $\zeta$ within $\Gamma_\alpha(\zeta)$, and
-  $\operatorname{nt}\lim_{z\to\zeta}f(z)=L$ means
-  that $f$ tends to $L$ along $\mathcal{N}_\zeta$. Two consequences of packaging
-  the definition as a single filter: the limit is unique because
-  $\mathcal{N}_\zeta$ is nontrivial for $\zeta\in\partial\D$, and all the
-  algebraic rules for nontangential limits (sums, products, scalar multiples,
-  composition with continuous maps, squeezing) are inherited from the generic
-  API for limits along filters, so none of them has to be proved.
+  For $\alpha>1$, $f$ has limit $L$ at $\zeta$ \emph{within} $\Gamma_\alpha(\zeta)$
+  if $f\to L$ along $\mathcal{N}_{\Gamma_\alpha(\zeta)}(\zeta)$, and $f$ has
+  \emph{nontangential limit} $L$ at $\zeta$ if $f\to L$ along
+  $\mathcal{N}_\zeta$. The two are related by
+  \[
+    f\to L \ \text{along}\ \mathcal{N}_\zeta
+    \iff
+    \forall\,\alpha>1,\ f\to L \ \text{along}\ \mathcal{N}_{\Gamma_\alpha(\zeta)}(\zeta).
+  \]
 \end{definition}
 
-\begin{definition}[Boundary function]
+\begin{definition}[Boundary value]
   \label{def:boundary_function}
-  \notready
+  \lean{boundaryValueWithin, boundaryValue, IsAEBoundaryValue}
+  \leanok
   \uses{def:nt_limit}
-  The boundary function of $f$ is defined by the \emph{radial} limit
+  For $\alpha>1$ the boundary value of $f$ at $\zeta$ within a single approach
+  region, and the boundary value of $f$ at $\zeta$, are
   \[
-    f^*(\zeta)=\lim_{r\uparrow 1}f(r\zeta),
+    f^*_\alpha(\zeta)=\lim_{\Gamma_\alpha(\zeta)\ni z\to\zeta}f(z),
+    \qquad
+    f^*(\zeta)=\lim_{\mathcal{N}_\zeta}f,
   \]
-  interpreted through the choice operator, so that $f^*$ is a total function
-  requiring no hypothesis on $f$ or on $\zeta$. Since $[0,1)\zeta\subset
-  \Gamma_\alpha(\zeta)$ for every $\alpha>1$, whenever the nontangential limit
-  at $\zeta$ exists it is equal to $f^*(\zeta)$. All statements below are
-  therefore of the shape ``$f$ has a nontangential limit at almost every
-  $\zeta$, and its value is $f^*(\zeta)$'': the existence assertion carries the
-  strength, while the value is a total, well-behaved function that can be fed
-  to $L^p$ statements without side conditions.
+  the limits along $\mathcal{N}_{\Gamma_\alpha(\zeta)}(\zeta)$ and along the
+  nontangential filter $\mathcal{N}_\zeta$, read through the choice operator so
+  that both are total functions. Where the nontangential limit at $\zeta$
+  exists, it equals $f^*(\zeta)$, and $f^*_\alpha(\zeta)=f^*(\zeta)$ for every
+  $\alpha>1$.
 \end{definition}
 
-\begin{lemma}[Measurability of the boundary function]
-  \label{lem:boundary_function_measurable}
-  \notready
-  \uses{def:boundary_function}
-  If $f$ is continuous on $\D$ and has nontangential limits almost everywhere
-  on $\partial\D$, then $f^*$ is almost everywhere strongly measurable with
-  respect to $d\theta/2\pi$, being the almost everywhere pointwise limit of the
-  continuous functions $\zeta\mapsto f\bigl((1-\tfrac1n)\zeta\bigr)$. This is
-  the reason for defining $f^*$ radially: a limit along a countably generated
-  filter is a limit of a sequence, hence measurable.
+\begin{lemma}[The nontangential filter is nontrivial]
+  \label{lem:nt_filter_neBot}
+  \lean{radial_mem_stolzSetAt, nontangentially_neBot_of_norm_eq_one,
+    ae_nontangentially_neBot_circleMeasure}
+  \leanok
+  \uses{def:nt_region, def:nt_limit}
+  For $\zeta\in\partial\D$ and $\alpha>1$ the radial segment $[0,1)\zeta$ lies in
+  $\Gamma_\alpha(\zeta)$; hence $\mathcal{N}_\zeta\neq\bot$.
+  \begin{proof}
+    \proves{lem:nt_filter_neBot}
+    \leanok
+    For $0\le r<1$ one has $|r\zeta|=r<1$ and
+    $|\zeta-r\zeta|=1-r<\alpha(1-r)$. So $\zeta$ lies in the closure of
+    $\Gamma_\alpha(\zeta)$, making $\mathcal{N}_{\Gamma_\alpha(\zeta)}(\zeta)$
+    nontrivial; a supremum of filters is nontrivial as soon as one of them is,
+    so a single $\alpha$ suffices.
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}[Boundary values: pointwise, relational and canonical]
+  \label{lem:boundary_value_bridge}
+  \lean{HasNontangentialLimit.boundaryValue_eq,
+    IsAEBoundaryValue.ae_eq_boundaryValue,
+    IsAEBoundaryValue.aestronglyMeasurable_boundaryValue}
+  \leanok
+  \uses{def:boundary_function, lem:nt_filter_neBot}
+  Let $\mu$ be a measure on $\partial\D$ carried by the circle.
+  \begin{enumerate}
+    \item If $f$ has nontangential limit $L$ at $\zeta$, then $f^*(\zeta)=L$.
+    \item If $g$ is an almost everywhere nontangential boundary value of $f$,
+      then $g=f^*$ almost everywhere.
+    \item Consequently $f^*$ is almost everywhere strongly measurable as soon as
+      one such $g$ is.
+  \end{enumerate}
+  Part (3) is why measurability of a boundary function never needs a separate
+  argument: it is inherited from whichever explicit representative the relevant
+  existence theorem produces.
+  \begin{proof}
+    \proves{lem:boundary_value_bridge}
+    \leanok
+    (1) is uniqueness of limits along the nontrivial filter
+    $\mathcal{N}_\zeta$; (2) applies (1) at almost every $\zeta$, using
+    Lemma~\ref{lem:nt_filter_neBot}; (3) is congruence of almost everywhere
+    strong measurability along (2).
+  \end{proof}
 \end{lemma}
 
 \begin{lemma}[Poisson kernel over a Stolz region]
   \label{lem:poisson_stolz_bound}
-  \notready
+  \lean{poissonKernel_le_of_mem_stolzSetAt}
+  \leanok
   \uses{def:nt_region}
   Let $\alpha>1$. There is a constant $C_\alpha$ such that for every
   $\zeta\in\partial\D$, every $z\in\Gamma_\alpha(\zeta)$ and every
@@ -183,6 +180,8 @@ to be added next to \texttt{circleMeasure}, not a mathematical step.
   and is the engine of both Lemma~\ref{lem:I_5_4} and
   Theorem~\ref{thm:I_5_3_ac}.
   \begin{proof}
+    \proves{lem:poisson_stolz_bound}
+    \leanok
     From $|e^{i\theta}-z|\ge 1-|z|$ and, by the triangle inequality and the
     definition of $\Gamma_\alpha(\zeta)$,
     $|e^{i\theta}-z|\ge|e^{i\theta}-\zeta|-\alpha(1-|z|)$, one gets
@@ -191,6 +190,62 @@ to be added next to \texttt{circleMeasure}, not a mathematical step.
     $1-|z|^2\le 2(1-|z|)$.
   \end{proof}
 \end{lemma}
+
+\begin{definition}[Poisson integral of boundary data]
+  \label{def:poisson_integral}
+  \lean{poissonIntegral, poissonIntegralSigned}
+  \leanok
+  Boundary data is carried either by a function or by a measure. For a measure
+  $\mu$ and data $f$, and for a finite signed measure $\nu$,
+  \[
+    P[f\,d\mu](w)=\int P_w(z)\,f(z)\,d\mu(z),
+    \qquad
+    P[\nu](w)=\int P_w(z)\,d\nu(z),
+  \]
+  the second as an integral against the vector measure $\nu$. The kernel is
+  real, so $f$ may take values in any real normed space; $\nu$ is real-valued.
+  Taking $f=1$ recovers the Poisson integral of $\mu$ itself.
+\end{definition}
+
+\begin{lemma}[The two forms of boundary data agree]
+  \label{lem:poisson_integral_withDensity}
+  \lean{poissonIntegral_eq_poissonIntegralSigned_withDensityᵥ}
+  \leanok
+  \uses{def:poisson_integral}
+  Let $\mu$ be a finite measure carried by $\partial\D$, let $k\in L^1(\mu)$ and
+  let $w$ lie in the open disc. Then
+  \[
+    P[k\,d\mu](w)=P[k\,\mu](w),
+  \]
+  where $k\,\mu$ is the signed measure with density $k$ with respect to $\mu$.
+  \begin{proof}
+    \proves{lem:poisson_integral_withDensity}
+    \leanok
+    Write $k\,\mu$ through its positive and negative parts, integrate the
+    kernel against each, and recombine. The kernel is bounded on
+    $\partial\D$ for $w$ interior, so it is integrable against every finite
+    measure carried by the circle and against $k$ times such a measure.
+  \end{proof}
+\end{lemma}
+
+\begin{theorem}[Poisson integrals of continuous data are harmonic]
+  \label{thm:harmonic_poisson_integral}
+  \lean{harmonicOnNhd_poissonIntegral, poissonIntegral_eq_circleAverage}
+  \leanok
+  \uses{def:poisson_integral}
+  If $f$ is continuous on $\partial\D(c,R)$ then $P[f\,d\sigma]$ is harmonic on
+  the open disc, where $\sigma$ is normalized arclength. For $w$ interior the
+  Poisson integral coincides with the circle average of $P_w\cdot f$.
+  \begin{proof}
+    \proves{thm:harmonic_poisson_integral}
+    \leanok
+    Harmonicity of the circle average follows from harmonicity of the kernel in
+    the interior variable, by differentiating under the integral sign; the
+    identification with the Poisson integral is the circle average / circle
+    measure transport, whose integrability hypothesis holds because both
+    factors are continuous on the circle.
+  \end{proof}
+\end{theorem}
 
 \begin{theorem}[Differentiation of measures on the circle]
   \label{thm:circle_differentiation}
@@ -236,8 +291,10 @@ to be added next to \texttt{circleMeasure}, not a mathematical step.
 
 \begin{lemma}[Garnett I.5.4: singular Poisson integrals vanish at the boundary]
   \label{lem:I_5_4}
-  \notready
-  \uses{def:nt_limit, lem:poisson_stolz_bound, thm:circle_differentiation}
+  \lean{isAEBoundaryValue_poissonIntegralSigned_zero_of_mutuallySingular}
+  \leanok
+  \uses{def:nt_limit, def:poisson_integral, lem:poisson_stolz_bound,
+    thm:circle_differentiation}
   Source: Garnett, Chapter I, Section 5, PDF pages 41--42.
   If $\nu$ is a finite signed measure on $\partial\D$ that is singular with
   respect to $d\theta$, then
@@ -265,8 +322,10 @@ to be added next to \texttt{circleMeasure}, not a mathematical step.
 
 \begin{theorem}[Fatou at Lebesgue points]
   \label{thm:I_5_3_ac}
-  \notready
-  \uses{def:nt_limit, lem:poisson_stolz_bound, thm:circle_differentiation}
+  \lean{isAEBoundaryValue_poissonIntegral}
+  \leanok
+  \uses{def:nt_limit, def:poisson_integral, lem:poisson_stolz_bound,
+    thm:circle_differentiation}
   Let $k\in L^1(d\theta/2\pi)$. Then at every Lebesgue point $\zeta$ of $k$,
   and hence almost everywhere,
   \[
@@ -302,9 +361,12 @@ to be added next to \texttt{circleMeasure}, not a mathematical step.
 
 \begin{theorem}[Garnett I.5.3: Fatou theorem, $p=1$ disc form]
   \label{thm:I_5_3}
-  \notready
+  \lean{isAEBoundaryValue_poissonIntegralSigned_rnDeriv,
+    boundaryValue_poissonIntegralSigned, integrable_boundaryValue_poissonIntegralSigned}
+  \leanok
   \uses{thm:I_5_3_ac, lem:I_5_4, thm:signed_lebesgue_decomposition,
-    def:nt_limit, def:boundary_function}
+    def:nt_limit, def:boundary_function, def:poisson_integral,
+    lem:poisson_integral_withDensity, lem:boundary_value_bridge}
   Source: Garnett, Chapter I, Section 5, PDF pages 40--41.
   Let $\mu$ be a finite signed measure on $\partial\D$, with Lebesgue
   decomposition $d\mu=k\,d\theta/2\pi+d\mu_s$, $\mu_s\perp d\theta$. Then the
@@ -550,9 +612,8 @@ to be added next to \texttt{circleMeasure}, not a mathematical step.
 
 \begin{theorem}[Garnett I.3.5(c): positive harmonic functions as Poisson integrals, disc form]
   \label{thm:positive_harmonic_poisson_measure}
-  \lean{harmonicOnNhd_nonneg_iff_exists_eq_poissonIntegral,
-    exists_isFiniteMeasure_eq_poissonIntegral_of_harmonicOnNhd_nonneg,
-    harmonicOnNhd_poissonIntegral_measure, poissonIntegral_nonneg}
+  \lean{harmonicOnNhd_nonneg_iff_exists_eq_integral_poissonKernel,
+    harmonicOnNhd_integral_poissonKernel, integral_poissonKernel_nonneg}
   \leanok
   Source: Garnett, Chapter I, Section 3, Theorem 3.5(c), especially the
   disc-version argument in its proof, printed pages 17--19 (PDF pages
@@ -583,12 +644,17 @@ to be added next to \texttt{circleMeasure}, not a mathematical step.
   $\log|f|$ on $\mathbb{D}$.
 \end{lemma}
 
-\begin{corollary}[Garnett II.3.2: $H^\infty$ boundary values, disc form]
+\begin{corollary}[$H^\infty$ boundary values, disc form]
   \label{cor:II_3_2}
   \notready
   \uses{thm:bounded_harmonic_poisson_Linfty, thm:I_5_3,
-    def:boundary_function, lem:boundary_function_measurable}
-  Source: Garnett, Chapter II, Section 3, PDF page 67.
+    def:boundary_function}
+  Source: this is not one of Garnett's numbered statements. It is the step
+  taken from the proof of Garnett's Corollary II.3.2 (Chapter II, Section 3,
+  PDF page 68) that reads ``suppose $f(z)$ is some $H^p$ function; if $p>1$,
+  then by Theorem I.5.3, $f(z)$ has nontangential limit $f(t)$ and
+  $f(z)=P_y*f(x)$'', specialized to $p=\infty$ on the disc, together with the
+  norm bound, which Garnett does not state.
   Every $f\in H^\infty(\D)$ has a nontangential limit at almost every boundary
   point, and its boundary function satisfies
   $\|f^*\|_{L^\infty(d\theta/2\pi)}\le\|f\|_\infty$.
@@ -598,10 +664,14 @@ to be added next to \texttt{circleMeasure}, not a mathematical step.
     integrals of $L^\infty$ boundary data by
     Theorem~\ref{thm:bounded_harmonic_poisson_Linfty}; an $L^\infty$ density is
     in particular an $L^1$ density, so Theorem~\ref{thm:I_5_3} gives
-    nontangential limits almost everywhere. The norm bound needs no maximal
-    function: $\|f(z)\|\le\|f\|_\infty$ pointwise on $\D$, and the bound passes
-    to the limit along the filter. This is the only part of Garnett's
-    Corollary II.3.2 used here; the remaining $H^p$ cases are not needed.
+    nontangential limits almost everywhere, and identifies $f^*$ almost
+    everywhere with that $L^\infty$ density, which is what makes $f^*$
+    measurable. The norm bound needs no maximal function:
+    $\|f(z)\|\le\|f\|_\infty$ pointwise on $\D$, and the bound passes to the
+    limit along the filter. Garnett's Corollary II.3.2 itself is the
+    characterization of which $L^p$ functions are boundary values of $H^p$
+    functions; that characterization and the remaining $H^p$ cases are not
+    needed here.
   \end{proof}
 \end{corollary}
 

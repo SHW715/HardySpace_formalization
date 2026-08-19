@@ -41,17 +41,12 @@ circle of radius `R`, with `r < R`, then the Poisson kernel is bounded by
 lemma poissonKernel_le_of_norm_le {R r : ℝ} {w ξ : ℂ}
   (hξ : ξ ∈ sphere 0 R) (hw : w ∈ closedBall 0 r)(hrR : r < R) :
    poissonKernel 0 w ξ ≤ (R + r) / (R - r) := by
-  have hw_norm_le : ‖w‖ ≤ r := by
-    simpa [Metric.mem_closedBall, dist_zero_right] using hw
+  have hw_norm_le : ‖w‖ ≤ r := by simpa [Metric.mem_closedBall, dist_zero_right] using hw
   have hw_mem_ball_R : w ∈ ball 0 R := by
     rw [Metric.mem_ball, dist_zero_right]
     exact hw_norm_le.trans_lt hrR
-  calc
-    poissonKernel 0 w ξ ≤ (R + ‖w‖) / (R - ‖w‖) := by
-      simpa [poissonKernel_eq_re_herglotzRieszKernel, Function.comp_apply,
-        herglotzRieszKernel_def] using (re_herglotzRieszKernel_le hξ hw_mem_ball_R)
-    _ ≤ (R + r) / (R - r) := by
-      rw [div_le_div_iff₀] <;> nlinarith [norm_nonneg w, hw_norm_le, hrR]
+  grw [poissonKernel_le_of_mem_ball hw_mem_ball_R hξ]; simp
+  rw [div_le_div_iff₀] <;> nlinarith [norm_nonneg w, hw_norm_le, hrR]
 
 
 /-- For finite positive `p`, the circle average of the `p.toReal`-power of the boundary norm on

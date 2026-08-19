@@ -142,8 +142,6 @@ lemma nevanlinnaRadialMean_add_le {f : ℂ → E} (g : ℂ → E)
     nevanlinnaRadialMean (f + g) r ≤
       ENNReal.ofReal (Real.log 2) +
         (nevanlinnaRadialMean f r + nevanlinnaRadialMean g r) := by
-  haveI : IsProbabilityMeasure angularMeasure :=
-    isProbabilityMeasure_angularProbabilityMeasure
   unfold nevanlinnaRadialMean
   rw [← lintegral_add_left (radial_ofReal_log_measurable hf hr),
     ← mul_one (ENNReal.ofReal (Real.log 2)), ← measure_univ (μ := angularMeasure),
@@ -223,8 +221,6 @@ The analytic content is the subadditivity of `log⁺`:
 lemma nevanlinnaRadialMean_smul_le (c : ℂ) (f : ℂ → E) (r : ℝ) :
     nevanlinnaRadialMean (c • f) r ≤
       ENNReal.ofReal (log ‖c‖) + nevanlinnaRadialMean f r := by
-  haveI : IsProbabilityMeasure angularMeasure :=
-    isProbabilityMeasure_angularProbabilityMeasure
   unfold nevanlinnaRadialMean
   rw [← mul_one (ENNReal.ofReal (log ‖c‖)), ← measure_univ (μ := angularMeasure),
     ← lintegral_const, ← lintegral_add_left measurable_const]
@@ -339,9 +335,7 @@ theorem memNevanlinnaDisc_indicator_unitDisc :
   refine ⟨?_, ?_, fun z hz => by simp [Set.indicator_of_notMem hz]⟩
   · have h1 : AnalyticOn ℂ (fun _ : ℂ => (1 : F)) unitDisc := analyticOn_const
     exact h1.congr fun z hz => by rw [Set.indicator_of_mem hz]; rfl
-  · haveI : IsProbabilityMeasure angularMeasure :=
-      isProbabilityMeasure_angularProbabilityMeasure
-    have hle : nevanlinnaCharacteristic (unitDisc.indicator (1 : ℂ → F))
+  · have hle : nevanlinnaCharacteristic (unitDisc.indicator (1 : ℂ → F))
         ≤ ENNReal.ofReal (Real.log ‖(1 : F)‖) := by
       refine iSup₂_le fun r hr => le_of_eq ?_
       unfold nevanlinnaRadialMean
@@ -349,7 +343,7 @@ theorem memNevanlinnaDisc_indicator_unitDisc :
       rw [lintegral_const, measure_univ, mul_one]
     exact lt_of_le_of_lt hle ENNReal.ofReal_lt_top
 
-/-- The unit of `↥N`: the disc indicator.  Note this is *not* the ambient unit
+/-- The unit of `N`: the disc indicator.  Note this is *not* the ambient unit
 `(1 : ℂ → F)`, which does not belong to `N`. -/
 instance : One (NevanlinnaDisc (F := F)) :=
   ⟨⟨unitDisc.indicator 1, memNevanlinnaDisc_indicator_unitDisc⟩⟩
