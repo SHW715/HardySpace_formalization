@@ -1,0 +1,326 @@
+{#
+  Dependency graph template for the Hardy space blueprint.
+
+  It is the template shipped by plastexdepgraph, plus the two-level view
+  computed by the hardygraph package: the main line on its own by default,
+  and one sub-blueprint per main-line statement to drill down into.
+
+  If the hardygraph package is not loaded, or found nothing to work with,
+  this falls back to the single flat graph plastexdepgraph would have drawn.
+#}
+{% set hg = (document.userdata.get('hardygraph').build() if document.userdata.get('hardygraph') else {'enabled': False}) %}
+{% macro icon(icon, id='', class='') %}
+<svg  {% if id %}id="{{id}}" {% endif %}class="icon icon-{{ icon }} {{ class }}"><use xlink:href="symbol-defs.svg#icon-{{ icon }}"></use></svg>
+{% endmacro %}
+{% macro modal(id) %}
+    <div class="dep-modal-container" id="{{ id }}">
+      <div class="dep-modal-content">
+          <button class="dep-closebtn">{{ icon('cross') }}</button>
+        {{ caller() }}
+      </div>
+    </div>
+{% endmacro %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ context.terms.get('Dependency graph', 'Dependency graph') }}</title>
+  <meta name="generator" content="plasTeX" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles/theme-{{ config['html5']['theme-css'] }}.css" />
+  <link rel="stylesheet" href="styles/dep_graph.css" />
+  {% if config.html5['use-mathjax'] %}
+  <script type="text/x-mathjax-config">
+  {% if config.html5['mathjax-dollars'] %}
+    MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+  {% else %}
+    MathJax.Hub.Config({tex2jax: {inlineMath: [ ['\\(','\\)']]}});
+  {% endif %}
+  </script>
+{% if config['mathjax-macros']['macros'] %}
+<script>
+  MathJax = {
+    tex: {
+      macros: { {% for key, val in config['mathjax-macros']['macros'].items() %}
+        {{ key }}: {{ val }},
+        {% endfor %}
+      } } }
+  </script>
+{% endif %}
+  <script type="text/javascript" src="{{ config.html5['mathjax-url'] }}">  </script>
+{% endif %}
+{% for css in config.html5.get('extra-css', []) %}
+<link rel="stylesheet" href="styles/{{ css }}" />
+{% endfor %}
+<style>
+#hg-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .75rem;
+  padding: .35rem 0 .5rem 0;
+  border-bottom: 1px solid #d8d8d8;
+  font-size: 95%;
+}
+#hg-bar.hg-sub ~ #graph, #hg-bar ~ #graph { height: calc(90vh - 4.5rem); }
+#hg-crumbs { display: flex; align-items: center; gap: .4rem; }
+#hg-crumbs .hg-sep { color: #999; }
+#hg-crumbs .hg-here { font-weight: bold; }
+#hg-crumbs a { color: #497da5; cursor: pointer; text-decoration: none; }
+#hg-crumbs a:hover { text-decoration: underline; }
+#hg-views { display: flex; margin-left: auto; }
+#hg-views button {
+  font: inherit;
+  padding: .2rem .7rem;
+  border: 1px solid #497da5;
+  background: white;
+  color: #497da5;
+  cursor: pointer;
+}
+#hg-views button:first-child { border-radius: 4px 0 0 4px; }
+#hg-views button:last-child { border-radius: 0 4px 4px 0; border-left: none; }
+#hg-views button.hg-active { background: #497da5; color: white; }
+#hg-hint { color: #666; }
+#hg-warn {
+  padding: .4rem .6rem;
+  margin: .4rem 0;
+  border-left: 3px solid #e08a1e;
+  background: #fdf6ec;
+  font-size: 90%;
+}
+#hg-warn a { color: #497da5; cursor: pointer; }
+button.hg-drill {
+  font: inherit;
+  font-size: 90%;
+  margin-left: 1rem;
+  padding: .1rem .6rem;
+  border: 1px solid #497da5;
+  border-radius: 4px;
+  background: white;
+  color: #497da5;
+  cursor: pointer;
+}
+div.bookref { font-size: 90%; color: #555; margin: .2rem 0 .4rem 0; }
+div.bookref .bookref-tag {
+  font-variant: small-caps;
+  letter-spacing: .04em;
+  color: #497da5;
+}
+div.bookref .bookref-locator { color: #777; }
+</style>
+</head>
+
+<body>
+<header>
+  <a class="toc" href="index.html">Home</a>
+  <h1 id="doc_title">{{ title }}</h1>
+</header>
+<div class="wrapper">
+<div class="content">
+  <div id="Legend">
+    <span id="legend_title" class="title">Legend
+    <div class="btn">
+       <div class="bar"></div>
+       <div class="bar"></div>
+       <div class="bar"></div>
+    </div></span>
+    <dl class="legend">
+      {% for k, v in legend %}
+      <dt>{{ k }}</dt><dd>{{ v }}</dd>
+      {% endfor %}
+    </dl>
+  </div>
+{% if hg.enabled %}
+  <div id="hg-bar">
+    <span id="hg-crumbs"></span>
+    <span id="hg-hint"></span>
+    <span id="hg-views">
+      <button type="button" data-view="__main__">Main line ({{ hg.main_count }})</button>
+      <button type="button" data-view="__all__">Everything ({{ hg.total_count }})</button>
+    </span>
+  </div>
+  {% if hg.orphans %}
+  <div id="hg-warn">
+    {{ hg.orphans|length }} auxiliary statement{{ 's' if hg.orphans|length > 1 }} no
+    main-line statement depends on:
+    {% for o in hg.orphans %}<code>{{ o.id }}</code>{{ ', ' if not loop.last }}{% endfor %}.
+    Either a <code>\uses</code> is missing, or {{ 'they are' if hg.orphans|length > 1 else 'it is' }} no longer needed.
+    <a data-hg-goto="__unattached__">Show them</a>
+  </div>
+  {% endif %}
+{% endif %}
+    <div id="graph"></div>
+<div id="statements">
+{%- for thm in graph.nodes | sort(attribute='id') %}
+
+    {% call modal(thm.id + "_modal") %}
+  <div class="thm" id="{{ thm.id }}" style="display: none">
+    <div class="thm_thmheading">
+      <span class="{{ thm.thmName }}_thmcaption">
+      {{ thm.caption }}
+      </span>
+      {% if thm.ref -%}
+      <span class="{{thm.thmName}}_thmlabel">{{thm.ref}}</span>
+      {%- endif -%}
+      {% if thm.title -%}
+      <span class="{{thm.thmName}}_thmtitle">{{ thm.title }}</span>
+      {%- endif -%}
+    </div>
+    <div class="thm_thmcontent">{{ thm }}</div>
+
+    <a class="latex_link" href="{{ thm.url }}">LaTeX</a>
+    {% for extra in extra_modal_links %}
+    {% include extra %}
+    {% endfor %}
+    {% if hg.enabled and hg.counts.get(thm.id) %}
+    <button type="button" class="hg-drill" data-hg-goto="{{ thm.id }}">Sub-blueprint ({{ hg.counts.get(thm.id) }})</button>
+    {% endif %}
+  </div>
+    {% endcall %}
+{%- endfor -%}
+</div>
+</div> <!-- content -->
+</div> <!-- wrapper -->
+<script src="js/jquery.min.js" type="text/javascript"></script>
+
+<script src="js/d3.min.js"></script>
+<script src="js/hpcc.min.js"></script>
+<script src="js/d3-graphviz.js"></script>
+
+<script type="text/javascript">
+const graphContainer = d3.select("#graph");
+const graphviz = graphContainer.graphviz({useWorker: true}).fit(true);
+
+const HG_ENABLED = {{ 'true' if hg.enabled else 'false' }};
+const DOTS = {% if hg.enabled %}{{ hg.dots_json }}{% else %}{}{% endif %};
+const TITLES = {% if hg.enabled %}{{ hg.titles_json }}{% else %}{}{% endif %};
+const FALLBACK_DOT = `{{ dot.replace('\n','') }}`;
+
+const SPECIAL = {
+  '__main__': 'main',
+  '__all__': 'all',
+  '__unattached__': 'unattached'
+};
+const FROM_HASH = {main: '__main__', all: '__all__', unattached: '__unattached__'};
+
+let currentKey = '__main__';
+
+function hashFor(key) {
+  return SPECIAL[key] || key;
+}
+
+function keyFromHash() {
+  const raw = decodeURIComponent(window.location.hash.replace(/^#/, ''));
+  if (!raw) return '__main__';
+  const key = FROM_HASH[raw] || raw;
+  return DOTS[key] ? key : '__main__';
+}
+
+latexLabelEscaper = function(label) {
+  return label.replace(/\./g, '\\.').replace(/:/g, '\\:')
+}
+
+function hideStatements() {
+  $('#statements').hide();
+  $('#statements > div').hide();
+  $('.thm').hide();
+}
+
+function render(dot) {
+  const node = graphContainer.node();
+  graphviz
+    .width(node.clientWidth)
+    .height(node.clientHeight)
+    .renderDot(dot)
+    .on("end", interactive);
+}
+
+function updateChrome() {
+  const isTop = currentKey === '__main__' || currentKey === '__all__';
+  const crumbs = $('#hg-crumbs').empty();
+  if (isTop) {
+    crumbs.append($('<span class="hg-here">').text(
+      currentKey === '__main__' ? 'Main line' : 'Every statement'));
+    $('#hg-hint').text(currentKey === '__main__'
+      ? 'A node marked +n hides n auxiliary statements: click it, then open its sub-blueprint.'
+      : '');
+  } else {
+    crumbs.append($('<a>').text('Main line').attr('data-hg-goto', '__main__'));
+    crumbs.append($('<span class="hg-sep">').text('\u203a'));
+    crumbs.append($('<span class="hg-here">').text(
+      currentKey === '__unattached__' ? 'Unattached statements'
+                                      : (TITLES[currentKey] || currentKey)));
+    $('#hg-hint').text('');
+  }
+  $('#hg-views').toggle(isTop);
+  $('#hg-warn').toggle(isTop);
+  $('#hg-views button').each(function () {
+    $(this).toggleClass('hg-active', $(this).data('view') === currentKey);
+  });
+}
+
+function show(key, updateHash) {
+  if (!DOTS[key]) key = '__main__';
+  currentKey = key;
+  hideStatements();
+  if (updateHash !== false) {
+    const target = '#' + hashFor(key);
+    if (window.location.hash !== target) window.location.hash = target;
+  }
+  updateChrome();
+  render(DOTS[key]);
+}
+
+function openStatement(id) {
+  hideStatements();
+  // A node's own sub-blueprint is the graph already on screen; hide the
+  // button rather than offering to re-render it.
+  $('.hg-drill').show().filter('[data-hg-goto="' + id + '"]')
+    .toggle(id !== currentKey);
+  $('#' + latexLabelEscaper(id) + '_modal').show().children().show().children().show();
+  $('#statements').show();
+}
+
+function interactive() {
+    $("span#legend_title").off('click').on("click", function () {
+           $(this).siblings('dl').toggle();
+        })
+
+    d3.selectAll('.node')
+        .attr('pointer-events', 'fill')
+        .on('click', function () {
+           openStatement(d3.select(this).selectAll('title').text().trim());
+        });
+
+    d3.selectAll('.dep-closebtn').on('click', function() {
+        var modal =
+            d3.select(this).node().parentNode.parentNode.parentNode ;
+        d3.select(modal).style('display', 'none');
+    });
+}
+
+$(document).on('click', '[data-hg-goto]', function (event) {
+  event.preventDefault();
+  show($(this).data('hg-goto'));
+});
+
+$('#hg-views button').on('click', function () {
+  show($(this).data('view'));
+});
+
+$(window).on('hashchange', function () {
+  const key = keyFromHash();
+  if (key !== currentKey) show(key, false);
+});
+
+if (HG_ENABLED) {
+  show(keyFromHash(), false);
+} else {
+  render(FALLBACK_DOT);
+}
+</script>
+{% for js in config.html5.get('extra-js', []) %}
+<script type="text/javascript" src="js/{{ js }}"></script>
+{% endfor %}
+</body>
+</html>

@@ -20,3 +20,4 @@ Subharmonic_used.lean
 # GitHub Pages is deployed from the artifact CI builds, never from these files.
 /blueprint/web/
 /blueprint/src/web.paux
+/blueprint/src/plugin/__pycache__/

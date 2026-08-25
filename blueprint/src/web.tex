@@ -4,7 +4,10 @@
 
 \usepackage{amssymb, amsthm, amsmath}
 \usepackage{hyperref}
-\usepackage[showmore, dep_graph]{blueprint}
+\usepackage[showmore, dep_graph, tpl=plugin/dep-graph-tpl.html]{blueprint}
+% Splits the graph into the main line and one sub-blueprint per main-line
+% statement. Must come after blueprint, which loads the depgraph package.
+\usepackage{hardygraph}
 
 % Colorblind-friendly dependency-graph palette (blue/orange/black, no red-green
 % contrasts; proof fills form a light-to-dark blue lightness ramp).
