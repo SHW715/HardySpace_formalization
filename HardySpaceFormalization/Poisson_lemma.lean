@@ -19,7 +19,7 @@ import Mathlib.MeasureTheory.VectorMeasure.WithDensity
 noncomputable section
 
 open Complex Metric Real Set MeasureTheory
-open scoped Topology
+open scoped Topology ENNReal
 
 variable
   {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
@@ -68,17 +68,7 @@ theorem norm_poissonKernel_le_of_mem_ball (hw : w ∈ ball c R) {z : ℂ} (hz : 
   rw [Real.norm_eq_abs, abs_of_nonneg (poissonKernel_nonneg hw hz)]
   exact poissonKernel_le_of_mem_ball hw hz
 
-/-!
-### The Poisson integral of boundary data given as a function
 
-`poissonIntegral c μ f` is the classical `P[f dμ]`: boundary data presented as a function against a
-reference measure.
--/
-
-/-- The Poisson integral of the boundary data `f` with respect to `μ`, at the point `w`, for the
-Poisson kernel centred at `c`.-/
-noncomputable def poissonIntegral (c : ℂ) (μ : Measure ℂ) (f : ℂ → E) (w : ℂ) : E :=
-  ∫ z, poissonKernel c w z • f z ∂μ
 
 /-!
 ### The Herglotz-Riesz kernel
@@ -387,6 +377,20 @@ theorem harmonicOnNhd_intervalIntegral_of_harmonicOnNhd
       (∫ θ in a..b, ballAverage (fun w : ℂ => Φ w θ) x r) = ∫ θ in a..b, Φ x θ := by
     exact intervalIntegral.integral_congr fun θ hθ => hslice_mean θ hθ
   exact hswap.trans hcollapse
+
+
+/-!
+### The Poisson integral of boundary data given as a function
+
+`poissonIntegral c μ f` is the classical `P[f dμ]`: boundary data presented as a function against a
+reference measure.
+-/
+
+/-- The Poisson integral of the boundary data `f` with respect to `μ`, at the point `w`, for the
+Poisson kernel centred at `c`.-/
+noncomputable def poissonIntegral (c : ℂ) (μ : Measure ℂ) (f : ℂ → E) (w : ℂ) : E :=
+  ∫ z, poissonKernel c w z • f z ∂μ
+
 
 /-!
 ### The Poisson extension theorem
@@ -701,6 +705,28 @@ theorem harmonicOnNhd_integral_poissonKernel {μ : Measure ℂ} [IsFiniteMeasure
     congrFun (poissonKernel_eq_re_herglotzRieszKernel (c := c) (w := x)) z
 
 
+/-- **Garnett I.3.5(b), disc form, existence half.**  A harmonic function on `ball c R` whose
+radial `L¹` means are uniformly bounded is the Poisson integral of a finite signed measure carried
+by `sphere c R`. -/
+theorem exists_eq_poissonIntegralSigned_of_iSup_eLpNorm_lt_top (hR : 0 < R) {u : ℂ → ℝ}
+    (hu : InnerProductSpace.HarmonicOnNhd u (ball c R))
+    (hbdd : (⨆ (r : ℝ) (_ : 0 < r ∧ r < R), eLpNorm u 1 (circleMeasure c r)) < ∞) :
+    ∃ ν : SignedMeasure ℂ, ν.totalVariation (sphere c R)ᶜ = 0 ∧
+      ∀ w ∈ ball c R, u w = poissonIntegralSigned c ν w := by
+  sorry
+
+/-- **Garnett I.3.5(b), disc form.**  The harmonic functions on `ball c R` with uniformly bounded
+radial `L¹` means are exactly the Poisson integrals of finite signed measures carried by
+`sphere c R`. -/
+theorem harmonicOnNhd_iSup_eLpNorm_lt_top_iff_exists_eq_poissonIntegralSigned (hR : 0 < R)
+    {u : ℂ → ℝ} :
+    (InnerProductSpace.HarmonicOnNhd u (ball c R) ∧
+        (⨆ (r : ℝ) (_ : 0 < r ∧ r < R), eLpNorm u 1 (circleMeasure c r)) < ∞) ↔
+      ∃ ν : SignedMeasure ℂ, ν.totalVariation (sphere c R)ᶜ = 0 ∧
+        ∀ w ∈ ball c R, u w = poissonIntegralSigned c ν w := by
+  sorry
+
+
 /-- **Garnett I.3.5(c), disc form**: the nonnegative harmonic functions
 on `ball c R` are exactly the Poisson integrals of finite nonnegative measures carried by
 `sphere c R`. -/
@@ -709,7 +735,6 @@ theorem harmonicOnNhd_nonneg_iff_exists_eq_integral_poissonKernel (hR : 0 < R) {
       ∃ μ : Measure ℂ, IsFiniteMeasure μ ∧ μ (sphere c R)ᶜ = 0 ∧
         ∀ w ∈ ball c R, u w = ∫ z, poissonKernel c w z ∂μ := by
   sorry
-
 
 
 

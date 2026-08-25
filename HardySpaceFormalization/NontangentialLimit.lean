@@ -111,8 +111,8 @@ theorem HasNontangentialLimit.boundaryValue_eq [T2Space X] [Nonempty X] {f : ℂ
 /-- Any almost everywhere nontangential boundary value agrees almost everywhere with the canonical
 boundary function. -/
 theorem IsAEBoundaryValue.ae_eq_boundaryValue [T2Space X] [Nonempty X] {μ : Measure ℂ}
-    {f g : ℂ → X} (h : IsAEBoundaryValue μ f g)
-    (hne : ∀ᵐ ζ ∂μ, (nontangentially ζ).NeBot) : g =ᵐ[μ] boundaryValue f := by
+    {f g : ℂ → X} (h : IsAEBoundaryValue μ f g) (hne : ∀ᵐ ζ ∂μ, (nontangentially ζ).NeBot) :
+    g =ᵐ[μ] boundaryValue f := by
   filter_upwards [h, hne] with ζ hζ hζne
   haveI := hζne
   exact hζ.limUnder_eq.symm
@@ -913,8 +913,7 @@ theorem boundaryValue_poissonIntegralSigned {μ : SignedMeasure ℂ}
     ae_nontangentially_neBot_circleMeasure
 
 /-- The boundary function of the Poisson integral of a finite signed boundary measure is
-measurable, and is in `L¹`.  Both come from the explicit representative supplied by Fatou's
-theorem, never from a separate argument about `boundaryValue` itself. -/
+measurable, and is in `L¹`. -/
 theorem integrable_boundaryValue_poissonIntegralSigned {μ : SignedMeasure ℂ}
     (hμ : μ.totalVariation (sphere 0 1)ᶜ = 0) :
     Integrable (boundaryValue (poissonIntegralSigned 0 μ)) (circleMeasure 0 1) :=
