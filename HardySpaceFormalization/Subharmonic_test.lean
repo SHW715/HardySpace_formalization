@@ -683,8 +683,9 @@ theorem SubharmonicOn.le_circleAverage_poissonKernel_smul
   have hle : (u w : WithBot ℝ) ≤ h w :=
     hu.harmonicComparison c R h hclosed hcont hharm hbd w hw
   have hle_real : u w ≤ h w := WithBot.coe_le_coe.mp hle
-  rw [hPoisson w hw] at hle_real
-  exact hle_real
+  rw [hPoisson w hw, poissonIntegral_eq_circleAverage
+    (dist_nonneg.trans (mem_ball.mp hw).le) hw hu_cont] at hle_real
+  simpa only [smul_eq_mul] using hle_real
 -- Note actually I don't need continuity condition but the proof might be tough (using sequence
 -- to approach then translate the inequality)
 

@@ -95,21 +95,16 @@ and are not verbatim reproductions of the source.
 
 \begin{definition}[Boundary value]
   \label{def:boundary_function}
-  \lean{boundaryValueWithin, boundaryValue, IsAEBoundaryValue}
+  \lean{boundaryValue, IsAEBoundaryValue}
   \leanok
   \uses{def:nt_limit}
-  For $\alpha>1$ the boundary value of $f$ at $\zeta$ within a single approach
-  region, and the boundary value of $f$ at $\zeta$, are
+  The boundary value of $f$ at $\zeta$ is
   \[
-    f^*_\alpha(\zeta)=\lim_{\Gamma_\alpha(\zeta)\ni z\to\zeta}f(z),
-    \qquad
     f^*(\zeta)=\lim_{\mathcal{N}_\zeta}f,
   \]
-  the limits along $\mathcal{N}_{\Gamma_\alpha(\zeta)}(\zeta)$ and along the
-  nontangential filter $\mathcal{N}_\zeta$, read through the choice operator so
-  that both are total functions. Where the nontangential limit at $\zeta$
-  exists, it equals $f^*(\zeta)$, and $f^*_\alpha(\zeta)=f^*(\zeta)$ for every
-  $\alpha>1$.
+  the limit along the nontangential filter $\mathcal{N}_\zeta$, read through the
+  choice operator so that it is a total function. Where the nontangential limit
+  at $\zeta$ exists, it equals $f^*(\zeta)$.
 \end{definition}
 
 \begin{lemma}[The nontangential filter is nontrivial]
@@ -161,7 +156,8 @@ and are not verbatim reproductions of the source.
 
 \begin{lemma}[Poisson kernel over a Stolz region]
   \label{lem:poisson_stolz_bound}
-  \lean{poissonKernel_le_of_mem_stolzSetAt}
+  \lean{integral_poissonKernel_circleMeasure_eq_one,
+    poissonKernel_le_of_mem_stolzSetAt}
   \leanok
   \uses{def:nt_region}
   Let $\alpha>1$. There is a constant $C_\alpha$ such that for every
@@ -228,6 +224,31 @@ and are not verbatim reproductions of the source.
   \end{proof}
 \end{lemma}
 
+\begin{lemma}[Harnack's inequality on a disc]
+  \label{lem:harnack_inequality}
+  \lean{InnerProductSpace.harnack_inequality, InnerProductSpace.harnack_le,
+    InnerProductSpace.le_harnack, poissonKernel_le_of_mem_ball,
+    le_poissonKernel_of_mem_ball}
+  \leanok
+  Let $u$ be harmonic on a neighbourhood of $\overline{\D}(c,R)$ and nonnegative
+  on $\partial\D(c,R)$. Then for $w$ with $\rho=|w-c|<R$,
+  \[
+    \frac{R-\rho}{R+\rho}\,u(c)\ \le\ u(w)\ \le\ \frac{R+\rho}{R-\rho}\,u(c).
+  \]
+  The two-sided kernel estimate
+  $\frac{R-\rho}{R+\rho}\le P_w(\zeta)\le\frac{R+\rho}{R-\rho}$ underlying it is
+  recorded separately, since it is used on its own.
+  \begin{proof}
+    \proves{lem:harnack_inequality}
+    \leanok
+    The kernel bounds come from mathlib's estimates on the real part of the
+    Herglotz--Riesz kernel. Insert them into the Poisson integral formula
+    $u(w)=\int P_w u\,d\sigma$, using $u\ge0$ on the circle to preserve the
+    inequalities, and identify $\int u\,d\sigma$ with $u(c)$ by the mean value
+    property.
+  \end{proof}
+\end{lemma}
+
 \begin{theorem}[Poisson integrals of continuous data are harmonic]
   \label{thm:harmonic_poisson_integral}
   \lean{harmonicOnNhd_poissonIntegral, poissonIntegral_eq_circleAverage}
@@ -249,51 +270,109 @@ and are not verbatim reproductions of the source.
 
 \begin{theorem}[Differentiation of measures on the circle]
   \label{thm:circle_differentiation}
-  \notready
-  Let $\nu$ be a finite positive Borel measure on $\partial\D$ and let
-  $I(\zeta,h)$ denote the arc of length $2h$ centred at $\zeta$. Then for
-  almost every $\zeta$,
+  \lean{MeasureTheory.Besicovitch.ae_tendsto_rnDeriv,
+    MeasureTheory.VitaliFamily.ae_eventually_measure_zero_of_singular,
+    MeasureTheory.Besicovitch.tendsto_filterAt,
+    ae_tendsto_average_abs_sub_circleMeasure,
+    norm_circleMap_sub_circleMap, abs_sub_le_norm_circleMap_sub,
+    circleMeasure_closedBall_le_of_norm_eq_one}
+  \leanok
+  Put $\sigma=\texttt{circleMeasure }0\ 1$. If $\nu$ is a finite positive
+  Borel measure on $\C$, then for $\sigma$-almost every $\zeta$,
   \[
-    \lim_{h\to0}\frac{\nu\bigl(I(\zeta,h)\bigr)}{2h}
-      =\frac{d\nu}{d\theta}(\zeta),
+    \lim_{h\downarrow0}
+      \frac{\nu\bigl(\overline B(\zeta,h)\bigr)}
+           {\sigma\bigl(\overline B(\zeta,h)\bigr)}
+      =\frac{d\nu}{d\sigma}(\zeta),
   \]
-  and in particular $\nu(I(\zeta,h))/2h\to0$ almost everywhere when
-  $\nu\perp d\theta$. In the same setting, almost every $\zeta$ is a Lebesgue
-  point of a given $k\in L^1(d\theta/2\pi)$:
+  and in particular the quotient tends to zero almost everywhere when
+  $\nu\perp\sigma$. Moreover, almost every $\zeta$ is a Lebesgue point of a
+  given $k\in L^1(\sigma)$:
   \[
-    \lim_{h\to0}\ \frac{1}{\mu\bigl(I(\zeta,h)\bigr)}
-      \int_{I(\zeta,h)}|k-k(\zeta)|\,d\mu\ =\ 0,
-    \qquad \mu=d\theta/2\pi .
+    \lim_{h\downarrow0}\ \frac{1}{\sigma(\overline B(\zeta,h))}
+      \int_{\overline B(\zeta,h)}|k-k(\zeta)|\,d\sigma\ =\ 0.
   \]
-  Both halves come from mathlib applied \emph{directly} on $\mathbb{C}$ with
-  $\mu=$ \texttt{circleMeasure 0 1}, with no passage to intervals in $\theta$:
-  \texttt{Besicovitch.ae\_tendsto\_rnDeriv} needs only local finiteness of the
-  two measures, \texttt{Besicovitch.vitaliFamily} needs only $s$-finiteness,
-  and \texttt{VitaliFamily.ae\_tendsto\_average\_norm\_sub} then gives the
-  Lebesgue points; \texttt{HasBesicovitchCovering} holds for every
-  finite-dimensional real normed space, in particular for $\mathbb{C}$. The
-  singular case follows since the Radon--Nikodym derivative of a mutually
-  singular measure vanishes almost everywhere.
-
-  Two points of care. The Vitali families of
-  \texttt{MeasureTheory.Covering.DensityTheorem} are \emph{not} usable here:
-  they require \texttt{IsUnifLocDoublingMeasure}, which fails for
-  \texttt{circleMeasure} viewed as a measure on $\mathbb{C}$, since balls
-  centred slightly off the circle have measure zero while their doubles do
-  not; the Besicovitch family carries no such hypothesis. And
-  $\overline{B}(\zeta,h)\cap\partial\D$ \emph{is} the arc $I(\zeta,h)$, so the
-  only genuine work is the comparability
-  $\mu\bigl(\overline B(\zeta,h)\bigr)\asymp h$ of chord and arc, which
-  Lemma~\ref{lem:poisson_stolz_bound} needs anyway. This node replaces
-  Garnett's Vitali covering lemma I.4.4 and the weak-type argument built on
-  it.
+  For $\|\zeta\|=1$ the supporting chord--arc estimate also gives
+  $\sigma(\overline B(\zeta,h))\le \operatorname{ofReal}(h/2)$.
+  \begin{proof}
+    \proves{thm:circle_differentiation}
+    \leanok
+    Apply mathlib's Besicovitch Vitali family directly on $\C$ and transport
+    its filter to shrinking closed balls. Its singular-measure theorem gives
+    the zero-density assertion, and its differentiation theorem gives the
+    Radon--Nikodym derivative and Lebesgue points. The chord--arc estimate is
+    Jordan's sine inequality applied to the circle parametrization.
+  \end{proof}
 \end{theorem}
+
+\begin{lemma}[Uniform ball-density bound for positive Poisson integrals]
+  \label{lem:poisson_ball_density_bound}
+  \lean{integral_poissonKernel_le_of_measure_closedBall_le}
+  \leanok
+  \uses{def:poisson_integral, lem:poisson_stolz_bound,
+    thm:circle_differentiation}
+  Let $\nu$ be a finite positive measure carried by $\partial\D$, let
+  $\|\zeta\|=1$, and suppose that for every $r>0$,
+  \[
+    \nu(\overline B(\zeta,r))
+      \le c\,\sigma(\overline B(\zeta,r)).
+  \]
+  Then for $z\in\Gamma_\alpha(\zeta)$,
+  \[
+    \int_{\partial\D}P_z\,d\nu\le 8(\alpha+2)^2c.
+  \]
+  \begin{proof}
+    \proves{lem:poisson_ball_density_bound}
+    \leanok
+    Decompose the circle into dyadic chordal annuli centred at $\zeta$: with
+    $\delta=1-|z|$, put $S_0=\overline B(\zeta,\delta)$ and
+    $S_j=\overline B(\zeta,2^j\delta)\setminus\overline B(\zeta,2^{j-1}\delta)$.
+    On $S_j$ the Stolz-region kernel bound gives
+    $P_z\le 4A/(4^j\delta)$ with $A=2(\alpha+2)^2$, while the density
+    hypothesis and the chord--arc estimate give
+    $\nu(S_j)\le c\,2^j\delta/2$; the product is $2Ac\,2^{-j}$ and
+    $\sum_j 2^{-j}=2$, so the total is $4Ac=8(\alpha+2)^2c$, exactly the
+    stated constant.
+
+    In Lean the estimate is carried out for the lower integral, so that no
+    piecewise integrability is needed, and transferred at the end by
+    \texttt{integral\_eq\_lintegral\_of\_nonneg\_ae}. Using
+    \texttt{lintegral\_iUnion\_le} rather than \texttt{lintegral\_iUnion}
+    means only that the annuli cover the plane has to be proved, not that they
+    are pairwise disjoint.
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}[Density-zero Poisson integrals]
+  \label{lem:poisson_density_zero}
+  \lean{hasNontangentialLimit_integral_poissonKernel_of_density_zero}
+  \leanok
+  \uses{def:nt_limit, def:poisson_integral,
+    lem:poisson_ball_density_bound, lem:poisson_stolz_bound}
+  Let $\nu$ be a finite positive measure carried by $\partial\D$. If
+  \[
+    \frac{\nu(\overline B(\zeta,r))}
+         {\sigma(\overline B(\zeta,r))}\longrightarrow0
+    \qquad(r\downarrow0),
+  \]
+  then $P[\nu](z)\to0$ nontangentially as $z\to\zeta$.
+  \begin{proof}
+    \proves{lem:poisson_density_zero}
+    \leanok
+    Restrict $\nu$ to a small fixed ball about $\zeta$ and its complement.
+    Density zero supplies a uniform ball-density bound for the near part, so
+    Lemma~\ref{lem:poisson_ball_density_bound} makes its Poisson integral
+    arbitrarily small. The far part stays a fixed positive distance from
+    $\zeta$, and its Poisson integral tends uniformly to zero in every Stolz
+    region.
+  \end{proof}
+\end{lemma}
 
 \begin{lemma}[Garnett I.5.4: singular Poisson integrals vanish at the boundary]
   \label{lem:I_5_4}
   \lean{isAEBoundaryValue_poissonIntegralSigned_zero_of_mutuallySingular}
   \leanok
-  \uses{def:nt_limit, def:poisson_integral, lem:poisson_stolz_bound,
+  \uses{def:nt_limit, def:poisson_integral, lem:poisson_density_zero,
     thm:circle_differentiation}
   Source: Garnett, Chapter I, Section 5, PDF pages 41--42.
   If $\nu$ is a finite signed measure on $\partial\D$ that is singular with
@@ -306,25 +385,26 @@ and are not verbatim reproductions of the source.
   singular functions of Definition~\ref{def:singular_function_formula} boundary
   modulus one almost everywhere.
   \begin{proof}
-    \notready
-    By the Jordan decomposition we may assume $\nu\ge0$. Fix $\zeta$ at which
-    $\nu(I(\zeta,h))/2h\to0$, which by
-    Theorem~\ref{thm:circle_differentiation} is almost every $\zeta$. For
-    $z\in\Gamma_\alpha(\zeta)$ split the integral at
-    $|e^{i\theta}-\zeta|=A(1-|z|)$. On the far part
-    Lemma~\ref{lem:poisson_stolz_bound} gives a bound
-    $C_\alpha\,\nu(\partial\D)/(A^{2}(1-|z|))$, and on the near part the same
-    lemma bounds the integral by
-    $C_\alpha\sup_{h<A(1-|z|)}\nu(I(\zeta,h))/2h$. Choose $A=A(z)$ with
-    $A(1-|z|)\to0$ and $A^{2}(1-|z|)\to\infty$ as $|z|\to1$.
+    \proves{lem:I_5_4}
+    \leanok
+    Mutual singularity makes the total variation of $\nu$ singular with
+    respect to $\sigma$. Expanding the Jordan decomposition and using
+    subadditivity of vector-measure variation gives
+    $\operatorname{var}(\nu)\le |\nu|$, so the variation measure is also
+    carried by the circle and singular to $\sigma$. Theorem~\ref{thm:circle_differentiation}
+    gives density zero almost everywhere, and Lemma~\ref{lem:poisson_density_zero}
+    gives $P[\operatorname{var}(\nu)]\to0$. Finally
+    $|P[\nu]|\le P[\operatorname{var}(\nu)]$ follows from the vector-integral
+    norm inequality, and squeezing proves the claim.
   \end{proof}
 \end{lemma}
 
 \begin{theorem}[Fatou at Lebesgue points]
   \label{thm:I_5_3_ac}
-  \lean{isAEBoundaryValue_poissonIntegral}
+  \lean{hasNontangentialLimit_poissonIntegral_of_lebesguePoint,
+    isAEBoundaryValue_poissonIntegral}
   \leanok
-  \uses{def:nt_limit, def:poisson_integral, lem:poisson_stolz_bound,
+  \uses{def:nt_limit, def:poisson_integral, lem:poisson_density_zero,
     thm:circle_differentiation}
   Let $k\in L^1(d\theta/2\pi)$. Then at every Lebesgue point $\zeta$ of $k$,
   and hence almost everywhere,
@@ -332,31 +412,16 @@ and are not verbatim reproductions of the source.
     \operatorname{nt}\lim_{z\to\zeta}P\bigl[k\,d\theta/2\pi\bigr](z)=k(\zeta).
   \]
   \begin{proof}
-    \notready
-    Estimate $|P[k](z)-k(\zeta)|\le\int P_z(\theta)|k(\theta)-k(\zeta)|
-    \,d\theta/2\pi$ using $\int P_z\,d\theta/2\pi=1$, and split the integral
-    into dyadic arcs around $\zeta$; the majorant of
-    Lemma~\ref{lem:poisson_stolz_bound} converts the Lebesgue-point condition
-    into a convergent sum. This is the standard approximate-identity argument
-    and it avoids the maximal function entirely.
+    \proves{thm:I_5_3_ac}
+    \leanok
+    At a Lebesgue point put
+    $d\rho_\zeta=|k-k(\zeta)|\,d\sigma$. Its ball-density quotient is exactly
+    the mean oscillation of $k$, hence tends to zero. Apply
+    Lemma~\ref{lem:poisson_density_zero} to $\rho_\zeta$, use
+    $\int P_z\,d\sigma=1$, and bound
+    $|P[k](z)-k(\zeta)|$ by $P[\rho_\zeta](z)$. The almost-everywhere statement
+    follows from Theorem~\ref{thm:circle_differentiation}.
   \end{proof}
-\end{theorem}
-
-\begin{theorem}[Lebesgue decomposition of a finite boundary measure]
-  \label{thm:signed_lebesgue_decomposition}
-  \mathlibok
-  A finite signed Borel measure $\mu$ on $\partial\D$ decomposes uniquely as
-  \[
-    d\mu=k\,\frac{d\theta}{2\pi}+d\mu_s,
-    \qquad k\in L^1(d\theta/2\pi),\quad \mu_s\perp d\theta .
-  \]
-  This is available in mathlib:
-  \texttt{MeasureTheory.SignedMeasure.singularPart\_add\_withDensity\_rnDeriv\_eq},
-  \texttt{SignedMeasure.rnDeriv}, \texttt{SignedMeasure.integrable\_rnDeriv},
-  the signed density operator \texttt{Measure.withDensity} for vector measures,
-  and the mutual-singularity relation
-  \texttt{VectorMeasure.MutuallySingular}. Only the ambient space has to be
-  fixed, which the convention at the head of this section does.
 \end{theorem}
 
 \begin{theorem}[Garnett I.5.3: Fatou theorem, $p=1$ disc form]
@@ -364,7 +429,7 @@ and are not verbatim reproductions of the source.
   \lean{isAEBoundaryValue_poissonIntegralSigned_rnDeriv,
     boundaryValue_poissonIntegralSigned, integrable_boundaryValue_poissonIntegralSigned}
   \leanok
-  \uses{thm:I_5_3_ac, lem:I_5_4, thm:signed_lebesgue_decomposition,
+  \uses{thm:I_5_3_ac, lem:I_5_4,
     def:nt_limit, def:boundary_function, def:poisson_integral,
     lem:poisson_integral_withDensity, lem:boundary_value_bridge}
   Source: Garnett, Chapter I, Section 5, PDF pages 40--41.
@@ -380,10 +445,16 @@ and are not verbatim reproductions of the source.
   function is in $L^1$. Garnett states the stronger half-plane theorem for all
   $1\le p\le\infty$; only this $p=1$ disc form is used in this project.
   \begin{proof}
-    \notready
-    Split $\mu$ by Theorem~\ref{thm:signed_lebesgue_decomposition} and add
+    \proves{thm:I_5_3}
+    \leanok
+    Split $\mu$ by the Lebesgue decomposition, which mathlib provides as
+    \texttt{MeasureTheory.SignedMeasure.singularPart\_add\_withDensity\_rnDeriv\_eq}, and add
     Theorem~\ref{thm:I_5_3_ac} to Lemma~\ref{lem:I_5_4}, using that
     nontangential limits are limits along a filter and therefore additive.
+    The density part is identified with its signed Poisson integral by
+    Lemma~\ref{lem:poisson_integral_withDensity}; integrability of the kernel
+    against both summands then identifies their sum with $P[\mu]$. Finally use
+    Lemma~\ref{lem:boundary_value_bridge} for the canonical boundary function.
   \end{proof}
 \end{theorem}
 
@@ -679,8 +750,7 @@ and are not verbatim reproductions of the source.
   \label{thm:II_5_3}
   \notready
   \uses{thm:II_5_1, lem:II_5_2, thm:II_2_2, thm:I_5_3, cor:II_3_2,
-    thm:signed_lebesgue_decomposition, thm:poisson_measure_unique,
-    def:nt_limit, def:boundary_function}
+    thm:poisson_measure_unique, def:nt_limit, def:boundary_function}
   Source: Garnett, Chapter II, Section 5, PDF page 79.
   Let $f\in N$, $f\not\equiv0$. Then:
   \begin{enumerate}
@@ -706,8 +776,8 @@ and are not verbatim reproductions of the source.
     Theorem~\ref{thm:II_5_1} and Lemma~\ref{lem:II_5_2}, $g$ is zero-free and
     $\log|g|=P[\mu]$ is the least harmonic majorant of $\log|f|$; by
     Theorem~\ref{thm:poisson_measure_unique} the measure $\mu$ is unique. Write
-    $d\mu=k\,d\theta/2\pi+d\mu_s$ using
-    Theorem~\ref{thm:signed_lebesgue_decomposition}. By
+    $d\mu=k\,d\theta/2\pi+d\mu_s$ using mathlib's Lebesgue decomposition
+    for signed measures. By
     Theorem~\ref{thm:I_5_3}, $\log|g|$ has nontangential limit $k$ almost
     everywhere, and since $|B^*|=1$ almost everywhere
     (Theorem~\ref{thm:II_2_2}) the same holds for $\log|f|$. So $k\in L^1$ and

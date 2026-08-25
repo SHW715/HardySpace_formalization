@@ -323,10 +323,8 @@ lemma exp_poisson_log_le_harmonic {c w : ℂ} {R : ℝ} {h : ℂ → ℝ}
     apply (hcont.mono sphere_subset_closedBall).log
     intro z hz; exact ne_of_gt (h_pos z hz)
   have hP_avg : circleAverage P c R = 1 := by
-    have hpo : circleAverage (fun z : ℂ => poissonKernel c w z * 1) c R = 1 :=
-      InnerProductSpace.HarmonicOnNhd.circleAverage_poissonKernel_smul
-        (f := fun _ : ℂ => (1 : ℝ)) (by simp) hw
-    simpa [P] using hpo
+    simpa [P, Pi.mul_def] using InnerProductSpace.HarmonicOnNhd.circleAverage_poissonKernel_smul
+      (f := fun _ : ℂ => (1 : ℝ)) (by simp) hw
   have hJensen := exp_weighted_circleAverage_le_circleAverage_weighted_exp
       hR_nonneg hP_nonneg hP_avg hP_cont hψ_cont
   have hH_contcl := InnerProductSpace.HarmonicContOnCl.mk_ball hharm hcont
@@ -378,7 +376,9 @@ theorem SubharmonicOn.expBot_comp {u : ℂ → WithBot ℝ} {s : Set ℂ} (hu : 
         exact hz_log
       have huw_log : u w ≤ H w := hu.2 c R H hclosed hH_cont hH_harm hbd_log w hw
       grw [expBot_le_exp_of_le_coe huw_log]
-      rw [hH_poisson w hw]
+      rw [hH_poisson w hw,
+        poissonIntegral_eq_circleAverage (dist_nonneg.trans (mem_ball.mp hw).le) hw hφ_cont]
+      simp only [smul_eq_mul]
       refine exp_poisson_log_le_harmonic ?_ ?_ ?_ hw
       . fun_prop
       . have hfun : (fun z => h z + ε) = h + fun _ => ε := by
@@ -407,8 +407,9 @@ theorem SubharmonicOn.le_circleAverage_poissonKernel_smul
     intro y hy; rw [hboundary y hy]
   have hle : (u w : WithBot ℝ) ≤ h w := hu.2 c R h hclosed hcont hharm hbd w hw
   have hle_real : u w ≤ h w := WithBot.coe_le_coe.mp hle
-  rw [hPoisson w hw] at hle_real
-  exact hle_real
+  rw [hPoisson w hw, poissonIntegral_eq_circleAverage
+    (dist_nonneg.trans (mem_ball.mp hw).le) hw hu_cont] at hle_real
+  simpa only [smul_eq_mul] using hle_real
 -- Note actually I don't need continuity condition but the proof might be tough (using sequence
 -- to approach then translate the inequality)
 
