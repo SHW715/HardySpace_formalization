@@ -3,6 +3,17 @@
 %
 % The statements below are formalization-oriented paraphrases, not verbatim
 % copies from the book.
+%
+% \bookref{Garnett}{II.5.3}{Chapter II, Section 5, PDF page 79} marks a
+% statement as part of the main line and records where it comes from. The
+% dependency graph draws the main line on its own, and files everything else
+% into the sub-blueprint of whichever main-line statement needs it. So add
+% \bookref to a statement exactly when it appears in the book, and leave it
+% off the auxiliary statements its formalization needs.
+%
+% \supports{thm:II_5_3} overrides where an auxiliary statement is filed. It is
+% only needed when the automatic choice - the most upstream main-line statement
+% depending on it - is not the one it belongs with.
 
 \chapter{Canonical factorization in the Nevanlinna class}
 
@@ -29,7 +40,7 @@ and are not verbatim reproductions of the source.
   \lean{Subharmonic.hasHarmonicMajorant_iff_radialMean_bddAbove,
     Subharmonic.exists_isLeastHarmonicMajorant_tendsto_poissonModification}
   \leanok
-  Source: Garnett, Chapter I, Section 6, PDF page 36.
+  \bookref{Garnett}{I.6.7}{Chapter I, Section 6, PDF page 36}
   Let $v$ be subharmonic on $\mathbb{D}$. Then $v$ has a harmonic majorant on
   $\mathbb{D}$ if and only if
   \[
@@ -54,7 +65,7 @@ and are not verbatim reproductions of the source.
   \label{def:nt_region}
   \lean{Complex.stolzSetAt}
   \leanok
-  Source: Garnett, Chapter I, Section 4, PDF page 23 (disc form).
+  \bookref{Garnett}{I.4}{Chapter I, Section 4, PDF page 23, disc form}
   For $\zeta\in\partial\D$ and $\alpha>1$ put
   \[
     \Gamma_\alpha(\zeta)
@@ -75,7 +86,7 @@ and are not verbatim reproductions of the source.
     hasNontangentialLimit_iff_forall}
   \leanok
   \uses{def:nt_region}
-  Source: Garnett, Chapter I, Section 5, PDF page 27.
+  \bookref{Garnett}{I.5}{Chapter I, Section 5, PDF page 27}
   Write $\mathcal{N}_{\Gamma_\alpha(\zeta)}(\zeta)$ for the neighbourhood filter
   of $\zeta$ within $\Gamma_\alpha(\zeta)$. The \emph{nontangential filter} at
   $\zeta$ is their supremum in the lattice of filters,
@@ -374,7 +385,7 @@ and are not verbatim reproductions of the source.
   \leanok
   \uses{def:nt_limit, def:poisson_integral, lem:poisson_density_zero,
     thm:circle_differentiation}
-  Source: Garnett, Chapter I, Section 5, PDF pages 41--42.
+  \bookref{Garnett}{I.5.4}{Chapter I, Section 5, PDF pages 41--42}
   If $\nu$ is a finite signed measure on $\partial\D$ that is singular with
   respect to $d\theta$, then
   \[
@@ -432,7 +443,7 @@ and are not verbatim reproductions of the source.
   \uses{thm:I_5_3_ac, lem:I_5_4,
     def:nt_limit, def:boundary_function, def:poisson_integral,
     lem:poisson_integral_withDensity, lem:boundary_value_bridge}
-  Source: Garnett, Chapter I, Section 5, PDF pages 40--41.
+  \bookref{Garnett}{I.5.3}{Chapter I, Section 5, PDF pages 40--41}
   Let $\mu$ be a finite signed measure on $\partial\D$, with Lebesgue
   decomposition $d\mu=k\,d\theta/2\pi+d\mu_s$, $\mu_s\perp d\theta$. Then the
   Poisson integral of $\mu$ has a nontangential limit at almost every boundary
@@ -497,7 +508,7 @@ and are not verbatim reproductions of the source.
     tsum_one_sub_norm_le_of_isLeastHarmonicMajorant}
   \leanok
   \uses{thm:I_6_7}
-  Source: Garnett, Chapter II, Section 2, PDF page 63.
+  \bookref{Garnett}{II.2.1}{Chapter II, Section 2, PDF page 63}
   Let $f$ be a nonzero analytic function on $\mathbb{D}$, and let
   $\{a_n\}$ be its zeros, counted with multiplicity. If $\log |f|$ has a
   harmonic majorant on $\mathbb{D}$, then
@@ -530,7 +541,7 @@ and are not verbatim reproductions of the source.
 \begin{theorem}[Garnett II.2.2: convergence and boundary size of Blaschke products]
   \label{thm:II_2_2}
   \notready
-  Source: Garnett, Chapter II, Section 2, PDF page 64.
+  \bookref{Garnett}{II.2.2}{Chapter II, Section 2, PDF page 64}
   If $\{a_n\}\subset\mathbb{D}$ satisfies the Blaschke condition, then the
   associated Blaschke product converges uniformly on compact subsets of
   $\mathbb{D}$ to a bounded analytic function whose zeros are exactly the
@@ -542,7 +553,7 @@ and are not verbatim reproductions of the source.
   \label{thm:II_2_3}
   \notready
   \uses{thm:II_2_1, thm:II_2_2}
-  Source: Garnett, Chapter II, Section 2, PDF page 66.
+  \bookref{Garnett}{II.2.3}{Chapter II, Section 2, PDF page 66}
   Let $0<p<\infty$, let $f\in H^p(\mathbb D)$ be nonzero, and let $B$ be the
   Blaschke product formed from all zeros of $f$, counted with multiplicity.
   Then $g=f/B$ extends analytically across the removable singularities,
@@ -556,7 +567,7 @@ and are not verbatim reproductions of the source.
   \label{thm:II_2_4}
   \notready
   \uses{thm:I_6_7, thm:II_2_1, thm:II_2_2}
-  Source: Garnett, Chapter II, Section 2, PDF page 66.
+  \bookref{Garnett}{II.2.4}{Chapter II, Section 2, PDF page 66}
   Let $f\in H^\infty(\mathbb D)$ with $\lVert f\rVert_\infty\le 1$. Then the
   following are equivalent:
   \begin{enumerate}
@@ -591,7 +602,7 @@ and are not verbatim reproductions of the source.
   \label{cor:II_4_2}
   \notready
   \uses{thm:II_5_3, def:boundary_function}
-  Source: Garnett, Chapter II, Section 4, PDF page 75.
+  \bookref{Garnett}{II.4.2}{Chapter II, Section 4, PDF page 75}
   Let $f\in N$, and suppose the boundary function $f^*$ vanishes on a subset
   of $\partial\D$ of positive Lebesgue measure. Then $f\equiv0$. Since
   $H^p\subseteq N$ for every $p>0$, this contains Garnett's statement for
@@ -624,7 +635,7 @@ and are not verbatim reproductions of the source.
 \begin{theorem}[Garnett II.4.4: construction from logarithmic data]
   \label{thm:II_4_4}
   \notready
-  Source: Garnett, Chapter II, Section 4, PDF page 75.
+  \bookref{Garnett}{II.4.4}{Chapter II, Section 4, PDF page 75}
   Given a nonnegative boundary function $\varphi$ with
   $\log\varphi\in L^1(\partial\mathbb{D})$, there is an outer analytic
   function $F$ on $\mathbb{D}$ whose a.e. boundary modulus is $\varphi$.
@@ -657,7 +668,7 @@ and are not verbatim reproductions of the source.
   \notready
   \uses{thm:log_abs_subharmonic, thm:I_6_7,
     thm:positive_harmonic_poisson_measure}
-  Source: Garnett, Chapter II, Section 5, PDF page 78.
+  \bookref{Garnett}{II.5.1}{Chapter II, Section 5, PDF page 78}
   For an analytic function $f$ on $\mathbb{D}$, the following are equivalent:
   $f$ belongs to the Nevanlinna class $N$, and the subharmonic function
   $\log |f|$ admits a harmonic majorant on $\mathbb{D}$. When such a majorant
@@ -686,9 +697,9 @@ and are not verbatim reproductions of the source.
   \lean{harmonicOnNhd_nonneg_iff_exists_eq_integral_poissonKernel,
     harmonicOnNhd_integral_poissonKernel, integral_poissonKernel_nonneg}
   \leanok
-  Source: Garnett, Chapter I, Section 3, Theorem 3.5(c), especially the
-  disc-version argument in its proof, printed pages 17--19 (PDF pages
-  approximately 29--31).
+  \bookref{Garnett}{I.3.5(c)}{Chapter I, Section 3, printed pages 17--19,
+    PDF pages approximately 29--31}
+  The argument used here is the disc version given inside Garnett's proof.
   If $u$ is a positive harmonic function on $\mathbb{D}$, then there is a
   finite positive measure $\mu$ on $\partial\mathbb{D}$ such that
   $u=P[\mu]$. Conversely, the Poisson integral of any finite positive boundary
@@ -707,7 +718,7 @@ and are not verbatim reproductions of the source.
   \label{lem:II_5_2}
   \notready
   \uses{thm:II_5_1, thm:II_2_1, thm:II_2_2, thm:II_2_4}
-  Source: Garnett, Chapter II, Section 5, PDF page 78.
+  \bookref{Garnett}{II.5.2}{Chapter II, Section 5, PDF page 78}
   Let $f\in N$ be nonzero and let $B$ be the Blaschke product formed from the
   zeros of $f$, counted with multiplicity. Then $B$ converges, the quotient
   $g=f/B$ is analytic and zero-free on $\mathbb{D}$, and $g$ still belongs to
@@ -751,7 +762,7 @@ and are not verbatim reproductions of the source.
   \notready
   \uses{thm:II_5_1, lem:II_5_2, thm:II_2_2, thm:I_5_3, cor:II_3_2,
     thm:poisson_measure_unique, def:nt_limit, def:boundary_function}
-  Source: Garnett, Chapter II, Section 5, PDF page 79.
+  \bookref{Garnett}{II.5.3}{Chapter II, Section 5, PDF page 79}
   Let $f\in N$, $f\not\equiv0$. Then:
   \begin{enumerate}
     \item $f$ has a nontangential limit $f^*(\zeta)$ at almost every
@@ -887,7 +898,7 @@ and are not verbatim reproductions of the source.
   \notready
   \uses{thm:II_5_1, lem:II_5_2, thm:II_5_3, def:outer_factor,
     def:singular_factors, thm:nevanlinna_factorization_uniqueness}
-  Source: Garnett, Chapter II, Section 5, PDF page 83.
+  \bookref{Garnett}{II.5.5}{Chapter II, Section 5, PDF page 83}
   If $f\in N$ and $f$ is not identically zero, then there exist a unimodular
   constant $C$, a Blaschke product $B$, an outer function $F$, and singular
   functions $S_1,S_2$ such that

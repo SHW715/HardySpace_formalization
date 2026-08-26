@@ -19,6 +19,11 @@
 \newcommand{\C}{\mathbb{C}}
 \newcommand{\D}{\mathbb{D}}
 
+% Blueprint-only macros. The web build gives them meaning; here \bookref
+% just prints the citation and \supports prints nothing.
+\providecommand{\bookref}[3]{\par\noindent\textit{Source: #1~#2 (#3).}\par}
+\providecommand{\supports}[1]{}
+
 \title{Hardy Space Formalization Blueprint}
 \author{Shuhan Wang}
 

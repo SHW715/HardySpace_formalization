@@ -1,0 +1,6 @@
+name: bookref
+
+<div class="bookref"><span class="bookref-tag">Source</span> {{ obj.attributes['source'] }}&nbsp;{{ obj.attributes['ref'] }}{% if obj.attributes['locator'] %} <span class="bookref-locator">({{ obj.attributes['locator'] }})</span>{% endif %}</div>
+
+name: supports
+
