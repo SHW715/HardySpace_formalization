@@ -9,7 +9,7 @@ import HardySpaceFormalization.HarmonicMajorant
 
 noncomputable section
 
-open scoped Real ENNReal NNReal
+open scoped Real ENNReal NNReal PoissonIntegral
 open MeasureTheory Real Complex Set Metric HardySpace
 
 
@@ -25,7 +25,7 @@ theorem memNevanlinnaDisc_iff_exists_signedMeasure_isLeastHarmonicMajorant {f : 
     (hf : AnalyticOn ℂ f unitDisc) (hf_out : ∀ z ∉ unitDisc, f z = 0)
     (hf_ne : ∃ z ∈ unitDisc, f z ≠ 0) :
     MemNevanlinnaDisc f ↔ ∃ μ : SignedMeasure ℂ, μ.totalVariation (sphere 0 1)ᶜ = 0 ∧
-      Subharmonic.IsLeastHarmonicMajorant (poissonIntegralSigned 0 μ) (logNormBot ∘ f) unitDisc := by
+      Subharmonic.IsLeastHarmonicMajorant P[0; μ] (logNormBot ∘ f) unitDisc := by
   sorry
 
 end Nevanlinna

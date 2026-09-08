@@ -3,7 +3,7 @@ import Mathlib.Analysis.Complex.Poisson
 import Mathlib.MeasureTheory.VectorMeasure.Decomposition.Lebesgue
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
 import Mathlib.Analysis.Complex.Harmonic.Poisson
-import HardySpaceFormalization.Poisson_lemma
+import HardySpaceFormalization.poissonIntegral
 import HardySpaceFormalization.circleMeasure
 
 /-!
@@ -12,7 +12,7 @@ import HardySpaceFormalization.circleMeasure
 -/
 
 open Filter Set Real Complex MeasureTheory Metric
-open scoped Topology Real ENNReal
+open scoped Topology Real ENNReal PoissonIntegral
 
 variable {X : Type*} [TopologicalSpace X]
 
@@ -514,9 +514,9 @@ theorem hasNontangentialLimit_integral_poissonKernel_of_density_zero
     {ν : Measure ℂ} [IsFiniteMeasure ν] (hν : ν (sphere 0 1)ᶜ = 0) {ζ : ℂ} (hζ : ‖ζ‖ = 1)
     (hdens : Tendsto (fun r : ℝ => ν (closedBall ζ r) / circleMeasure 0 1 (closedBall ζ r))
       (𝓝[>] 0) (𝓝 0)) :
-    HasNontangentialLimit (poissonIntegralSigned 0 ν.toSignedMeasure) ζ 0 := by
+    HasNontangentialLimit P[0; ν.toSignedMeasure] ζ 0 := by
   -- Claude without review
-  rw [poissonIntegralSigned_toSignedMeasure, hasNontangentialLimit_iff_forall]
+  rw [poissonIntegral_toSignedMeasure, hasNontangentialLimit_iff_forall]
   intro α hα
   have hα2 : (0 : ℝ) < α + 2 := by linarith
   have hApos : (0 : ℝ) < 8 * (α + 2) ^ 2 :=
@@ -666,8 +666,8 @@ theorem hasNontangentialLimit_integral_poissonKernel_of_density_zero
       _ < K * δ := by exact mul_lt_mul_of_pos_left hdist hKpos
       _ = ε / 2 := hKδ
   -- combine
-  have hnonneg : 0 ≤ ∫ w, poissonKernel 0 z w ∂ν :=
-    integral_poissonKernel_nonneg hν hzball
+  have hnonneg : 0 ≤ ∫ w, poissonKernel 0 z w ∂ν := by
+    simpa using poissonIntegral_toSignedMeasure_nonneg hν hzball
   rw [Real.dist_eq, sub_zero, abs_of_nonneg hnonneg, hsplit]
   have := hnear_eq ▸ hnear
   linarith
@@ -680,7 +680,7 @@ theorem hasNontangentialLimit_poissonIntegral_of_lebesguePoint {k : ℂ → ℝ}
     (hk : Integrable k (circleMeasure 0 1)) {ζ : ℂ} (hζ : ‖ζ‖ = 1)
     (hleb : Tendsto (fun r : ℝ => ⨍ z in closedBall ζ r, |k z - k ζ| ∂circleMeasure 0 1)
       (𝓝[>] 0) (𝓝 0)) :
-    HasNontangentialLimit (poissonIntegral 0 (circleMeasure 0 1) k) ζ (k ζ) := by
+    HasNontangentialLimit P[0; k ∂ᵥcircleMeasure 0 1] ζ (k ζ) := by
   -- Claude without review
   set σ := circleMeasure 0 1 with hσdef
   set ρ := σ.withDensity (fun w => ENNReal.ofReal |k w - k ζ|) with hρdef
@@ -721,21 +721,22 @@ theorem hasNontangentialLimit_poissonIntegral_of_lebesguePoint {k : ℂ → ℝ}
     filter_upwards [self_mem_nhdsWithin] with z hz
     exact mem_ball_zero_iff.2 hz.1
   have hle : ∀ᶠ z in nontangentially ζ,
-      ‖poissonIntegral 0 σ k z - k ζ‖ ≤ ∫ w, poissonKernel 0 z w ∂ρ := by
+      ‖P[0; k ∂ᵥσ] z - k ζ‖ ≤ ∫ w, poissonKernel 0 z w ∂ρ := by
     filter_upwards [hball] with z hz
     have hPk : Integrable (fun w => poissonKernel 0 z w * k w) σ :=
       integrable_poissonKernel_mul hcar hz hk
     have hPc : Integrable (fun w => poissonKernel 0 z w * k ζ) σ :=
       integrable_poissonKernel_mul hcar hz (integrable_const _)
     have hone : ∫ w, poissonKernel 0 z w * k ζ ∂σ = k ζ := by
-      rw [integral_mul_const, integral_poissonKernel_circleMeasure_eq_one hz, one_mul]
-    have hdiff : poissonIntegral 0 σ k z - k ζ
+      rw [integral_mul_const, ← poissonIntegral_toSignedMeasure_apply,
+        poissonIntegral_circleMeasure_eq_one hz, one_mul]
+    have hdiff : P[0; k ∂ᵥσ] z - k ζ
         = ∫ w, poissonKernel 0 z w * (k w - k ζ) ∂σ := by
       have hsplit : ∫ w, poissonKernel 0 z w * (k w - k ζ) ∂σ
           = (∫ w, poissonKernel 0 z w * k w ∂σ) - ∫ w, poissonKernel 0 z w * k ζ ∂σ := by
         rw [← integral_sub hPk hPc]
         congr 1; funext w; ring
-      rw [hsplit, hone, poissonIntegral]
+      rw [hsplit, hone, poissonIntegral_withDensityᵥ hcar hz hk]
       simp [smul_eq_mul]
     have habs : |∫ w, poissonKernel 0 z w * (k w - k ζ) ∂σ|
       ≤ ∫ w, poissonKernel 0 z w * |k w - k ζ| ∂σ := by
@@ -755,7 +756,7 @@ theorem hasNontangentialLimit_poissonIntegral_of_lebesguePoint {k : ℂ → ℝ}
       simp [ENNReal.toReal_ofReal (abs_nonneg _), smul_eq_mul, mul_comm]
     rw [Real.norm_eq_abs, hdiff, hbridge2]
     exact habs
-  have hzero : Tendsto (fun z => poissonIntegral 0 σ k z - k ζ) (nontangentially ζ) (𝓝 0) :=
+  have hzero : Tendsto (fun z => P[0; k ∂ᵥσ] z - k ζ) (nontangentially ζ) (𝓝 0) :=
     squeeze_zero_norm' hle hL3
   have hfin' := hzero.add_const (k ζ)
   simp only [sub_add_cancel, zero_add] at hfin'
@@ -765,7 +766,7 @@ theorem hasNontangentialLimit_poissonIntegral_of_lebesguePoint {k : ℂ → ℝ}
 of an `L¹` density has that density as its nontangential boundary value. -/
 theorem isAEBoundaryValue_poissonIntegral {k : ℂ → ℝ}
     (hk : Integrable k (circleMeasure 0 1)) :
-    IsAEBoundaryValue (circleMeasure 0 1) (poissonIntegral 0 (circleMeasure 0 1) k) k := by
+    IsAEBoundaryValue (circleMeasure 0 1) P[0; k ∂ᵥcircleMeasure 0 1] k := by
   filter_upwards [ae_tendsto_average_abs_sub_circleMeasure hk,
     ae_mem_sphere_circleMeasure zero_le_one] with ζ hleb hmem
   exact hasNontangentialLimit_poissonIntegral_of_lebesguePoint hk
@@ -773,10 +774,10 @@ theorem isAEBoundaryValue_poissonIntegral {k : ℂ → ℝ}
 
 /-- **Garnett I.5.4**: the Poisson integral of a boundary measure singular with respect to
 arclength has nontangential limit zero almost everywhere. -/
-theorem isAEBoundaryValue_poissonIntegralSigned_zero_of_mutuallySingular
+theorem isAEBoundaryValue_poissonIntegral_zero_of_mutuallySingular
     {ν : SignedMeasure ℂ} (hν : ν.totalVariation (sphere 0 1)ᶜ = 0)
     (hsing : ν ⟂ᵥ (circleMeasure 0 1).toENNRealVectorMeasure) :
-    IsAEBoundaryValue (circleMeasure 0 1) (poissonIntegralSigned 0 ν) 0 := by
+    IsAEBoundaryValue (circleMeasure 0 1) P[0; ν] 0 := by
   have hsing_total : ν.totalVariation ⟂ₘ circleMeasure 0 1 := by
     rw [SignedMeasure.mutuallySingular_ennreal_iff,
       VectorMeasure.ennrealToMeasure_toENNRealVectorMeasure] at hsing
@@ -811,7 +812,7 @@ theorem isAEBoundaryValue_poissonIntegralSigned_zero_of_mutuallySingular
     ae_mem_sphere_circleMeasure (c := 0) (R := 1) zero_le_one] with ζ hdensityζ hζ
   have hζnorm : ‖ζ‖ = 1 := mem_sphere_zero_iff_norm.1 hζ
   have hvariation_limit : HasNontangentialLimit
-      (poissonIntegralSigned 0 ν.variation.toSignedMeasure) ζ 0 :=
+      P[0; ν.variation.toSignedMeasure] ζ 0 :=
     hasNontangentialLimit_integral_poissonKernel_of_density_zero
       hvariation_carried hζnorm hdensityζ
   have hball : ∀ᶠ z in nontangentially ζ, z ∈ ball (0 : ℂ) 1 := by
@@ -822,10 +823,9 @@ theorem isAEBoundaryValue_poissonIntegralSigned_zero_of_mutuallySingular
     filter_upwards [self_mem_nhdsWithin] with z hz
     exact mem_ball_zero_iff.2 hz.1
   have hle : ∀ᶠ z in nontangentially ζ,
-      ‖poissonIntegralSigned 0 ν z‖ ≤
-        poissonIntegralSigned 0 ν.variation.toSignedMeasure z := by
+      ‖P[0; ν] z‖ ≤ P[0; ν.variation.toSignedMeasure] z := by
     filter_upwards [hball] with z hz
-    rw [poissonIntegralSigned_toSignedMeasure, poissonIntegralSigned]
+    rw [poissonIntegral_toSignedMeasure, poissonIntegral, integral_smul_eq_integral_flip]
     have hnonneg : ∀ᵐ w ∂ν.variation, 0 ≤ poissonKernel 0 z w := by
       filter_upwards [ae_iff.2 hvariation_carried] with w hw
       exact poissonKernel_nonneg hz hw
@@ -845,9 +845,9 @@ theorem isAEBoundaryValue_poissonIntegralSigned_zero_of_mutuallySingular
 measure `μ` has, at almost every boundary point, a nontangential limit, equal there to the
 Radon--Nikodym density of `μ` with respect to normalized arclength.  Equivalently, writing the
 Lebesgue decomposition `dμ = k dθ/2π + dμ_s`, the boundary function of `P[μ]` is `k`. -/
-theorem isAEBoundaryValue_poissonIntegralSigned_rnDeriv {μ : SignedMeasure ℂ}
+theorem isAEBoundaryValue_poissonIntegral_rnDeriv {μ : SignedMeasure ℂ}
     (hμ : μ.totalVariation (sphere 0 1)ᶜ = 0) :
-    IsAEBoundaryValue (circleMeasure 0 1) (poissonIntegralSigned 0 μ)
+    IsAEBoundaryValue (circleMeasure 0 1) P[0; μ]
       (μ.rnDeriv (circleMeasure 0 1)) := by
   let σ := circleMeasure 0 1
   let k := μ.rnDeriv σ
@@ -860,20 +860,20 @@ theorem isAEBoundaryValue_poissonIntegralSigned_rnDeriv {μ : SignedMeasure ℂ}
   have hsing_car : (μ.singularPart σ).totalVariation (sphere 0 1)ᶜ = 0 :=
     hsing_le.absolutelyContinuous hμ
   have hsing_ae :
-      IsAEBoundaryValue σ (poissonIntegralSigned 0 (μ.singularPart σ)) 0 :=
-    isAEBoundaryValue_poissonIntegralSigned_zero_of_mutuallySingular hsing_car
+      IsAEBoundaryValue σ P[0; μ.singularPart σ] 0 :=
+    isAEBoundaryValue_poissonIntegral_zero_of_mutuallySingular hsing_car
       (SignedMeasure.mutuallySingular_singularPart μ σ)
-  have hac_ae : IsAEBoundaryValue σ (poissonIntegral 0 σ k) k :=
+  have hac_ae : IsAEBoundaryValue σ P[0; k ∂ᵥσ] k :=
     isAEBoundaryValue_poissonIntegral hk
   have hdecomp : μ.singularPart σ + σ.withDensityᵥ k = μ :=
     SignedMeasure.singularPart_add_withDensity_rnDeriv_eq σ μ
   have hdensity_eq : σ.withDensityᵥ k = μ - μ.singularPart σ := by
     apply eq_sub_iff_add_eq.mpr
     simpa only [add_comm] using hdecomp
-  change IsAEBoundaryValue σ (poissonIntegralSigned 0 μ) k
+  change IsAEBoundaryValue σ P[0; μ] k
   filter_upwards [hsing_ae, hac_ae] with ζ hsingζ hacζ
   have hsum : HasNontangentialLimit
-      (fun z => poissonIntegralSigned 0 (μ.singularPart σ) z + poissonIntegral 0 σ k z)
+      (fun z => P[0; μ.singularPart σ] z + P[0; k ∂ᵥσ] z)
       ζ (k ζ) := by
     change Tendsto _ (nontangentially ζ) (𝓝 (k ζ))
     simpa only [Pi.zero_apply, zero_add] using hsingζ.add hacζ
@@ -885,8 +885,8 @@ theorem isAEBoundaryValue_poissonIntegralSigned_rnDeriv {μ : SignedMeasure ℂ}
     filter_upwards [self_mem_nhdsWithin] with z hz
     exact mem_ball_zero_iff.2 hz.1
   have heq :
-      (fun z => poissonIntegralSigned 0 (μ.singularPart σ) z + poissonIntegral 0 σ k z)
-        =ᶠ[nontangentially ζ] poissonIntegralSigned 0 μ := by
+      (fun z => P[0; μ.singularPart σ] z + P[0; k ∂ᵥσ] z)
+        =ᶠ[nontangentially ζ] P[0; μ] := by
     filter_upwards [hinside] with z hz
     have hsing_int : (μ.singularPart σ).Integrable (fun w => poissonKernel 0 z w) :=
       integrable_poissonKernel_totalVariation hsing_car hz
@@ -895,27 +895,26 @@ theorem isAEBoundaryValue_poissonIntegralSigned_rnDeriv {μ : SignedMeasure ℂ}
     have hdensity_int : (σ.withDensityᵥ k).Integrable (fun w => poissonKernel 0 z w) := by
       rw [hdensity_eq]
       exact hμ_int.sub_vectorMeasure hsing_int
-    rw [poissonIntegral_eq_poissonIntegralSigned_withDensityᵥ hσcar hz hk,
-      poissonIntegralSigned]
+    simp only [poissonIntegral]
     calc
-      _ = ∫ᵛ w, poissonKernel 0 z w ∂<•(μ.singularPart σ + σ.withDensityᵥ k) :=
+      _ = ∫ᵛ w, poissonKernel 0 z w ∂•(μ.singularPart σ + σ.withDensityᵥ k) :=
         (VectorMeasure.integral_add_vectorMeasure hsing_int hdensity_int).symm
-      _ = _ := by rw [hdecomp]; rfl
+      _ = _ := by rw [hdecomp]
   exact hsum.congr' heq
 
 /-- The boundary function of the Poisson integral of a finite signed boundary measure is its
 Radon--Nikodym density with respect to normalized arclength. -/
-theorem boundaryValue_poissonIntegralSigned {μ : SignedMeasure ℂ}
+theorem boundaryValue_poissonIntegral {μ : SignedMeasure ℂ}
     (hμ : μ.totalVariation (sphere 0 1)ᶜ = 0) :
     μ.rnDeriv (circleMeasure 0 1) =ᵐ[circleMeasure 0 1]
-      boundaryValue (poissonIntegralSigned 0 μ) :=
-  (isAEBoundaryValue_poissonIntegralSigned_rnDeriv hμ).ae_eq_boundaryValue
+      boundaryValue P[0; μ] :=
+  (isAEBoundaryValue_poissonIntegral_rnDeriv hμ).ae_eq_boundaryValue
     ae_nontangentially_neBot_circleMeasure
 
 /-- The boundary function of the Poisson integral of a finite signed boundary measure is
 measurable, and is in `L¹`. -/
-theorem integrable_boundaryValue_poissonIntegralSigned {μ : SignedMeasure ℂ}
+theorem integrable_boundaryValue_poissonIntegral {μ : SignedMeasure ℂ}
     (hμ : μ.totalVariation (sphere 0 1)ᶜ = 0) :
-    Integrable (boundaryValue (poissonIntegralSigned 0 μ)) (circleMeasure 0 1) :=
+    Integrable (boundaryValue P[0; μ]) (circleMeasure 0 1) :=
   (SignedMeasure.integrable_rnDeriv μ (circleMeasure 0 1)).congr
-    (boundaryValue_poissonIntegralSigned hμ)
+    (boundaryValue_poissonIntegral hμ)

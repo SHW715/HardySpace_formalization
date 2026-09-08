@@ -167,10 +167,9 @@ and are not verbatim reproductions of the source.
 
 \begin{lemma}[Poisson kernel over a Stolz region]
   \label{lem:poisson_stolz_bound}
-  \lean{integral_poissonKernel_circleMeasure_eq_one,
-    poissonKernel_le_of_mem_stolzSetAt}
+  \lean{poissonKernel_le_of_mem_stolzSetAt}
   \leanok
-  \uses{def:nt_region}
+  \uses{def:nt_region, thm:poisson_reproducing}
   Let $\alpha>1$. There is a constant $C_\alpha$ such that for every
   $\zeta\in\partial\D$, every $z\in\Gamma_\alpha(\zeta)$ and every
   $\theta$,
@@ -200,38 +199,75 @@ and are not verbatim reproductions of the source.
 
 \begin{definition}[Poisson integral of boundary data]
   \label{def:poisson_integral}
-  \lean{poissonIntegral, poissonIntegralSigned}
+  \lean{poissonIntegral}
   \leanok
-  Boundary data is carried either by a function or by a measure. For a measure
-  $\mu$ and data $f$, and for a finite signed measure $\nu$,
+  Boundary data is a vector measure $\nu$ with values in a real normed space,
+  and
   \[
-    P[f\,d\mu](w)=\int P_w(z)\,f(z)\,d\mu(z),
-    \qquad
-    P[\nu](w)=\int P_w(z)\,d\nu(z),
+    P[\nu](w)=\int P_w(z)\,d\nu(z).
   \]
-  the second as an integral against the vector measure $\nu$. The kernel is
-  real, so $f$ may take values in any real normed space; $\nu$ is real-valued.
-  Taking $f=1$ recovers the Poisson integral of $\mu$ itself.
+  The kernel is real-valued, so it pairs with $\nu$ by scalar multiplication.
+  A finite positive measure $\mu$ enters as the associated signed measure, and
+  data given as a function $f$ against a reference measure $\mu$ enters as the
+  vector measure $f\,d\mu$; both are theorems about this one definition rather
+  than separate definitions.
 \end{definition}
 
-\begin{lemma}[The two forms of boundary data agree]
+\begin{lemma}[Boundary data given as a density]
   \label{lem:poisson_integral_withDensity}
-  \lean{poissonIntegral_eq_poissonIntegralSigned_withDensityᵥ}
+  \lean{poissonIntegral_withDensityᵥ}
   \leanok
   \uses{def:poisson_integral}
   Let $\mu$ be a finite measure carried by $\partial\D$, let $k\in L^1(\mu)$ and
   let $w$ lie in the open disc. Then
   \[
-    P[k\,d\mu](w)=P[k\,\mu](w),
+    P[k\,d\mu](w)=\int P_w(z)\,k(z)\,d\mu(z).
   \]
-  where $k\,\mu$ is the signed measure with density $k$ with respect to $\mu$.
   \begin{proof}
     \proves{lem:poisson_integral_withDensity}
     \leanok
-    Write $k\,\mu$ through its positive and negative parts, integrate the
+    Write $k\,d\mu$ through its positive and negative parts, integrate the
     kernel against each, and recombine. The kernel is bounded on
     $\partial\D$ for $w$ interior, so it is integrable against every finite
     measure carried by the circle and against $k$ times such a measure.
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}[Boundary data given as a finite positive measure]
+  \label{lem:poisson_integral_toSignedMeasure}
+  \lean{poissonIntegral_toSignedMeasure, poissonIntegral_toSignedMeasure_apply}
+  \leanok
+  \uses{def:poisson_integral}
+  For a finite positive measure $\mu$ on $\partial\D(c,R)$ and every $w$,
+  \[
+    P[\mu](w)=\int P_w(z)\,d\mu(z),
+  \]
+  an ordinary Bochner integral. Unlike the previous lemma this needs no
+  hypothesis on $w$ or on the support of $\mu$.
+  \begin{proof}
+    \proves{lem:poisson_integral_toSignedMeasure}
+    \leanok
+    Immediate from the pairing identity for the integral against the signed
+    measure associated with $\mu$.
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}[Jordan decomposition of a signed Poisson integral]
+  \label{lem:poisson_integral_jordan}
+  \lean{poissonIntegral_eq_posPart_sub_negPart, integrable_poissonKernel_totalVariation}
+  \leanok
+  \uses{def:poisson_integral, lem:poisson_integral_toSignedMeasure}
+  Let $\nu$ be a finite signed measure carried by $\partial\D(c,R)$ and let $w$
+  be interior. Writing $\nu=\nu^{+}-\nu^{-}$ for the Jordan decomposition,
+  \[
+    P[\nu](w)=\int P_w\,d\nu^{+}-\int P_w\,d\nu^{-}.
+  \]
+  \begin{proof}
+    \proves{lem:poisson_integral_jordan}
+    \leanok
+    The kernel is bounded on the circle at an interior point, hence integrable
+    against the total variation of $\nu$, so the integral splits along the
+    decomposition.
   \end{proof}
 \end{lemma}
 
@@ -262,7 +298,9 @@ and are not verbatim reproductions of the source.
 
 \begin{theorem}[Poisson integrals of continuous data are harmonic]
   \label{thm:harmonic_poisson_integral}
-  \lean{harmonicOnNhd_poissonIntegral, poissonIntegral_eq_circleAverage}
+  \lean{harmonicOnNhd_circleAverage_poissonKernel_smul,
+    integral_poissonKernel_smul_circleMeasure_eq_circleAverage,
+    poissonIntegral_circleMeasure_withDensityᵥ_eq_circleAverage}
   \leanok
   \uses{def:poisson_integral}
   If $f$ is continuous on $\partial\D(c,R)$ then $P[f\,d\sigma]$ is harmonic on
@@ -277,6 +315,36 @@ and are not verbatim reproductions of the source.
     measure transport, whose integrability hypothesis holds because both
     factors are continuous on the circle.
   \end{proof}
+\end{theorem}
+
+\begin{theorem}[Poisson integral formula]
+  \label{thm:poisson_reproducing}
+  \lean{poissonIntegral_circleMeasure_eq_self, poissonIntegral_circleMeasure_eq_one}
+  \leanok
+  \uses{def:poisson_integral, thm:harmonic_poisson_integral}
+  If $u$ is harmonic on a neighbourhood of $\overline{\D}(c,R)$ then
+  $u(w)=P[u\,d\sigma_{c,R}](w)$ for every interior $w$. Taking $u\equiv 1$ gives
+  $P[\sigma_{c,R}](w)=1$: the kernel has total mass one at every interior point.
+  \begin{proof}
+    \proves{thm:poisson_reproducing}
+    \leanok
+    Transport to the circle average and apply the mathlib form of the Poisson
+    formula. Total mass one is the case $u\equiv 1$, read through the density
+    lemma.
+  \end{proof}
+\end{theorem}
+
+\begin{theorem}[Dirichlet problem on a disc]
+  \label{thm:poisson_extension}
+  \lean{poissonIntegral_continuousOn_closedBall_eq_boundary}
+  \notready
+  \uses{def:poisson_integral, thm:harmonic_poisson_integral}
+  For continuous real boundary data $u$ on $\partial\D(c,R)$ there is a function
+  continuous on $\overline{\D}(c,R)$, harmonic inside, equal to
+  $P[u\,d\sigma_{c,R}]$ on the open disc and to $u$ on the circle.
+
+  This is the solution of the Dirichlet problem on a disc. It is the single
+  open declaration on which the subharmonic comparison results depend.
 \end{theorem}
 
 \begin{theorem}[Differentiation of measures on the circle]
@@ -381,7 +449,7 @@ and are not verbatim reproductions of the source.
 
 \begin{lemma}[Garnett I.5.4: singular Poisson integrals vanish at the boundary]
   \label{lem:I_5_4}
-  \lean{isAEBoundaryValue_poissonIntegralSigned_zero_of_mutuallySingular}
+  \lean{isAEBoundaryValue_poissonIntegral_zero_of_mutuallySingular}
   \leanok
   \uses{def:nt_limit, def:poisson_integral, lem:poisson_density_zero,
     thm:circle_differentiation}
@@ -437,8 +505,8 @@ and are not verbatim reproductions of the source.
 
 \begin{theorem}[Garnett I.5.3: Fatou theorem, $p=1$ disc form]
   \label{thm:I_5_3}
-  \lean{isAEBoundaryValue_poissonIntegralSigned_rnDeriv,
-    boundaryValue_poissonIntegralSigned, integrable_boundaryValue_poissonIntegralSigned}
+  \lean{isAEBoundaryValue_poissonIntegral_rnDeriv,
+    boundaryValue_poissonIntegral, integrable_boundaryValue_poissonIntegral}
   \leanok
   \uses{thm:I_5_3_ac, lem:I_5_4,
     def:nt_limit, def:boundary_function, def:poisson_integral,
@@ -694,8 +762,8 @@ and are not verbatim reproductions of the source.
 
 \begin{theorem}[Garnett I.3.5(c): positive harmonic functions as Poisson integrals, disc form]
   \label{thm:positive_harmonic_poisson_measure}
-  \lean{harmonicOnNhd_nonneg_iff_exists_eq_integral_poissonKernel,
-    harmonicOnNhd_integral_poissonKernel, integral_poissonKernel_nonneg}
+  \lean{harmonicOnNhd_nonneg_iff_exists_eq_poissonIntegral,
+    harmonicOnNhd_poissonIntegral_toSignedMeasure, poissonIntegral_toSignedMeasure_nonneg}
   \leanok
   \bookref{Garnett}{I.3.5(c)}{Chapter I, Section 3, printed pages 17--19,
     PDF pages approximately 29--31}
@@ -712,6 +780,42 @@ and are not verbatim reproductions of the source.
   available as \texttt{analyticOnNhd\_integral\_herglotzRieszKernel}. The existence
   direction, whose proof needs weak-$*$ compactness of the approximating
   measures $u(r\,\cdot)\,d\sigma$, is still open.
+
+  Finiteness of $\mu$ is not an extra hypothesis. In the forward direction the
+  total mass is $u(c)$ by the mean value property, and in the converse the
+  two-sided kernel bound makes integrability of $P_w$ against $\mu$ equivalent
+  to $\mu(\partial\D)<\infty$. On the half plane the corresponding statement
+  does admit non-finite $\mu$, at the price of the weight
+  $\int (1+t^2)^{-1}d\mu(t)<\infty$ and an extra linear term.
+\end{theorem}
+
+\begin{theorem}[Garnett I.3.5(b): bounded radial $L^1$ means, disc form]
+  \label{thm:signed_harmonic_poisson_measure}
+  \lean{exists_eq_poissonIntegral_of_iSup_eLpNorm_lt_top,
+    harmonicOnNhd_iSup_eLpNorm_lt_top_iff_exists_eq_poissonIntegral}
+  \notready
+  \uses{def:poisson_integral, lem:poisson_integral_jordan}
+  \bookref{Garnett}{I.3.5(b)}{Chapter I, Section 3, printed pages 17--19,
+    PDF pages approximately 29--31}
+  As with (c), the statement formalized here is the disc version Garnett gives
+  inside his proof. A harmonic function $u$ on $\D(c,R)$ satisfies
+  \[
+    \sup_{0<r<R}\int |u|\,d\sigma_{c,r}<\infty
+  \]
+  if and only if $u=P[\nu]$ for a finite \emph{signed} measure $\nu$ carried by
+  $\partial\D(c,R)$.
+
+  This shares its proof engine with (c): weak-$*$ compactness of the
+  approximating measures. The sketch hides two limits, not one. With
+  $d\nu_r=u(r\zeta)\,d\sigma$ the reproducing formula gives
+  $u(w)=\int P_{w/r}\,d\nu_r$, so one must split
+  \[
+    \int P_{w/r_j}d\nu_{r_j}-\int P_w\,d\nu
+    =\int (P_{w/r_j}-P_w)\,d\nu_{r_j}
+      +\Bigl(\int P_w\,d\nu_{r_j}-\int P_w\,d\nu\Bigr),
+  \]
+  handling the first term by uniform convergence of the kernels together with a
+  uniform total variation bound, and only the second by weak-$*$ convergence.
 \end{theorem}
 
 \begin{lemma}[Garnett II.5.2: remove the zeros of a Nevanlinna function]

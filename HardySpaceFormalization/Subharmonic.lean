@@ -7,7 +7,7 @@ import Mathlib.Analysis.Complex.Harmonic.Poisson
 import Mathlib.Analysis.Convex.Integral
 import Mathlib.Analysis.Normed.Module.HahnBanach
 import HardySpaceFormalization.Harmonic_max_principle
-import HardySpaceFormalization.Poisson_lemma
+import HardySpaceFormalization.poissonIntegral
 import HardySpaceFormalization.circleMeasure
 
 
@@ -17,7 +17,7 @@ import HardySpaceFormalization.circleMeasure
 -/
 
 open MeasureTheory Metric Set Real Filter
-open scoped ENNReal Topology
+open scoped ENNReal Topology PoissonIntegral
 
 noncomputable section
 
@@ -377,7 +377,7 @@ theorem SubharmonicOn.expBot_comp {u : ℂ → WithBot ℝ} {s : Set ℂ} (hu : 
       have huw_log : u w ≤ H w := hu.2 c R H hclosed hH_cont hH_harm hbd_log w hw
       grw [expBot_le_exp_of_le_coe huw_log]
       rw [hH_poisson w hw,
-        poissonIntegral_eq_circleAverage (dist_nonneg.trans (mem_ball.mp hw).le) hw hφ_cont]
+        poissonIntegral_circleMeasure_withDensityᵥ_eq_circleAverage (dist_nonneg.trans (mem_ball.mp hw).le) hw hφ_cont]
       simp only [smul_eq_mul]
       refine exp_poisson_log_le_harmonic ?_ ?_ ?_ hw
       . fun_prop
@@ -407,7 +407,7 @@ theorem SubharmonicOn.le_circleAverage_poissonKernel_smul
     intro y hy; rw [hboundary y hy]
   have hle : (u w : WithBot ℝ) ≤ h w := hu.2 c R h hclosed hcont hharm hbd w hw
   have hle_real : u w ≤ h w := WithBot.coe_le_coe.mp hle
-  rw [hPoisson w hw, poissonIntegral_eq_circleAverage
+  rw [hPoisson w hw, poissonIntegral_circleMeasure_withDensityᵥ_eq_circleAverage
     (dist_nonneg.trans (mem_ball.mp hw).le) hw hu_cont] at hle_real
   simpa only [smul_eq_mul] using hle_real
 -- Note actually I don't need continuity condition but the proof might be tough (using sequence

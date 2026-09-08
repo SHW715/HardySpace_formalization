@@ -20,6 +20,22 @@
       </div>
     </div>
 {% endmacro %}
+{# Rendered inside the toolbar when hardygraph is on, on its own otherwise. #}
+{% macro legend_block(legend) %}
+  <div id="Legend">
+    <span id="legend_title" class="title">Legend
+    <div class="btn">
+       <div class="bar"></div>
+       <div class="bar"></div>
+       <div class="bar"></div>
+    </div></span>
+    <dl class="legend">
+      {% for k, v in legend %}
+      <dt>{{ k }}</dt><dd>{{ v }}</dd>
+      {% endfor %}
+    </dl>
+  </div>
+{% endmacro %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -53,6 +69,14 @@
 <link rel="stylesheet" href="styles/{{ css }}" />
 {% endfor %}
 <style>
+/* The chrome above the graph is kept to two short rows, and the graph itself
+   takes whatever vertical room is left rather than a fixed slice of the
+   viewport, which used to push its lower half off screen. */
+header { height: 2.25rem; }
+h1#doc_title { font-size: 1.15rem; }
+div.content { margin-bottom: 0; overflow: hidden; }
+div#graph { flex: 1 1 auto; height: auto; min-height: 0; }
+
 #hg-bar {
   display: flex;
   align-items: center;
@@ -62,7 +86,19 @@
   border-bottom: 1px solid #d8d8d8;
   font-size: 95%;
 }
-#hg-bar.hg-sub ~ #graph, #hg-bar ~ #graph { height: calc(90vh - 4.5rem); }
+#hg-bar #Legend { position: relative; display: flex; align-items: center; }
+#hg-bar #Legend span.title { font-size: 100%; margin-right: 0; }
+#hg-bar #Legend dl {
+  top: 1.8rem;
+  left: 0;
+  font-size: 100%;
+  max-width: 44ch;
+  padding: .5rem .6rem;
+  border: 1px solid #d8d8d8;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+  z-index: 3;
+}
 #hg-crumbs { display: flex; align-items: center; gap: .4rem; }
 #hg-crumbs .hg-sep { color: #999; }
 #hg-crumbs .hg-here { font-weight: bold; }
@@ -82,13 +118,27 @@
 #hg-views button.hg-active { background: #497da5; color: white; }
 #hg-hint { color: #666; }
 #hg-warn {
-  padding: .4rem .6rem;
-  margin: .4rem 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: .5rem;
+  padding: .2rem .5rem;
+  margin: 0;
   border-left: 3px solid #e08a1e;
   background: #fdf6ec;
-  font-size: 90%;
+  font-size: 88%;
 }
 #hg-warn a { color: #497da5; cursor: pointer; }
+#hg-warn button {
+  font: inherit;
+  padding: 0 .2rem;
+  border: none;
+  background: none;
+  color: #497da5;
+  cursor: pointer;
+}
+#hg-warn-close { margin-left: auto; font-size: 130%; color: #999; }
+#hg-warn-detail { flex-basis: 100%; color: #6b5836; padding-bottom: .2rem; }
 button.hg-drill {
   font: inherit;
   font-size: 90%;
@@ -117,21 +167,9 @@ div.bookref .bookref-locator { color: #777; }
 </header>
 <div class="wrapper">
 <div class="content">
-  <div id="Legend">
-    <span id="legend_title" class="title">Legend
-    <div class="btn">
-       <div class="bar"></div>
-       <div class="bar"></div>
-       <div class="bar"></div>
-    </div></span>
-    <dl class="legend">
-      {% for k, v in legend %}
-      <dt>{{ k }}</dt><dd>{{ v }}</dd>
-      {% endfor %}
-    </dl>
-  </div>
 {% if hg.enabled %}
   <div id="hg-bar">
+    {{ legend_block(legend) }}
     <span id="hg-crumbs"></span>
     <span id="hg-hint"></span>
     <span id="hg-views">
@@ -141,13 +179,23 @@ div.bookref .bookref-locator { color: #777; }
   </div>
   {% if hg.orphans %}
   <div id="hg-warn">
-    {{ hg.orphans|length }} auxiliary statement{{ 's' if hg.orphans|length > 1 }} no
-    main-line statement depends on:
-    {% for o in hg.orphans %}<code>{{ o.id }}</code>{{ ', ' if not loop.last }}{% endfor %}.
-    Either a <code>\uses</code> is missing, or {{ 'they are' if hg.orphans|length > 1 else 'it is' }} no longer needed.
+    <span>{{ hg.orphans|length }} auxiliary statement{{ 's' if hg.orphans|length > 1 }}
+      unattached to the main line</span>
     <a data-hg-goto="__unattached__">Show them</a>
+    <button type="button" id="hg-warn-more">details</button>
+    <button type="button" id="hg-warn-close" title="Dismiss">&times;</button>
+    <div id="hg-warn-detail" style="display: none">
+      {% for o in hg.orphans %}<code>{{ o.id }}</code>{{ ', ' if not loop.last }}{% endfor %}.
+      No main-line statement depends on
+      {{ 'them' if hg.orphans|length > 1 else 'it' }}, so
+      {{ 'they belong' if hg.orphans|length > 1 else 'it belongs' }} to no
+      sub-blueprint. Either a <code>\uses</code> is missing, or
+      {{ 'they are' if hg.orphans|length > 1 else 'it is' }} no longer needed.
+    </div>
   </div>
   {% endif %}
+{% else %}
+  {{ legend_block(legend) }}
 {% endif %}
     <div id="graph"></div>
 <div id="statements">
@@ -204,6 +252,7 @@ const SPECIAL = {
 const FROM_HASH = {main: '__main__', all: '__all__', unattached: '__unattached__'};
 
 let currentKey = '__main__';
+let warnDismissed = false;
 
 function hashFor(key) {
   return SPECIAL[key] || key;
@@ -253,7 +302,7 @@ function updateChrome() {
     $('#hg-hint').text('');
   }
   $('#hg-views').toggle(isTop);
-  $('#hg-warn').toggle(isTop);
+  $('#hg-warn').toggle(isTop && !warnDismissed);
   $('#hg-views button').each(function () {
     $(this).toggleClass('hg-active', $(this).data('view') === currentKey);
   });
@@ -306,6 +355,18 @@ $(document).on('click', '[data-hg-goto]', function (event) {
 
 $('#hg-views button').on('click', function () {
   show($(this).data('view'));
+});
+
+$('#hg-warn-more').on('click', function () {
+  const detail = $('#hg-warn-detail').toggle();
+  $(this).text(detail.is(':visible') ? 'hide' : 'details');
+  render(DOTS[currentKey]);
+});
+
+$('#hg-warn-close').on('click', function () {
+  warnDismissed = true;
+  $('#hg-warn').hide();
+  render(DOTS[currentKey]);
 });
 
 $(window).on('hashchange', function () {
