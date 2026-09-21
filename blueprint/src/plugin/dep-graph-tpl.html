@@ -29,7 +29,7 @@
        <div class="bar"></div>
        <div class="bar"></div>
     </div></span>
-    <dl class="legend">
+    <dl class="legend" tabindex="0" aria-label="Dependency graph legend">
       {% for k, v in legend %}
       <dt>{{ k }}</dt><dd>{{ v }}</dd>
       {% endfor %}
@@ -72,10 +72,23 @@
 /* The chrome above the graph is kept to two short rows, and the graph itself
    takes whatever vertical room is left rather than a fixed slice of the
    viewport, which used to push its lower half off screen. */
-header { height: 2.25rem; }
+header { height: 2.25rem; flex-shrink: 0; }
 h1#doc_title { font-size: 1.15rem; }
-div.content { margin-bottom: 0; overflow: hidden; }
-div#graph { flex: 1 1 auto; height: auto; min-height: 0; }
+div.wrapper { min-width: 0; min-height: 0; }
+div.content { margin-bottom: 0; overflow: hidden; min-width: 0; min-height: 0; }
+div#graph {
+  position: relative;
+  flex: 1 1 0;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  resize: none;
+}
+/* Graphviz supplies a viewBox for the whole graph. Keep the SVG viewport
+   tied to the container, not the pixel dimensions from its first render.
+   Absolute positioning also prevents SVG intrinsic size affecting flex layout. */
+div#graph > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#hg-bar, #hg-warn { flex-shrink: 0; }
 
 #hg-bar {
   display: flex;
@@ -88,11 +101,21 @@ div#graph { flex: 1 1 auto; height: auto; min-height: 0; }
 }
 #hg-bar #Legend { position: relative; display: flex; align-items: center; }
 #hg-bar #Legend span.title { font-size: 100%; margin-right: 0; }
+#Legend dl {
+  box-sizing: border-box;
+  width: min(44ch, calc(100vw - 3rem));
+  max-width: none;
+  max-height: calc(100vh - 8rem);
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
 #hg-bar #Legend dl {
   top: 1.8rem;
   left: 0;
   font-size: 100%;
-  max-width: 44ch;
+  max-width: none;
   padding: .5rem .6rem;
   border: 1px solid #d8d8d8;
   border-radius: 4px;
@@ -280,8 +303,11 @@ function render(dot) {
   graphviz
     .width(node.clientWidth)
     .height(node.clientHeight)
-    .renderDot(dot)
-    .on("end", interactive);
+    .on("end", function () {
+      graphviz.resetZoom();
+      interactive();
+    })
+    .renderDot(dot);
 }
 
 function updateChrome() {
@@ -330,10 +356,21 @@ function openStatement(id) {
   $('#statements').show();
 }
 
+function fitLegend() {
+    const legend = document.querySelector('#Legend dl');
+    if (!legend || !legend.getClientRects().length) return;
+    const availableHeight = window.innerHeight - legend.getBoundingClientRect().top - 16;
+    legend.style.maxHeight = Math.max(0, availableHeight) + 'px';
+}
+
+$(window).on('resize', fitLegend);
+
 function interactive() {
     $("span#legend_title").off('click').on("click", function () {
            $(this).siblings('dl').toggle();
+           fitLegend();
         })
+    fitLegend();
 
     d3.selectAll('.node')
         .attr('pointer-events', 'fill')

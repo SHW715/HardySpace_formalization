@@ -3,12 +3,11 @@ Package hardygraph
 
 Turns the single, flat leanblueprint dependency graph into a two-level one.
 
-The blueprint mixes two kinds of statements: the ones carried over from the
-reference book, and the auxiliary ones that only exist because mathlib does
-not have them yet.  Showing both in one graph makes the graph unreadable as
-soon as the project grows.  This package separates them:
+The blueprint includes the main proof roadmap and supporting library results.
+Book references are independent of this distinction. This package separates
+the graph into two levels:
 
-* statements marked with ``\bookref`` form the *main line*;
+* statements marked with ``\mainline`` form the *main line*;
 * every other statement is *auxiliary* and is attached to the main-line
   statements that depend on it.
 
@@ -18,9 +17,12 @@ down into the sub-blueprint of a single main-line statement.
 Macros
 ------
 ``\bookref{source}{ref}{locator}``
-    Mark a statement as main line and record where it comes from, e.g.
+    Record where a statement comes from, e.g.
     ``\bookref{Garnett}{I.6.7}{Chapter I, Section 6, PDF page 36}``.
-    ``ref`` doubles as the label of the node in the graph.
+    ``ref`` is also used in the sub-blueprint breadcrumb.
+
+``\mainline``
+    Include a statement in the main proof roadmap, independently of its source.
 
 ``\supports{label, ...}``
     Attach an auxiliary statement to the given main-line statements even when
@@ -43,7 +45,7 @@ from plasTeX import Command
 from plasTeX.Logging import getLogger
 from plasTeX.PackageResource import PackageTemplateDir
 
-from plastexdepgraph.Packages.depgraph import DepGraph
+from plastexdepgraph.Packages.depgraph import DepGraph, item_kind
 
 log = getLogger()
 
@@ -70,6 +72,14 @@ class bookref(Command):
             'ref': self.attributes['ref'].textContent,
             'locator': self.attributes['locator'].textContent,
         })
+
+
+class mainline(Command):
+    r"""\mainline"""
+
+    def digest(self, tokens):
+        Command.digest(self, tokens)
+        self.parentNode.setUserData('hg_mainline', True)
 
 
 class supports(Command):
@@ -157,9 +167,9 @@ class HardyGraph:
                 proof_deps[target].add(source)
         deps = {n: stmt_deps[n] | proof_deps[n] for n in nodes}
 
-        main = {n for n in nodes if n.userdata.get('bookref')}
+        main = {n for n in nodes if n.userdata.get('hg_mainline')}
         if not main:
-            log.warning('hardygraph: no statement is marked with \\bookref, so '
+            log.warning('hardygraph: no statement is marked with \\mainline, so '
                         'there is no main line to show.')
             return self._disabled()
         aux = nodes - main
@@ -317,12 +327,55 @@ def ProcessOptions(options, document):
         PackageTemplateDir(path=PKG_DIR / 'renderer_templates'))
     document.userdata['hardygraph'] = HardyGraph(document)
 
-    def extend_legend():
-        document.userdata['dep_graph']['legend'].extend([
+    def update_status_and_legend():
+        data = document.userdata['dep_graph']
+        graph = data.get('graphs', {}).get(document)
+        if graph is not None:
+            # leanblueprint tests only statement leanok flags for can_prove,
+            # and ignores notready on proofs. Readiness here requires completed
+            # prerequisites, as promised by the legend.
+            def complete(node):
+                status = node.userdata
+                if item_kind(node) == 'definition':
+                    return bool(status.get('leanok'))
+                return bool(status.get('proved') or status.get('mathlibok'))
+
+            for node in graph.nodes:
+                ancestors = graph.ancestors(node) - {node}
+                prerequisites_done = all(complete(n) for n in ancestors)
+                node.userdata['fully_proved'] = complete(node) and prerequisites_done
+                proof = node.userdata.get('proved_by')
+                node.userdata['can_prove'] = bool(
+                    proof is not None
+                    and not proof.userdata.get('notready')
+                    and not node.userdata.get('notready')
+                    and prerequisites_done)
+
+        # Generate labels from the same palette keys as the colorizers.
+        # Upstream uses can_state for the proof fill and proved for the
+        # statement border, which breaks custom palettes, and omits defined.
+        colors = data['colors']
+        data['legend'] = [
+            ('Boxes', 'definitions'),
+            ('Ellipses', 'theorems and lemmas'),
+            (f"{colors['can_state'][1]} border",
+             'the <em>statement</em> is ready to be formalized; prerequisite statements are formalized'),
+            (f"{colors['not_ready'][1]} border",
+             'the <em>statement</em> is not ready to be formalized; the blueprint needs more work'),
+            (f"{colors['stated'][1]} border", 'the <em>statement</em> is formalized'),
+            (f"{colors['defined'][1]} background", 'the <em>definition</em> is formalized'),
+            (f"{colors['can_prove'][1]} background",
+             'a definition is ready to be formalized, or a proof is ready with all prerequisites complete'),
+            ('Unfilled background', 'no proof is marked complete or ready'),
+            (f"{colors['proved'][1]} background",
+             'the <em>proof</em> is formalized; some prerequisites remain incomplete'),
+            (f"{colors['fully_proved'][1]} background",
+             'the <em>proof</em> and all its ancestors are formalized'),
+            (f"{colors['mathlib'][1]} border", 'this is in Mathlib'),
             ('+n', 'auxiliary statements hidden behind a main-line node'),
             ('Dashed grey', 'auxiliary statement shown for context; it belongs '
                             'to another sub-blueprint'),
             ('Dashed blue', 'main-line statement this sub-blueprint rests on'),
-        ])
+        ]
 
-    document.addPostParseCallbacks(160, extend_legend)
+    document.addPostParseCallbacks(160, update_status_and_legend)

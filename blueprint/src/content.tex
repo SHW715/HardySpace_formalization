@@ -4,12 +4,11 @@
 % The statements below are formalization-oriented paraphrases, not verbatim
 % copies from the book.
 %
-% \bookref{Garnett}{II.5.3}{Chapter II, Section 5, PDF page 79} marks a
-% statement as part of the main line and records where it comes from. The
-% dependency graph draws the main line on its own, and files everything else
-% into the sub-blueprint of whichever main-line statement needs it. So add
-% \bookref to a statement exactly when it appears in the book, and leave it
-% off the auxiliary statements its formalization needs.
+% \bookref{Garnett}{II.5.3}{Chapter II, Section 5, PDF page 79} records
+% the source independently of graph membership. Add \mainline to statements
+% selected for the main proof roadmap. Other statements stay in Everything
+% and appear in the sub-blueprints of the main-line statements needing them.
+% A book reference alone does not put a statement on the main line.
 %
 % \supports{thm:II_5_3} overrides where an auxiliary statement is filed. It is
 % only needed when the automatic choice - the most upstream main-line statement
@@ -40,6 +39,8 @@ and are not verbatim reproductions of the source.
   \lean{Subharmonic.hasHarmonicMajorant_iff_radialMean_bddAbove,
     Subharmonic.exists_isLeastHarmonicMajorant_tendsto_poissonModification}
   \leanok
+  \uses{thm:poisson_extension}
+  \mainline
   \bookref{Garnett}{I.6.7}{Chapter I, Section 6, PDF page 36}
   Let $v$ be subharmonic on $\mathbb{D}$. Then $v$ has a harmonic majorant on
   $\mathbb{D}$ if and only if
@@ -57,6 +58,9 @@ and are not verbatim reproductions of the source.
         P_{z/r}(\theta)v(r e^{i\theta})\,d\theta
       =\lim_{r\to 1}v_r(z).
   \]
+  The Poisson-modification comparison uses the Dirichlet problem
+  (Theorem~\ref{thm:poisson_extension}), first for continuous boundary
+  majorants and then by decreasing approximation for subharmonic data.
 \end{theorem}
 
 \section{Nontangential limits and boundary values}
@@ -65,6 +69,7 @@ and are not verbatim reproductions of the source.
   \label{def:nt_region}
   \lean{Complex.stolzSetAt}
   \leanok
+  \mainline
   \bookref{Garnett}{I.4}{Chapter I, Section 4, PDF page 23, disc form}
   For $\zeta\in\partial\D$ and $\alpha>1$ put
   \[
@@ -86,6 +91,7 @@ and are not verbatim reproductions of the source.
     hasNontangentialLimit_iff_forall}
   \leanok
   \uses{def:nt_region}
+  \mainline
   \bookref{Garnett}{I.5}{Chapter I, Section 5, PDF page 27}
   Write $\mathcal{N}_{\Gamma_\alpha(\zeta)}(\zeta)$ for the neighbourhood filter
   of $\zeta$ within $\Gamma_\alpha(\zeta)$. The \emph{nontangential filter} at
@@ -453,6 +459,7 @@ and are not verbatim reproductions of the source.
   \leanok
   \uses{def:nt_limit, def:poisson_integral, lem:poisson_density_zero,
     thm:circle_differentiation}
+  \mainline
   \bookref{Garnett}{I.5.4}{Chapter I, Section 5, PDF pages 41--42}
   If $\nu$ is a finite signed measure on $\partial\D$ that is singular with
   respect to $d\theta$, then
@@ -511,6 +518,7 @@ and are not verbatim reproductions of the source.
   \uses{thm:I_5_3_ac, lem:I_5_4,
     def:nt_limit, def:boundary_function, def:poisson_integral,
     lem:poisson_integral_withDensity, lem:boundary_value_bridge}
+  \mainline
   \bookref{Garnett}{I.5.3}{Chapter I, Section 5, PDF pages 40--41}
   Let $\mu$ be a finite signed measure on $\partial\D$, with Lebesgue
   decomposition $d\mu=k\,d\theta/2\pi+d\mu_s$, $\mu_s\perp d\theta$. Then the
@@ -570,57 +578,86 @@ and are not verbatim reproductions of the source.
 
 \section{Chapter II, Section 2: Blaschke products}
 
-\begin{theorem}[Garnett II.2.1: harmonic majorants imply the Blaschke condition]
-  \label{thm:II_2_1}
-  \lean{summable_one_sub_norm_of_hasHarmonicMajorant,
-    tsum_one_sub_norm_le_of_isLeastHarmonicMajorant}
+\begin{definition}[Blaschke sum of a function]
+  \label{def:blaschke_sum}
+  \lean{blaschkeSum}
   \leanok
-  \uses{thm:I_6_7}
-  \bookref{Garnett}{II.2.1}{Chapter II, Section 2, PDF page 63}
-  Let $f$ be a nonzero analytic function on $\mathbb{D}$, and let
-  $\{a_n\}$ be its zeros, counted with multiplicity. If $\log |f|$ has a
-  harmonic majorant on $\mathbb{D}$, then
+  For a nonzero analytic function $f$ on $\mathbb D$, its Blaschke sum is
   \[
-    \sum_n (1-|a_n|)<\infty.
+    \mathcal B(f)=\sum_{a\in\mathbb D:\,f(a)=0}m_f(a)(1-|a|)
+      \in[0,+\infty],
   \]
-  Moreover, if $f(0)\ne 0$ and $u$ is the least harmonic majorant of
-  $\log |f|$, then
+  where $m_f(a)$ is the multiplicity of the zero at $a$.
+\end{definition}
+
+\begin{definition}[Blaschke condition for a function]
+  \label{def:blaschke_condition}
+  \lean{BlaschkeCondition}
+  \leanok
+  \uses{def:blaschke_sum}
+  A nonzero analytic function $f$ on $\mathbb D$ satisfies Blaschke's
+  condition if $\mathcal B(f)<\infty$.
+\end{definition}
+
+\begin{theorem}[Garnett II.2.1: the Blaschke condition]
+  \label{thm:II_2_1}
+  \lean{blaschkeCondition_of_hasHarmonicMajorant,
+    blaschkeSum_le_of_isLeastHarmonicMajorant}
+  \leanok
+  \uses{thm:I_6_7, thm:log_abs_subharmonic, def:blaschke_condition}
+  \mainline
+  \bookref{Garnett}{II.2.1}{Chapter II, Section 2, PDF pages 63--64}
+  If $f$ is a nonzero analytic function on $\mathbb D$ and $\log|f|$
+  has a harmonic majorant, then $\mathcal B(f)<\infty$.
+  If moreover $f(0)\ne0$ and $u$ is the least harmonic majorant of
+  $\log|f|$, then
   \[
-    \sum_n (1-|a_n|) \le u(0)-\log |f(0)|.
+    \mathcal B(f)\le u(0)-\log|f(0)|.
   \]
-  By Theorem~\ref{thm:II_5_1}, the harmonic-majorant hypothesis is equivalent
-  to $f$ belonging to the Nevanlinna class $N$.
   \begin{proof}
-    After removing a possible zero at the origin, fix $r<1$ avoiding the
-    moduli of the zeros and divide $f(rz)$ by the finite Blaschke product with
-    the same zeros. The logarithm of the modulus of the resulting zero-free
-    analytic function is harmonic, so the mean-value formula gives the
-    familiar Jensen identity
-    \[
-      \log |f(0)|+\sum_{|a_j|<r}\log\frac{r}{|a_j|}
-      =\frac{1}{2\pi}\int_0^{2\pi}\log|f(r e^{i\theta})|\,d\theta.
-    \]
-    Theorem~\ref{thm:I_6_7} identifies the limit of the right-hand side with
-    $u(0)$. Letting $r\to1$ and using
-    $1-|a_j|\le\log(1/|a_j|)$ proves both conclusions.
+    \proves{thm:II_2_1}
+    \leanok
+    Jensen's formula and the harmonic mean-value property bound the
+    logarithmic zero sums. Let the radius tend to one and use
+    $1-|a|\le-\log|a|$ to obtain the quantitative bound.
+    For the general case, remove the finite-order zero at the origin,
+    apply Theorem~\ref{thm:I_6_7} to obtain a least harmonic majorant,
+    and then restore the origin zero.
   \end{proof}
 \end{theorem}
 
 \begin{theorem}[Garnett II.2.2: convergence and boundary size of Blaschke products]
   \label{thm:II_2_2}
-  \notready
+  \lean{tendstoLocallyUniformlyOn_blaschkeProductFactor,
+    tendstoLocallyUniformlyOn_blaschkeProduct,
+    analyticOnNhd_blaschkeProduct, norm_blaschkeProduct_le_one,
+    analyticOrderAt_blaschkeProduct, blaschkeProduct_eq_zero_iff,
+    memHpDisc_blaschkeProduct, ae_hasNontangentialLimit_blaschkeProduct}
+  \leanok
+  \uses{def:blaschke_factor, def:boundary_function}
+  \mainline
   \bookref{Garnett}{II.2.2}{Chapter II, Section 2, PDF page 64}
   If $\{a_n\}\subset\mathbb{D}$ satisfies the Blaschke condition, then the
   associated Blaschke product converges uniformly on compact subsets of
   $\mathbb{D}$ to a bounded analytic function whose zeros are exactly the
   $a_n$ with the prescribed multiplicities, and whose boundary modulus is one
-  almost everywhere.
+  almost everywhere. More precisely, $B(z)=z^mP(z)$, where
+  $m=\#\{n:a_n=0\}$, satisfies $|B|\le1$ on $\D$ and
+  $\operatorname{ord}_w B=\#\{n:a_n=w\}$ for every $w\in\D$.
+  Its extension by zero outside $\D$ belongs to $H^\infty(\D)$.
+  Almost everywhere on the circle, its canonical boundary value is its
+  nontangential limit and has modulus one.
+  \begin{proof}
+    \proves{thm:II_2_2}
+    \notready
+  \end{proof}
 \end{theorem}
 
 \begin{theorem}[Garnett II.2.3 (F. Riesz): division by the Blaschke factor]
   \label{thm:II_2_3}
   \notready
   \uses{thm:II_2_1, thm:II_2_2}
+  \mainline
   \bookref{Garnett}{II.2.3}{Chapter II, Section 2, PDF page 66}
   Let $0<p<\infty$, let $f\in H^p(\mathbb D)$ be nonzero, and let $B$ be the
   Blaschke product formed from all zeros of $f$, counted with multiplicity.
@@ -635,6 +672,7 @@ and are not verbatim reproductions of the source.
   \label{thm:II_2_4}
   \notready
   \uses{thm:I_6_7, thm:II_2_1, thm:II_2_2}
+  \mainline
   \bookref{Garnett}{II.2.4}{Chapter II, Section 2, PDF page 66}
   Let $f\in H^\infty(\mathbb D)$ with $\lVert f\rVert_\infty\le 1$. Then the
   following are equivalent:
@@ -656,12 +694,12 @@ and are not verbatim reproductions of the source.
   \label{def:blaschke_factor}
   \lean{BlaschkeFactor, normedBlaschkeFactor}
   \leanok
-  \uses{thm:II_2_1, thm:II_2_2, thm:II_2_3, thm:II_2_4}
-  The current Lean project has the one-zero Blaschke factors. The later
-  formalization target is to define infinite Blaschke products, prove compact
-  convergence, prove the a.e. boundary-modulus theorem, prove the $H^p$
-  quotient theorem II.2.3, and provide the Blaschke-product characterization
-  II.2.4 used for Nevanlinna factorization.
+  For $R>0$ and $|a|<R$, the elementary Blaschke factor is
+  \[
+    b_{R,a}(z)=\frac{R(z-a)}{R^2-\overline a z}.
+  \]
+  Its normalized form is $b_{R,0}$ when $a=0$, and
+  $-\overline a\,b_{R,a}/|a|$ otherwise.
 \end{definition}
 
 \section{Chapter II, Section 4: boundary uniqueness and outer functions}
@@ -670,6 +708,7 @@ and are not verbatim reproductions of the source.
   \label{cor:II_4_2}
   \notready
   \uses{thm:II_5_3, def:boundary_function}
+  \mainline
   \bookref{Garnett}{II.4.2}{Chapter II, Section 4, PDF page 75}
   Let $f\in N$, and suppose the boundary function $f^*$ vanishes on a subset
   of $\partial\D$ of positive Lebesgue measure. Then $f\equiv0$. Since
@@ -703,6 +742,7 @@ and are not verbatim reproductions of the source.
 \begin{theorem}[Garnett II.4.4: construction from logarithmic data]
   \label{thm:II_4_4}
   \notready
+  \mainline
   \bookref{Garnett}{II.4.4}{Chapter II, Section 4, PDF page 75}
   Given a nonnegative boundary function $\varphi$ with
   $\log\varphi\in L^1(\partial\mathbb{D})$, there is an outer analytic
@@ -735,12 +775,23 @@ and are not verbatim reproductions of the source.
   \label{thm:II_5_1}
   \notready
   \uses{thm:log_abs_subharmonic, thm:I_6_7,
-    thm:positive_harmonic_poisson_measure}
+    thm:positive_harmonic_poisson_measure, lem:poisson_integral_jordan}
+  \mainline
   \bookref{Garnett}{II.5.1}{Chapter II, Section 5, PDF page 78}
-  For an analytic function $f$ on $\mathbb{D}$, the following are equivalent:
-  $f$ belongs to the Nevanlinna class $N$, and the subharmonic function
-  $\log |f|$ admits a harmonic majorant on $\mathbb{D}$. When such a majorant
-  exists, there is a least harmonic majorant.
+  Let $f$ be analytic on $\mathbb{D}$, $f\not\equiv0$. Then $f\in N$ if and
+  only if the least harmonic majorant of $\log|f|$ is $P[\mu]$ for a finite
+  signed measure $\mu$ on $\partial\mathbb{D}$.
+  \begin{proof}
+    \proves{thm:II_5_1}
+    \notready
+    If $f\in N$, take a nonnegative harmonic majorant $U$ of $\log^+|f|$
+    and let $u\le U$ be the least harmonic majorant of $\log|f|$.
+    Apply Theorem~\ref{thm:positive_harmonic_poisson_measure} to $U$ and
+    $U-u$ and subtract their representing measures to obtain $u=P[\mu]$.
+    Conversely, the Jordan identity
+    (Lemma~\ref{lem:poisson_integral_jordan}) gives
+    $\log^+|f|\le P[\mu^+]$, a nonnegative harmonic majorant; hence $f\in N$.
+  \end{proof}
 \end{theorem}
 
 \begin{theorem}[Logarithm of modulus is subharmonic]
@@ -764,7 +815,11 @@ and are not verbatim reproductions of the source.
   \label{thm:positive_harmonic_poisson_measure}
   \lean{harmonicOnNhd_nonneg_iff_exists_eq_poissonIntegral,
     harmonicOnNhd_poissonIntegral_toSignedMeasure, poissonIntegral_toSignedMeasure_nonneg}
-  \leanok
+  \notready
+  \uses{def:poisson_integral, lem:poisson_integral_toSignedMeasure,
+    lem:poisson_integral_withDensity, thm:harmonic_poisson_integral,
+    thm:poisson_reproducing}
+  \mainline
   \bookref{Garnett}{I.3.5(c)}{Chapter I, Section 3, printed pages 17--19,
     PDF pages approximately 29--31}
   The argument used here is the disc version given inside Garnett's proof.
@@ -822,6 +877,7 @@ and are not verbatim reproductions of the source.
   \label{lem:II_5_2}
   \notready
   \uses{thm:II_5_1, thm:II_2_1, thm:II_2_2, thm:II_2_4}
+  \mainline
   \bookref{Garnett}{II.5.2}{Chapter II, Section 5, PDF page 78}
   Let $f\in N$ be nonzero and let $B$ be the Blaschke product formed from the
   zeros of $f$, counted with multiplicity. Then $B$ converges, the quotient
@@ -865,7 +921,9 @@ and are not verbatim reproductions of the source.
   \label{thm:II_5_3}
   \notready
   \uses{thm:II_5_1, lem:II_5_2, thm:II_2_2, thm:I_5_3, cor:II_3_2,
-    thm:poisson_measure_unique, def:nt_limit, def:boundary_function}
+    thm:poisson_measure_unique, def:nt_limit, def:boundary_function,
+    lem:poisson_integral_jordan}
+  \mainline
   \bookref{Garnett}{II.5.3}{Chapter II, Section 5, PDF page 79}
   Let $f\in N$, $f\not\equiv0$. Then:
   \begin{enumerate}
@@ -1002,6 +1060,7 @@ and are not verbatim reproductions of the source.
   \notready
   \uses{thm:II_5_1, lem:II_5_2, thm:II_5_3, def:outer_factor,
     def:singular_factors, thm:nevanlinna_factorization_uniqueness}
+  \mainline
   \bookref{Garnett}{II.5.5}{Chapter II, Section 5, PDF page 83}
   If $f\in N$ and $f$ is not identically zero, then there exist a unimodular
   constant $C$, a Blaschke product $B$, an outer function $F$, and singular

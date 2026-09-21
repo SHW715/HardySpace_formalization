@@ -1,0 +1,577 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{fontspec}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{booktabs,tabularx,array}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric}
+
+\geometry{left=25mm,right=25mm,top=25mm,bottom=25mm,headheight=15pt}
+\setmainfont{Songti SC}[
+  ItalicFont={Songti SC},
+  ItalicFeatures={FakeSlant=0.18}
+]
+\setsansfont{Songti SC}[
+  BoldFont={Songti SC},
+  BoldFeatures={FakeBold=1.6}
+]
+\setmonofont{Menlo}
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip = 0pt plus 1pt
+
+\definecolor{navy}{HTML}{17365D}
+\definecolor{blue}{HTML}{2F6690}
+\definecolor{teal}{HTML}{2A7F82}
+\definecolor{gold}{HTML}{C28A2C}
+\definecolor{pale}{HTML}{F2F6FA}
+\definecolor{softgold}{HTML}{FFF8E8}
+\definecolor{softgreen}{HTML}{EDF7F3}
+\definecolor{graytext}{HTML}{4D5966}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=navy,
+  urlcolor=blue,
+  pdftitle={非负调和函数的 Poisson 测度表示},
+  pdfsubject={Garnett I.3.5(c) 圆盘版的完整证明流程}
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\sffamily\small Garnett I.3.5(c) · 圆盘版}
+\fancyhead[R]{\sffamily\small 非负调和函数的 Poisson 表示}
+\fancyfoot[C]{\sffamily\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\setlength{\parindent}{2em}
+\setlength{\parskip}{0.35em}
+\setlength{\abovedisplayskip}{8pt}
+\setlength{\belowdisplayskip}{8pt}
+\linespread{1.14}
+
+\newtheoremstyle{cnplain}{8pt}{8pt}{\normalfont}{}% space
+  {\sffamily\bfseries\color{navy}}{。}{0.6em}{}
+\theoremstyle{cnplain}
+\newtheorem{theorem}{定理}
+\newtheorem{lemma}{引理}
+\newtheorem{proposition}{命题}
+\theoremstyle{definition}
+\newtheorem{definition}{定义}
+\newtheorem{remark}{说明}
+
+\newcommand{\D}{\mathbb D}
+\newcommand{\C}{\mathbb C}
+\newcommand{\R}{\mathbb R}
+\newcommand{\N}{\mathbb N}
+\newcommand{\dd}{\,\mathrm d}
+\newcommand{\supp}{\operatorname{supp}}
+\newcommand{\avgint}{\mathop{\mathrlap{\displaystyle\int}\kern0.18em\text{--}}}
+\newcommand{\weakto}{\mathrel{\stackrel{*}{\rightharpoonup}}}
+\newcommand{\K}{\mathcal K}
+
+\newcommand{\sectionrule}{\par\vspace{-0.35em}\noindent\color{blue!55}\rule{\linewidth}{0.5pt}\color{black}\vspace{0.35em}}
+\newcommand{\keybox}[2]{%
+  \begin{center}
+  \fcolorbox{#1!55}{#1!7}{\begin{minipage}{0.91\linewidth}\small #2\end{minipage}}
+  \end{center}}
+
+\begin{document}
+
+\begin{titlepage}
+  \centering
+  \vspace*{1.9cm}
+  {\sffamily\bfseries\fontsize{25}{32}\selectfont\color{navy}
+    非负调和函数的 Poisson 测度表示\par}
+  \vspace{0.65cm}
+  {\sffamily\Large\color{blue}Garnett I.3.5(c) 的圆盘版本\par}
+  \vspace{0.9cm}
+  {\color{gold}\rule{0.70\linewidth}{1.2pt}\par}
+  \vspace{1.0cm}
+  {\large 一份面向形式化证明的数学讲义\par}
+  \vspace{0.4cm}
+  {\color{graytext}固定 Poisson 核 · 径向边界测度 · 弱星紧致性\par}
+
+  \vfill
+  \begin{tikzpicture}[scale=1.0]
+    \fill[blue!5] (0,0) circle (2.25);
+    \draw[blue,very thick] (0,0) circle (2.25);
+    \draw[teal,thick,dashed] (0,0) circle (1.55);
+    \fill[navy] (0,0) circle (2pt) node[below left] {$c$};
+    \fill[gold] (0.9,0.5) circle (2.4pt) node[above right] {$w$};
+    \draw[-{Latex[length=3mm]},gold,thick] (0.9,0.5) -- (0.62,0.345);
+    \node[blue] at (2.75,1.35) {$\partial D(c,R)$};
+    \node[teal] at (2.35,-1.0) {$T_n(\partial D(c,R))$};
+    \node[align=center,text width=8cm,below=2.8cm of current bounding box.south]
+      {\sffamily\color{graytext}
+       将函数向内收缩，但把测度始终放在同一个边界圆上。\\
+       于是积分中的 Poisson 核保持不动。};
+  \end{tikzpicture}
+
+  \vfill
+  {\sffamily 2026 年 9 月\par}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+\section{问题与结论}
+\sectionrule
+
+记
+\[
+  D(c,R)=\{z\in\C:|z-c|<R\},\qquad
+  K=\partial D(c,R)=\{\zeta\in\C:|\zeta-c|=R\},
+\]
+其中 $c\in\C$，$R>0$。本讲义解释下述圆盘版 Herglotz 表示定理。
+
+\begin{theorem}[非负调和函数的 Poisson 测度表示]
+设 $u:\C\to\R$ 在 $D(c,R)$ 上调和。以下两件事等价：
+\begin{enumerate}
+  \item 对所有 $w\in D(c,R)$，有 $u(w)\ge 0$；
+  \item 存在一个支撑在 $K$ 上的有限正 Borel 测度 $\mu$，使得对所有
+  $w\in D(c,R)$，
+  \[
+    u(w)=\int_K P_{c,R}(w,\zeta)\,\dd\mu(\zeta).
+  \]
+\end{enumerate}
+\end{theorem}
+
+这里的核心不是从 $u$ 猜出某个边界函数。一般的正调和函数未必有可积的逐点边界值；真正稳定的边界对象是一个有限测度。证明通过圆周上的一列正测度取弱星极限来产生它。
+
+\keybox{blue}{\textbf{证明的中心思想。}
+不要固定 $u(w)$ 后让 Poisson 核随半径移动；而是把 $u$ 稍微向内收缩，表示
+$u(T_nw)$。这样测度变化，但核 $P_{c,R}(w,\cdot)$ 始终固定。最后令
+$T_nw\to w$。}
+
+\section{需要认识的对象}
+\sectionrule
+
+\subsection{归一化圆周测度与圆周平均}
+
+令 $\sigma_{c,R}$ 为 $K$ 上的归一化圆周测度，即
+\[
+  \sigma_{c,R}(K)=1.
+\]
+若 $f$ 在圆周上可积，则它的圆周平均为
+\[
+  \operatorname{Av}_{c,R}(f)
+  :=\int_K f(\zeta)\,\dd\sigma_{c,R}(\zeta)
+  =\frac1{2\pi}\int_0^{2\pi}
+    f\bigl(c+Re^{i\theta}\bigr)\,\dd\theta.
+\]
+
+调和函数的平均值性质说：如果 $h$ 在闭圆盘的某个邻域中调和，那么
+\[
+  \operatorname{Av}_{c,R}(h)=h(c).
+\]
+
+\subsection{Poisson 核与 Poisson 公式}
+
+对 $w\in D(c,R)$ 和 $\zeta\in\C$，使用如下形式的 Poisson 核：
+\[
+ P_{c,R}(w,\zeta)
+ =\frac{|\zeta-c|^2-|w-c|^2}{|\zeta-w|^2}.
+\]
+当 $\zeta\in K$ 时，$|\zeta-c|=R$，因此
+\[
+  P_{c,R}(w,\zeta)
+  =\frac{R^2-|w-c|^2}{|\zeta-w|^2}>0.
+\]
+
+如果 $h$ 在 $\overline{D(c,R)}$ 的一个邻域中调和，那么
+\begin{equation}\label{eq:poisson-formula}
+  h(w)=\int_K P_{c,R}(w,\zeta)h(\zeta)\,\dd\sigma_{c,R}(\zeta),
+  \qquad w\in D(c,R).
+\end{equation}
+
+注意这里使用归一化圆周测度，所以公式中不再额外出现 $1/(2\pi)$。
+
+\subsection{密度给出的测度}
+
+若 $P\ge0$ 是 $\sigma_{c,R}$-可测函数，则可以定义加权测度
+\[
+  \nu=P\,\sigma_{c,R},
+  \qquad
+  \nu(A)=\int_A P\,\dd\sigma_{c,R}.
+\]
+此时
+\begin{align*}
+  \int_K \varphi\,\dd\nu
+    &=\int_K P\varphi\,\dd\sigma_{c,R},\\
+  \nu(K)&=\int_K P\,\dd\sigma_{c,R}.
+\end{align*}
+
+可测性不能省略：$P\varphi$ 可积并不自动推出 $P$ 可测。这正是形式化中需要先补齐加权圆周测度引理的原因。总质量公式还需要 $P$ 可积，否则左边可能是 $+\infty$，而 Bochner 积分对不可积函数采用的约定值无法表达这个质量。
+
+\subsection{有限测度的弱星收敛}
+
+有限测度 $\mu_n$ 弱星收敛到 $\mu$，直观上是说对每个有界连续函数 $q$，
+\[
+  \int q\,\dd\mu_n\longrightarrow\int q\,\dd\mu.
+\]
+
+若所有测度都支撑在同一个紧集 $K$ 上，并且总质量统一有界，那么这些测度构成一个弱星紧族。因此它们存在聚点。
+
+在通常的度量化叙述中，可以说“取一个收敛子列”。形式化所用的有限测度弱拓扑接口没有直接提供这一序列化结论，因此采用等价而更一般的表述：存在一个包含尾滤子的超滤子 $\mathcal U$，使 $\mu_n$ 沿 $\mathcal U$ 收敛。数学内容仍然是“从紧族中选出一个共同的聚点”。
+
+\section{证明路线图}
+\sectionrule
+
+\begin{center}
+\begin{tikzpicture}[
+  node distance=8mm and 8mm,
+  box/.style={rounded corners=2mm,draw=blue!70,fill=blue!6,
+    minimum height=10mm,text width=4.0cm,align=center,font=\small\sffamily},
+  arrow/.style={-{Latex[length=2.5mm]},thick,draw=teal}
+]
+  \node[box] (u) {$u\ge0$，且在 $D(c,R)$ 上调和};
+  \node[box,right=of u] (un) {收缩函数\\$u_n=u\circ T_n$};
+  \node[box,below=of un] (mun) {边界测度\\$\dd\mu_n=u_n\,\dd\sigma_{c,R}$};
+  \node[box,left=of mun] (compact) {固定支撑、固定质量\\弱星紧致};
+  \node[box,below=of compact] (limit) {一个共同极限测度\\$\mu_n\weakto\mu$};
+  \node[box,right=of limit] (repr) {固定核通过极限\\$u=P[\mu]$};
+  \draw[arrow] (u) -- (un);
+  \draw[arrow] (un) -- (mun);
+  \draw[arrow] (mun) -- (compact);
+  \draw[arrow] (compact) -- (limit);
+  \draw[arrow] (limit) -- (repr);
+\end{tikzpicture}
+\end{center}
+
+证明中最重要的三条恒等式是
+\begin{align}
+  \mu_n(K)&=u(c), \label{eq:mass}\\
+  u_n(w)&=\int_K P_{c,R}(w,\zeta)\,\dd\mu_n(\zeta), \label{eq:reproduce}\\
+  u_n(w)&=u(T_nw)\longrightarrow u(w). \label{eq:pointlimit}
+\end{align}
+
+下面逐步证明它们并完成极限过程。
+
+\section{第一步：把函数向内收缩}
+\sectionrule
+
+选取显式半径序列
+\[
+  r_n=R\frac{n+1}{n+2}.
+\]
+显然
+\[
+  0<r_n<R,\qquad r_n\uparrow R.
+\]
+
+定义仿射全纯映射
+\[
+  T_n(z)=c+\frac{r_n}{R}(z-c),
+\]
+以及
+\[
+  u_n=u\circ T_n.
+\]
+
+若 $|z-c|\le R$，则
+\[
+  |T_n(z)-c|
+  =\frac{r_n}{R}|z-c|
+  \le r_n<R.
+\]
+所以 $T_n$ 把 $\overline{D(c,R)}$ 映入 $D(c,R)$。事实上，由于 $r_n<R$，它还会把闭圆盘的一个开邻域映入 $D(c,R)$。
+
+二维调和函数在全纯变量替换下保持调和。局部地，可把实调和函数写成一个全纯函数的实部：$u=\operatorname{Re}F$。于是
+\[
+  u\circ T_n=\operatorname{Re}(F\circ T_n),
+\]
+而 $F\circ T_n$ 仍全纯。因此 $u_n$ 在 $\overline{D(c,R)}$ 的一个邻域中调和。
+
+此外，若 $\zeta\in K$，则
+\[
+  |T_n(\zeta)-c|=r_n<R.
+\]
+由 $u\ge0$ 可知
+\begin{equation}\label{eq:un-nonnegative}
+  u_n(\zeta)\ge0\qquad(\zeta\in K).
+\end{equation}
+
+\section{第二步：构造固定圆周上的边界测度}
+\sectionrule
+
+定义
+\begin{equation}\label{eq:mun-def}
+  \dd\mu_n(\zeta)=u_n(\zeta)\,\dd\sigma_{c,R}(\zeta).
+\end{equation}
+
+由 \eqref{eq:un-nonnegative}，$\mu_n$ 是正测度。由于基准测度 $\sigma_{c,R}$ 支撑在 $K$ 上，$\mu_n$ 也满足
+\[
+  \mu_n(\C\setminus K)=0.
+\]
+
+再由 $u_n$ 的平均值性质，
+\begin{align*}
+  \mu_n(K)
+  &=\int_K u_n(\zeta)\,\dd\sigma_{c,R}(\zeta)\\
+  &=u_n(c)\\
+  &=u(T_n(c))\\
+  &=u(c).
+\end{align*}
+
+这就证明了 \eqref{eq:mass}。特别地，每个 $\mu_n$ 都是有限测度，而且其总质量与 $n$ 无关。
+
+\keybox{teal}{\textbf{为什么不归一化成概率测度？}
+我们已经有统一质量 $u(c)$，有限测度的紧致性足够使用。若强行除以 $u(c)$，就必须单独讨论 $u(c)=0$。保持原质量可以让退化情形自动包含在证明中。}
+
+\section{第三步：对收缩函数使用 Poisson 公式}
+\sectionrule
+
+固定 $w\in D(c,R)$。由于 $u_n$ 在闭圆盘邻域中调和，Poisson 公式 \eqref{eq:poisson-formula} 给出
+\begin{align*}
+  u_n(w)
+  &=\int_K P_{c,R}(w,\zeta)u_n(\zeta)\,
+       \dd\sigma_{c,R}(\zeta)\\
+  &=\int_K P_{c,R}(w,\zeta)\,\dd\mu_n(\zeta).
+\end{align*}
+
+也就是说，
+\begin{equation}\label{eq:key-fixed}
+  u(T_nw)=\int_K P_{c,R}(w,\zeta)\,\dd\mu_n(\zeta).
+\end{equation}
+
+式 \eqref{eq:key-fixed} 是整个方案的关键：$n$ 只出现在左边的 $T_n$ 和右边的测度 $\mu_n$ 中，Poisson 核本身完全不动。
+
+\section{第四步：用弱星紧致性得到边界测度}
+\sectionrule
+
+考虑有限正测度集合
+\[
+  \K=\bigl\{\nu:\nu(K^c)=0,\ \nu(\C)\le u(c)\bigr\}.
+\]
+因为 $K$ 紧，$\K$ 在有限测度的弱拓扑下是紧的。根据前两步，每个 $\mu_n$ 都属于 $\K$。
+
+因此存在 $\mu\in\K$，以及一个超滤子 $\mathcal U$，它包含自然数的所有尾集，并满足
+\[
+  \mu_n\weakto\mu\qquad\text{沿 }\mathcal U.
+\]
+
+于是 $\mu$ 是有限正测度，且
+\[
+  \mu(K^c)=0.
+\]
+
+\keybox{gold}{\textbf{量词顺序。}
+必须先从整列 $\mu_n$ 中选定一个 $\mathcal U$ 和一个 $\mu$，然后再说“任取 $w$”。这样同一个 $\mu$ 才能同时表示所有内部点。若对每个 $w$ 分别选择聚点，就无法得到一张统一的边界测度。}
+
+\section{第五步：固定核通过弱星极限}
+\sectionrule
+
+\subsection{为什么不能直接测试原始 Poisson 核}
+
+弱星收敛直接控制的是整个 $\C$ 上的有界连续函数。虽然
+$P_{c,R}(w,\cdot)$ 在圆周 $K$ 上连续有界，但它在整个 $\C$ 上并不有界：靠近 $z=w$ 时，分母 $|z-w|^2$ 退化。
+
+因此需要一个全局有界连续函数，它只要求在 $K$ 上与 Poisson 核一致。
+
+\subsection{构造有界连续替代函数}
+
+固定 $w\in D(c,R)$，记
+\[
+  \rho=|w-c|<R,\qquad
+  \delta=(R-\rho)^2>0,\qquad
+  A=R^2-\rho^2>0.
+\]
+定义
+\begin{equation}\label{eq:Q-def}
+  Q_w(z)=\frac{A}{\max\{|z-w|^2,\delta\}}.
+\end{equation}
+
+由于分母始终至少为 $\delta>0$，$Q_w$ 在 $\C$ 上连续且满足
+\[
+  0\le Q_w(z)\le \frac{A}{\delta}.
+\]
+
+若 $\zeta\in K$，反三角不等式给出
+\[
+  |\zeta-w|
+  \ge\bigl||\zeta-c|-|w-c|\bigr|
+  =R-\rho.
+\]
+所以 $|\zeta-w|^2\ge\delta$，从而
+\[
+  Q_w(\zeta)
+  =\frac{R^2-|w-c|^2}{|\zeta-w|^2}
+  =P_{c,R}(w,\zeta).
+\]
+
+所有 $\mu_n$ 和 $\mu$ 都支撑在 $K$ 上，因此
+\begin{align}
+  \int Q_w\,\dd\mu_n&=\int P_{c,R}(w,\zeta)\,\dd\mu_n(\zeta),
+    \label{eq:replace-n}\\
+  \int Q_w\,\dd\mu&=\int P_{c,R}(w,\zeta)\,\dd\mu(\zeta).
+    \label{eq:replace-limit}
+\end{align}
+
+\subsection{两边取极限}
+
+因为 $Q_w$ 有界连续，弱星收敛给出
+\begin{equation}\label{eq:weak-test}
+  \int Q_w\,\dd\mu_n
+  \longrightarrow
+  \int Q_w\,\dd\mu
+  \qquad\text{沿 }\mathcal U.
+\end{equation}
+
+另一方面，$r_n\to R$，所以 $T_nw\to w$。调和函数连续，于是
+\begin{equation}\label{eq:u-continuity}
+  u(T_nw)\longrightarrow u(w).
+\end{equation}
+
+结合 \eqref{eq:key-fixed}、\eqref{eq:replace-n}、\eqref{eq:weak-test}、
+\eqref{eq:u-continuity}，由实数极限的唯一性得到
+\[
+  u(w)=\int Q_w\,\dd\mu.
+\]
+再用 \eqref{eq:replace-limit}，便有
+\[
+  u(w)=\int_K P_{c,R}(w,\zeta)\,\dd\mu(\zeta).
+\]
+
+由于 $w\in D(c,R)$ 是任意的，而 $\mu$ 在选择 $w$ 之前已经固定，因此同一个 $\mu$ 表示整个函数 $u$。存在性方向得证。
+
+\section{第六步：反方向}
+\sectionrule
+
+现在设 $\mu$ 是支撑在 $K$ 上的有限正测度，并定义
+\[
+  v(w)=\int_K P_{c,R}(w,\zeta)\,\dd\mu(\zeta).
+\]
+
+当 $w\in D(c,R)$、$\zeta\in K$ 时，$P_{c,R}(w,\zeta)\ge0$，所以
+\[
+  v(w)\ge0.
+\]
+
+调和性可以用 Herglotz--Riesz 核说明。定义
+\[
+  H_\mu(w)=\int_K
+  \frac{(\zeta-c)+(w-c)}{(\zeta-c)-(w-c)}\,\dd\mu(\zeta).
+\]
+对 $w\in D(c,R)$，分母不会在 $K$ 上消失；由于 $\mu$ 有限，可以在紧子圆盘上一致控制核及其导数，因此 $H_\mu$ 是全纯函数。又有
+\[
+  \operatorname{Re}H_\mu(w)
+  =\int_K P_{c,R}(w,\zeta)\,\dd\mu(\zeta)
+  =v(w).
+\]
+全纯函数的实部调和，所以 $v$ 调和。这证明了反方向。
+
+\section{与 Garnett 原参数化的比较}
+\sectionrule
+
+Garnett 的边界测度同样是
+\[
+  \dd\mu_n(\zeta)=u(T_n\zeta)\,\dd\sigma_{c,R}(\zeta).
+\]
+若希望每一步都直接表示固定的 $u(w)$，就必须把内部点反向放大为
+\[
+  w_n=c+\frac{R}{r_n}(w-c),
+\]
+从而得到
+\[
+  u(w)=\int P_{c,R}(w_n,\zeta)\,\dd\mu_n(\zeta).
+\]
+此时通过极限需要同时处理
+\[
+\begin{split}
+  \int P(w_n,\zeta)\,\dd\mu_n
+  -\int P(w,\zeta)\,\dd\mu
+  ={}&\int\bigl(P(w_n,\zeta)-P(w,\zeta)\bigr)\,\dd\mu_n\\
+  &+\left(\int P(w,\zeta)\,\dd\mu_n
+  -\int P(w,\zeta)\,\dd\mu\right).
+\end{split}
+\]
+
+第一项需要核在圆周上的一致收敛，第二项才由弱星收敛处理。固定核方案改为先表示 $u(T_nw)$，把第一项完全删除：
+
+\begin{center}
+\begin{tabularx}{0.92\linewidth}{>{\raggedright\arraybackslash}p{3.2cm}XX}
+\toprule
+ & Garnett 的移动点读法 & 固定核读法 \\
+\midrule
+左边 & 始终是 $u(w)$ & 是 $u(T_nw)$，最后趋于 $u(w)$ \\
+积分核 & $P(w_n,\cdot)$ 随 $n$ 变化 & $P(w,\cdot)$ 固定 \\
+极限工作 & 核的一致收敛 $+$ 测度弱收敛 & 只有测度弱收敛 \\
+边界测度 & $\mu_n$ & 同一个 $\mu_n$ \\
+数学本质 & 弱星紧致性 & 同一弱星紧致性 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+因此这不是绕开 Garnett 的另一种证明，而是对同一个 Poisson 重现公式作更适合形式化的参数重排。
+
+\section{形式化证明的模块分解}
+\sectionrule
+
+完整形式化可以自然地分成四层。
+
+\begin{enumerate}
+  \item \textbf{加权圆周测度层。}证明
+  \[
+    \int\varphi\,\dd(P\sigma)=\int P\varphi\,\dd\sigma,
+    \qquad
+    (P\sigma)(K)=\int P\,\dd\sigma,
+  \]
+  并明确密度的 a.e. 可测性和可积性条件。
+
+  \item \textbf{调和复合层。}证明点态结论：若 $f$ 在 $g(x)$ 处调和且 $g$ 在 $x$ 处全纯，则 $f\circ g$ 在 $x$ 处调和；再推出集合版本和仿射收缩版本。
+
+  \item \textbf{表示定理层。}构造 $r_n,u_n,\mu_n$，应用有限测度紧致性，固定一个共同超滤子和极限测度，并用 $Q_w$ 测试弱收敛。
+
+  \item \textbf{接口层。}把普通正测度积分改写成项目统一的 Poisson 积分记号，并与已经证明的非负性、调和性定理组合成双向等价。
+\end{enumerate}
+
+\keybox{blue}{\textbf{三个最容易出错的点。}
+(1) 不能由 $P\varphi$ 可积推出 $P$ 可测；
+(2) 必须先选统一的极限测度，再固定 $w$；
+(3) 弱星收敛不能直接测试全局无界的原始 Poisson 核，必须使用在圆周上一致的有界连续替代函数。}
+
+\section{证明依赖关系总结}
+\sectionrule
+
+\begin{center}
+\begin{tabularx}{0.94\linewidth}{>{\bfseries\sffamily\color{navy}}p{3.3cm}X}
+\toprule
+数学工具 & 在证明中的作用 \\
+\midrule
+调和函数连续性 & 保证 $u(T_nw)\to u(w)$ \\
+调和函数的平均值性质 & 给出 $\mu_n(K)=u(c)$，从而获得统一质量界 \\
+Poisson 重现公式 & 把 $u_n(w)$ 写成对 $\mu_n$ 的积分 \\
+全纯映射下的调和性 & 保证收缩函数 $u_n=u\circ T_n$ 仍然调和 \\
+有限测度的弱星紧致性 & 从 $(\mu_n)$ 中产生有限正边界测度 $\mu$ \\
+有界连续测试函数 & 让积分从 $\mu_n$ 传递到 $\mu$ \\
+Herglotz--Riesz\\ 核 & 证明有限正测度的 Poisson 积分是调和函数 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+最终，存在性方向的逻辑可以压缩为
+\[
+\boxed{
+\begin{gathered}
+  u_n=u\circ T_n,
+  \qquad \dd\mu_n=u_n\,\dd\sigma_{c,R},
+  \qquad \mu_n(K)=u(c),\\[2mm]
+  u(T_nw)=\int_K P_{c,R}(w,\zeta)\,\dd\mu_n(\zeta),
+  \qquad \mu_n\weakto\mu,\\[2mm]
+  T_nw\to w
+  \quad\Longrightarrow\quad
+  u(w)=\int_K P_{c,R}(w,\zeta)\,\dd\mu(\zeta).
+\end{gathered}}
+\]
+
+\section*{参考}
+\addcontentsline{toc}{section}{参考}
+
+John B. Garnett, \textit{Bounded Analytic Functions}, Chapter I, Section 3,
+Theorem 3.5(c). 本讲义采用其中圆盘版的弱星紧致性思想，并把重现公式重新参数化为固定核形式。
+
+\end{document}
