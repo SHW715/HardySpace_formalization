@@ -40,6 +40,11 @@ noncomputable def nontangentially (ζ : ℂ) : Filter ℂ := ⨆ α ∈ Ioi (1 :
 equivalently along `𝓝[Γ_α(ζ)] ζ` for every `α > 1`. -/
 def HasNontangentialLimit (f : ℂ → X) (ζ : ℂ) (L : X) : Prop := Tendsto f (nontangentially ζ) (𝓝 L)
 
+-- ## It's a redundant definition
+/-- `f` **converges nontangentially** at `ζ`: it has a nontangential limit at `ζ`, without
+naming it. -/
+def NontangentiallyConvergentAt (f : ℂ → X) (ζ : ℂ) : Prop := ∃ L, HasNontangentialLimit f ζ L
+
 /-- Nontangential convergence is convergence within every approach region with `α > 1`. -/
 theorem hasNontangentialLimit_iff_forall {f : ℂ → X} {ζ : ℂ} {L : X} :
     HasNontangentialLimit f ζ L ↔ ∀ α > 1, HasNontangentialLimitWithin f α ζ L := by
@@ -99,9 +104,16 @@ theorem nontangentially_neBot_of_norm_eq_one {ζ : ℂ} (hζ : ‖ζ‖ = 1) :
   refine hne.mono ?_
   exact le_iSup₂ (f := fun α (_ : α ∈ Ioi (1 : ℝ)) => 𝓝[stolzSetAt ζ α] ζ) 2 (by norm_num)
 
+
 /-!
 ### Bridging the pointwise, the relational and the canonical boundary function
 -/
+
+/-- Where a nontangential limit exists, `f` tends to its canonical boundary value. -/
+lemma NontangentiallyConvergentAt.hasNontangentialLimit [Nonempty X]
+    {f : ℂ → X} {ζ : ℂ} (h : NontangentiallyConvergentAt f ζ) :
+    HasNontangentialLimit f ζ (boundaryValue f ζ) :=
+  tendsto_nhds_limUnder h
 
 /-- Where a nontangential limit exists, the canonical boundary function takes that value. -/
 theorem HasNontangentialLimit.boundaryValue_eq [T2Space X] [Nonempty X] {f : ℂ → X} {ζ : ℂ} {L : X}

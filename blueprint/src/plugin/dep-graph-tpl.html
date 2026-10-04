@@ -288,10 +288,6 @@ function keyFromHash() {
   return DOTS[key] ? key : '__main__';
 }
 
-latexLabelEscaper = function(label) {
-  return label.replace(/\./g, '\\.').replace(/:/g, '\\:')
-}
-
 function hideStatements() {
   $('#statements').hide();
   $('#statements > div').hide();
@@ -352,7 +348,7 @@ function openStatement(id) {
   // button rather than offering to re-render it.
   $('.hg-drill').show().filter('[data-hg-goto="' + id + '"]')
     .toggle(id !== currentKey);
-  $('#' + latexLabelEscaper(id) + '_modal').show().children().show().children().show();
+  $(document.getElementById(id + '_modal')).show().children().show().children().show();
   $('#statements').show();
 }
 

@@ -30,6 +30,12 @@ theorem measurable_poissonKernel (c w : ℂ) : Measurable (fun z : ℂ => poisso
   unfold poissonKernel
   fun_prop
 
+/-- Simultaneous nonzero dilation leaves the centered Poisson kernel unchanged. -/
+lemma poissonKernel_zero_mul {a : ℂ} (ha : a ≠ 0) (w z : ℂ) :
+    poissonKernel 0 (a * w) (a * z) = poissonKernel 0 w z := by
+  simp only [poissonKernel_def, sub_zero, ← mul_sub, norm_mul, mul_pow]
+  rw [mul_div_mul_left _ _ (pow_ne_zero 2 (norm_ne_zero_iff.mpr ha))]
+
 /-- The Poisson kernel is nonnegative for an interior point and a boundary point. -/
 theorem poissonKernel_nonneg (hw : w ∈ ball c R) {z : ℂ} (hz : z ∈ sphere c R) :
     0 ≤ poissonKernel c w z := by
@@ -59,6 +65,25 @@ theorem norm_poissonKernel_le_of_mem_ball (hw : w ∈ ball c R) {z : ℂ} (hz : 
     ‖poissonKernel c w z‖ ≤ (R + ‖w - c‖) / (R - ‖w - c‖) := by
   rw [Real.norm_eq_abs, abs_of_nonneg (poissonKernel_nonneg hw hz)]
   exact poissonKernel_le_of_mem_ball hw hz
+
+/-- The Poisson kernel is symmetric in two points of the same circle: for `ζ, η ∈ sphere c R`
+and real `r`, `P(c, c + r(η - c), ζ) = P(c, c + r(ζ - c), η)`. On the unit circle this is
+`P_{rη}(ζ) = P_{rζ}(η)`. -/
+theorem poissonKernel_symm_of_mem_sphere {ζ η : ℂ} (hζ : ζ ∈ sphere c R) (hη : η ∈ sphere c R)
+    (r : ℝ) :
+    poissonKernel c (c + r * (η - c)) ζ = poissonKernel c (c + r * (ζ - c)) η := by
+  have key (a b : ℂ) (hab : ‖a‖ = ‖b‖) : ‖a - (r : ℂ) * b‖ ^ 2 = ‖b - (r : ℂ) * a‖ ^ 2 := by
+    have hab2 : a.re * a.re + a.im * a.im = b.re * b.re + b.im * b.im := by
+      rw [← Complex.normSq_apply, ← Complex.normSq_apply, Complex.normSq_eq_norm_sq,
+        Complex.normSq_eq_norm_sq, hab]
+    rw [← Complex.normSq_eq_norm_sq, ← Complex.normSq_eq_norm_sq]
+    simp only [Complex.normSq_apply, Complex.sub_re, Complex.sub_im, Complex.mul_re,
+      Complex.mul_im, Complex.ofReal_re, Complex.ofReal_im, zero_mul, sub_zero, add_zero]
+    linear_combination (1 - r ^ 2) * hab2
+  have hζ' : ‖ζ - c‖ = R := mem_sphere_iff_norm.1 hζ
+  have hη' : ‖η - c‖ = R := mem_sphere_iff_norm.1 hη
+  rw [poissonKernel_def, poissonKernel_def, add_sub_cancel_left, add_sub_cancel_left,
+    key _ _ (hζ'.trans hη'.symm), norm_mul, norm_mul, hζ', hη']
 
 
 

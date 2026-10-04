@@ -113,8 +113,7 @@ theorem poissonModification_mono {v : ℂ → WithBot ℝ}
 /- A real-valued subharmonic function on the unit disc has a harmonic majorant if and only if
 its radial means are uniformly bounded above. -/
 theorem hasHarmonicMajorant_iff_radialMean_bddAbove
-    {v : ℂ → WithBot ℝ}
-    (hv : SubharmonicOn v (ball 0 1)) :
+    {v : ℂ → WithBot ℝ} (hv : SubharmonicOn v (ball 0 1)) :
     HasHarmonicMajorant v (ball 0 1) ↔
       (⨆ (r : ℝ) (_ : r ∈ Ioo 0 1), (withBotRadialMean v r : EReal)) < ∞ := by
   sorry
@@ -123,13 +122,10 @@ theorem hasHarmonicMajorant_iff_radialMean_bddAbove
 /-- When a subharmonic function `v` on the unit disc has a harmonic
 majorant, its least harmonic majorant `u` is recovered as the pointwise radial limit of the Poisson
 modifications: `u z = lim_{r → 1⁻} v_r z`. -/
-theorem exists_isLeastHarmonicMajorant_tendsto_poissonModification
-    {v : ℂ → WithBot ℝ}
-    (hv : SubharmonicOn v (ball 0 1))
-    (hmaj : HasHarmonicMajorant v (ball 0 1)) :
-    ∃ u : ℂ → ℝ, IsLeastHarmonicMajorant u v (ball 0 1) ∧
-      ∀ z ∈ ball 0 1, Tendsto (fun r => poissonModification v r z)
-      (𝓝[<] 1) (𝓝 (u z) ) := by
+theorem exists_isLeastHarmonicMajorant_tendsto_poissonModification {v : ℂ → WithBot ℝ}
+  (hv : SubharmonicOn v (ball 0 1)) (hmaj : HasHarmonicMajorant v (ball 0 1)) :
+    ∃ u : ℂ → ℝ, IsLeastHarmonicMajorant u v (ball 0 1) ∧ ∀ z ∈ ball 0 1,
+      Tendsto (fun r => poissonModification v r z) (𝓝[<] 1) (𝓝 (u z) ) := by
   sorry
 
 

@@ -269,6 +269,8 @@ lemma exp_weighted_circleAverage_le_circleAverage_weighted_exp
   have hP_nonneg_ae : ∀ᵐ z ∂circleMeasure c R, 0 ≤ P z :=
     (ae_mem_sphere_circleMeasure hR).mono fun z hz => hP_nonneg z hz
   have hP_int : CircleIntegrable P c R := hP_cont.circleIntegrable hR
+  have hP_meas : AEMeasurable P (circleMeasure c R) :=
+    hP_int.aestronglyMeasurable_circleMeasure.aemeasurable
   haveI : IsProbabilityMeasure μP :=
     isProbabilityMeasure_withDensity_circleMeasure hP_nonneg_ae hP_int hP_avg
   have hPψ_int : CircleIntegrable (fun z : ℂ => P z * ψ z) c R :=
@@ -276,13 +278,13 @@ lemma exp_weighted_circleAverage_le_circleAverage_weighted_exp
   have hPexpψ_int : CircleIntegrable (fun z : ℂ => P z * exp (ψ z)) c R :=
     (hP_cont.mul (by fun_prop)).circleIntegrable hR
   have hleft : circleAverage (fun z : ℂ => P z * ψ z) c R = ∫ z, ψ z ∂μP :=
-    integral_withDensity_circleMeasure_eq_circleAverage_mul hP_nonneg_ae hPψ_int
+    integral_withDensity_circleMeasure_eq_circleAverage_mul hP_meas hP_nonneg_ae hPψ_int
   have hright : circleAverage (fun z : ℂ => P z * exp (ψ z)) c R = ∫ z, exp (ψ z) ∂μP :=
-    integral_withDensity_circleMeasure_eq_circleAverage_mul hP_nonneg_ae hPexpψ_int
+    integral_withDensity_circleMeasure_eq_circleAverage_mul hP_meas hP_nonneg_ae hPexpψ_int
   rw [hleft, hright]
   refine convexOn_exp.map_integral_le continuousOn_exp isClosed_univ (by simp) ?_ ?_
-  . exact integrable_withDensity_circleMeasure_of_circleIntegrable hP_nonneg_ae hPψ_int
-  . exact integrable_withDensity_circleMeasure_of_circleIntegrable hP_nonneg_ae hPexpψ_int
+  . exact integrable_withDensity_circleMeasure_of_circleIntegrable hP_meas hP_nonneg_ae hPψ_int
+  . exact integrable_withDensity_circleMeasure_of_circleIntegrable hP_meas hP_nonneg_ae hPexpψ_int
 
 /-- Jensen's inequality for the Poisson logarithmic barrier. If `h` is positive on the boundary,
 then the exponential of the Poisson extension of `log h` is bounded by `h` inside. -/

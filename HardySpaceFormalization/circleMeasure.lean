@@ -128,6 +128,19 @@ lemma CircleIntegrable.aestronglyMeasurable_circleMeasure
     exact AEStronglyMeasurable.mono_ac
       (by rw [hcircle_eq]; exact Measure.smul_absolutelyContinuous) hcircle_base
 
+omit [NormedSpace ℝ E] in
+/-- Circle-integrable functions are integrable against normalized circle measure. -/
+lemma CircleIntegrable.integrable_circleMeasure
+    {c : ℂ} {R : ℝ} {f : ℂ → E} (hf : CircleIntegrable f c R) :
+    Integrable f (circleMeasure c R) := by
+  apply (integrable_map_measure hf.aestronglyMeasurable_circleMeasure
+    (measurable_circleMap c R).aemeasurable).2
+  have hIco : IntegrableOn (fun θ : ℝ => f (circleMap c R θ))
+      (Set.Ico 0 (2 * π)) volume := by
+    rw [← intervalIntegrable_iff_integrableOn_Ico_of_le (by positivity)]
+    exact hf
+  exact hIco.smul_measure ENNReal.ofReal_ne_top
+
 /-- `circleAverage` is integration with respect to the normalized circle measure. -/
 lemma circleAverage_eq_integral_circleMeasure {c : ℂ} {R : ℝ} {f : ℂ → E}
     (hf : CircleIntegrable f c R) :
@@ -151,24 +164,59 @@ lemma ae_mem_sphere_circleMeasure {c : ℂ} {R : ℝ} (hR : 0 ≤ R) :
       ae_of_all _ fun θ => circleMap_mem_sphere c hR θ
 
 
+/-- The circle measure vanishes off its circle. -/
+theorem circleMeasure_compl_sphere {c : ℂ} {R : ℝ} (hR : 0 ≤ R) : circleMeasure c R (sphere c R)ᶜ = 0 := by
+  have h := ae_mem_sphere_circleMeasure (c := c) (R := R) hR
+  rwa [ae_iff, ← Set.compl_setOf, Set.setOf_mem_eq] at h
+
+/-- Continuous boundary data is integrable against the circle measure. -/
+theorem ContinuousOn.integrable_circleMeasure {k : ℂ → ℝ} {c : ℂ} {R : ℝ} (hR : 0 ≤ R)
+    (hk : ContinuousOn k (sphere c R)) : Integrable k (circleMeasure c R) := by
+  have hae := ae_mem_sphere_circleMeasure (c := c) (R := R) hR
+  have hmeas : AEStronglyMeasurable k (circleMeasure c R) := by
+    rw [← Measure.restrict_eq_self_of_ae_mem hae]
+    exact hk.aestronglyMeasurable Metric.isClosed_sphere.measurableSet
+  obtain ⟨C, hC⟩ := (isCompact_sphere c R).exists_bound_of_continuousOn hk
+  refine (integrable_const C).mono' hmeas ?_
+  filter_upwards [hae] with z hz using hC z hz
+
+/-- Continuous real boundary data belongs to every Lp space on the circle. -/
+theorem ContinuousOn.memLp_circleMeasure {k : ℂ → ℝ} {c : ℂ} {R : ℝ}
+    (hk : ContinuousOn k (sphere c R)) (hR : 0 ≤ R) (p : ℝ≥0∞) :
+    MemLp k p (circleMeasure c R) := by
+  obtain ⟨C, hC⟩ := (isCompact_sphere c R).exists_bound_of_continuousOn hk
+  exact MemLp.of_bound (hk.integrable_circleMeasure hR).aestronglyMeasurable C
+    ((ae_mem_sphere_circleMeasure hR).mono fun z hz => hC z hz)
+
 /-- If `P * φ` is circle-integrable, then `φ` is integrable against the circle measure weighted by
 the nonnegative density `P`. -/
 lemma integrable_withDensity_circleMeasure_of_circleIntegrable
     {c : ℂ} {R : ℝ} {P φ : ℂ → ℝ}
+    (hP_meas : AEMeasurable P (circleMeasure c R))
     (hP_nonneg : ∀ᵐ z ∂circleMeasure c R, 0 ≤ P z)
     (hPφ : CircleIntegrable (fun z : ℂ => P z * φ z) c R) :
     Integrable φ ((circleMeasure c R).withDensity fun z => ENNReal.ofReal (P z)) := by
-  sorry
+  apply (integrable_withDensity_iff_integrable_smul₀' hP_meas.ennreal_ofReal
+    (Filter.Eventually.of_forall fun _ => ENNReal.ofReal_lt_top)).2
+  refine hPφ.integrable_circleMeasure.congr ?_
+  filter_upwards [hP_nonneg] with z hz
+  simp [ENNReal.toReal_ofReal hz, smul_eq_mul]
 
 /-- Integrating against a density with respect to circle measure is the same as taking the
 circle average after multiplying by that density. -/
 lemma integral_withDensity_circleMeasure_eq_circleAverage_mul
     {c : ℂ} {R : ℝ} {P φ : ℂ → ℝ}
+    (hP_meas : AEMeasurable P (circleMeasure c R))
     (hP_nonneg : ∀ᵐ z ∂circleMeasure c R, 0 ≤ P z)
     (hPφ : CircleIntegrable (fun z : ℂ => P z * φ z) c R) :
     circleAverage (fun z : ℂ => P z * φ z) c R =
      ∫ z, φ z ∂((circleMeasure c R).withDensity fun z => ENNReal.ofReal (P z)) := by
-  sorry
+  rw [circleAverage_eq_integral_circleMeasure hPφ,
+    integral_withDensity_eq_integral_toReal_smul₀ hP_meas.ennreal_ofReal
+      (Filter.Eventually.of_forall fun _ => ENNReal.ofReal_lt_top)]
+  apply integral_congr_ae
+  filter_upwards [hP_nonneg] with z hz
+  simp [ENNReal.toReal_ofReal hz, smul_eq_mul]
 
 /-- If a circle-density is nonnegative and has circle average one, then the corresponding weighted
 circle measure is a probability measure. -/
@@ -178,6 +226,9 @@ lemma isProbabilityMeasure_withDensity_circleMeasure
     (hP_int : CircleIntegrable P c R)
     (hP_avg : circleAverage P c R = 1) :
     IsProbabilityMeasure ((circleMeasure c R).withDensity fun z => ENNReal.ofReal (P z)) := by
-  sorry
+  constructor
+  rw [withDensity_apply _ MeasurableSet.univ, Measure.restrict_univ,
+    ← ofReal_integral_eq_lintegral_ofReal hP_int.integrable_circleMeasure hP_nonneg,
+    ← circleAverage_eq_integral_circleMeasure hP_int, hP_avg, ENNReal.ofReal_one]
 
 end

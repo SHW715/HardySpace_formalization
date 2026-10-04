@@ -88,7 +88,7 @@ and are not verbatim reproductions of the source.
 \begin{definition}[Nontangential limit]
   \label{def:nt_limit}
   \lean{HasNontangentialLimitWithin, nontangentially, HasNontangentialLimit,
-    hasNontangentialLimit_iff_forall}
+    NontangentiallyConvergentAt, hasNontangentialLimit_iff_forall}
   \leanok
   \uses{def:nt_region}
   \mainline
@@ -145,13 +145,16 @@ and are not verbatim reproductions of the source.
 
 \begin{lemma}[Boundary values: pointwise, relational and canonical]
   \label{lem:boundary_value_bridge}
-  \lean{HasNontangentialLimit.boundaryValue_eq,
+  \lean{NontangentiallyConvergentAt.hasNontangentialLimit,
+    HasNontangentialLimit.boundaryValue_eq,
     IsAEBoundaryValue.ae_eq_boundaryValue,
     IsAEBoundaryValue.aestronglyMeasurable_boundaryValue}
   \leanok
   \uses{def:boundary_function, lem:nt_filter_neBot}
   Let $\mu$ be a measure on $\partial\D$ carried by the circle.
   \begin{enumerate}
+    \item If $f$ converges nontangentially at $\zeta$, then $f\to f^*(\zeta)$
+      along $\mathcal{N}_\zeta$.
     \item If $f$ has nontangential limit $L$ at $\zeta$, then $f^*(\zeta)=L$.
     \item If $g$ is an almost everywhere nontangential boundary value of $f$,
       then $g=f^*$ almost everywhere.
@@ -545,24 +548,6 @@ and are not verbatim reproductions of the source.
   \end{proof}
 \end{theorem}
 
-\begin{theorem}[Bounded harmonic functions are Poisson integrals of $L^\infty$ data]
-  \label{thm:bounded_harmonic_poisson_Linfty}
-  \notready
-  \uses{thm:positive_harmonic_poisson_measure}
-  If $u$ is real harmonic on $\D$ with $|u|\le M$, then there is
-  $k\in L^\infty(d\theta/2\pi)$ with $\|k\|_\infty\le M$ and $u=P[k\,
-  d\theta/2\pi]$.
-  \begin{proof}
-    \notready
-    Apply Theorem~\ref{thm:positive_harmonic_poisson_measure} to the positive
-    harmonic function $u+M$ to get $u+M=P[\mu]$ with $\mu\ge0$ finite. Since
-    $\mu$ is the weak-star limit of the measures $(u(r\,\cdot)+M)\,
-    d\theta/2\pi$, whose densities are bounded by $2M$, one gets
-    $\mu\le 2M\,d\theta/2\pi$; Radon--Nikodym then produces a density bounded
-    by $2M$, and subtracting $M$ gives $k$.
-  \end{proof}
-\end{theorem}
-
 \begin{theorem}[A boundary measure is determined by its Poisson integral]
   \label{thm:poisson_measure_unique}
   \notready
@@ -578,25 +563,26 @@ and are not verbatim reproductions of the source.
 
 \section{Chapter II, Section 2: Blaschke products}
 
-\begin{definition}[Blaschke sum of a function]
+\begin{definition}[Multiplicity and the Blaschke sum]
   \label{def:blaschke_sum}
-  \lean{blaschkeSum}
+  \lean{Multiplicity, blaschkeSum}
   \leanok
-  For a nonzero analytic function $f$ on $\mathbb D$, its Blaschke sum is
+  For $m:\mathbb C\to\mathbb N\cup\{\infty\}$, define
   \[
-    \mathcal B(f)=\sum_{a\in\mathbb D:\,f(a)=0}m_f(a)(1-|a|)
-      \in[0,+\infty],
+    \mathcal B(m)=\sum_{a\in\mathbb D}m(a)(1-|a|)\in[0,+\infty].
   \]
-  where $m_f(a)$ is the multiplicity of the zero at $a$.
+  An analytic function uses $m_f(a)=\operatorname{ord}_a(f)$; a family
+  $(a_i)_{i\in I}$ uses $m(a)=\#\{i\in I:a_i=a\}$, with infinite cardinalities
+  recorded as $\infty$.
 \end{definition}
 
-\begin{definition}[Blaschke condition for a function]
+\begin{definition}[Blaschke condition for a multiplicity function]
   \label{def:blaschke_condition}
   \lean{BlaschkeCondition}
   \leanok
   \uses{def:blaschke_sum}
-  A nonzero analytic function $f$ on $\mathbb D$ satisfies Blaschke's
-  condition if $\mathcal B(f)<\infty$.
+  A multiplicity function $m$ satisfies Blaschke's condition on $\mathbb D$
+  if $\mathcal B(m)<\infty$.
 \end{definition}
 
 \begin{theorem}[Garnett II.2.1: the Blaschke condition]
@@ -608,11 +594,11 @@ and are not verbatim reproductions of the source.
   \mainline
   \bookref{Garnett}{II.2.1}{Chapter II, Section 2, PDF pages 63--64}
   If $f$ is a nonzero analytic function on $\mathbb D$ and $\log|f|$
-  has a harmonic majorant, then $\mathcal B(f)<\infty$.
+  has a harmonic majorant, then $\mathcal B(m_f)<\infty$.
   If moreover $f(0)\ne0$ and $u$ is the least harmonic majorant of
   $\log|f|$, then
   \[
-    \mathcal B(f)\le u(0)-\log|f(0)|.
+    \mathcal B(m_f)\le u(0)-\log|f(0)|.
   \]
   \begin{proof}
     \proves{thm:II_2_1}
@@ -631,6 +617,7 @@ and are not verbatim reproductions of the source.
   \lean{tendstoLocallyUniformlyOn_blaschkeProductFactor,
     tendstoLocallyUniformlyOn_blaschkeProduct,
     analyticOnNhd_blaschkeProduct, norm_blaschkeProduct_le_one,
+    norm_BlaschkeFactor_one_le_one,
     analyticOrderAt_blaschkeProduct, blaschkeProduct_eq_zero_iff,
     memHpDisc_blaschkeProduct, ae_hasNontangentialLimit_blaschkeProduct}
   \leanok
@@ -650,44 +637,66 @@ and are not verbatim reproductions of the source.
   \begin{proof}
     \proves{thm:II_2_2}
     \notready
+    \uses{cor:II_3_2(p=∞)}
+    The passage from the product omitting origin zeros to the full product
+    $B(z)=z^mP(z)$ is formalized: multiplication by $z^m$, whose modulus
+    is at most one on $\D$, preserves locally uniform convergence.
+    Analyticity of $B$ is formalized from this convergence: the finite
+    products are holomorphic since $|\overline{a_n}z|<1$ on $\D$,
+    and a locally uniform limit of holomorphic functions is holomorphic.
+    The bound $|B|\le1$ is formalized by bounding each finite product
+    and passing to the pointwise limit. The factor bound follows from
+    $|1-\overline a z|^2-|z-a|^2=(1-|a|^2)(1-|z|^2)\ge0$.
+    Membership in $H^\infty$ follows from analyticity and $|B|\le1$, and
+    the zero set is read off from the multiplicity formula, since an analytic
+    function vanishes exactly where its order is nonzero.
+    Convergence of the product omitting origin zeros, the multiplicity
+    formula, and the boundary modulus remain to be proved.
+    For the boundary modulus, first remove the origin zeros and let $B_n$
+    be the finite partial products. The tail product $Q_n=B/B_n$ is bounded
+    analytic. Corollary~\ref{cor:II_3_2(p=∞)} gives
+    \[
+      |Q_n(0)|\le\int_{\partial\D}|Q_n^*|\,d\sigma
+      =\int_{\partial\D}|B^*|\,d\sigma\le1.
+    \]
+    Here $|B_n|=1$ on the circle and $|Q_n(0)|\to1$, so $|B^*|=1$
+    almost everywhere. Restoring the origin factor preserves the boundary modulus.
   \end{proof}
 \end{theorem}
 
-\begin{theorem}[Garnett II.2.3 (F. Riesz): division by the Blaschke factor]
-  \label{thm:II_2_3}
-  \notready
-  \uses{thm:II_2_1, thm:II_2_2}
-  \mainline
-  \bookref{Garnett}{II.2.3}{Chapter II, Section 2, PDF page 66}
-  Let $0<p<\infty$, let $f\in H^p(\mathbb D)$ be nonzero, and let $B$ be the
-  Blaschke product formed from all zeros of $f$, counted with multiplicity.
-  Then $g=f/B$ extends analytically across the removable singularities,
-  belongs to $H^p(\mathbb D)$, and satisfies
-  \[
-    \lVert g\rVert_{H^p}=\lVert f\rVert_{H^p}.
-  \]
-\end{theorem}
-
-\begin{theorem}[Garnett II.2.4: characterization of Blaschke products]
+\begin{theorem}[Garnett II.2.4: radial means and least harmonic majorants]
   \label{thm:II_2_4}
-  \notready
-  \uses{thm:I_6_7, thm:II_2_1, thm:II_2_2}
+  \lean{tendsto_withBotRadialMean_logNormBot_blaschkeProduct,
+    tendsto_withBotRadialMean_logNormBot_iff_isLeastHarmonicMajorant_zero}
+  \leanok
+  \uses{thm:I_6_7, thm:II_2_2}
   \mainline
   \bookref{Garnett}{II.2.4}{Chapter II, Section 2, PDF page 66}
-  Let $f\in H^\infty(\mathbb D)$ with $\lVert f\rVert_\infty\le 1$. Then the
-  following are equivalent:
+  Let $f$ be analytic on $\mathbb D$ with $|f|\le1$. Consider:
   \begin{enumerate}
-    \item $f=\lambda B$, where $|\lambda|=1$ and $B$ is a Blaschke product;
-    \item
+    \item[(a)] $f=\lambda B$, where $|\lambda|=1$ and $B$ is a Blaschke product;
+    \item[(b)]
       \[
-        \lim_{r\to1}\frac{1}{2\pi}\int_0^{2\pi}
+        \lim_{r\uparrow1}\frac{1}{2\pi}\int_0^{2\pi}
           \log|f(r e^{i\theta})|\,d\theta=0;
       \]
-    \item the least harmonic majorant of $\log|f|$ is the zero function.
+    \item[(c)] the least harmonic majorant of $\log|f|$ is the zero function.
   \end{enumerate}
-  The equivalence of the last two conditions is the direct use of
-  Theorem~\ref{thm:I_6_7}; condition (3) is the form used in
-  Lemma~\ref{lem:II_5_2}.
+  We formalize $(a)\Rightarrow(b)$ and $(b)\Leftrightarrow(c)$, which suffice for
+  Lemma~\ref{lem:II_5_2}. The logarithm and its radial means take values in
+  $\mathbb R\cup\{-\infty\}$, with $\log0=-\infty$.
+  \begin{proof}
+    \proves{thm:II_2_4}
+    \notready
+    For $(a)\Rightarrow(b)$, remove a finite initial Blaschke product so that
+    the remaining product has modulus at the origin arbitrarily close to one;
+    apply the subharmonic mean inequality and let the radius tend to one.
+    For $(b)\Leftrightarrow(c)$, Theorem~\ref{thm:I_6_7} identifies the radial
+    limit with $u(0)$ for the least harmonic majorant $u\le0$.
+    The harmonic maximum principle gives $u(0)=0$ if and only if $u\equiv0$.
+    This equivalence is formalized using the existing prerequisite theorems;
+    the proof of $(a)\Rightarrow(b)$ remains to be formalized.
+  \end{proof}
 \end{theorem}
 
 \begin{definition}[Lean Blaschke factors]
@@ -775,7 +784,7 @@ and are not verbatim reproductions of the source.
   \label{thm:II_5_1}
   \notready
   \uses{thm:log_abs_subharmonic, thm:I_6_7,
-    thm:positive_harmonic_poisson_measure, lem:poisson_integral_jordan}
+    thm:I_3_5(c), lem:poisson_integral_jordan}
   \mainline
   \bookref{Garnett}{II.5.1}{Chapter II, Section 5, PDF page 78}
   Let $f$ be analytic on $\mathbb{D}$, $f\not\equiv0$. Then $f\in N$ if and
@@ -786,7 +795,7 @@ and are not verbatim reproductions of the source.
     \notready
     If $f\in N$, take a nonnegative harmonic majorant $U$ of $\log^+|f|$
     and let $u\le U$ be the least harmonic majorant of $\log|f|$.
-    Apply Theorem~\ref{thm:positive_harmonic_poisson_measure} to $U$ and
+    Apply Theorem~\ref{thm:I_3_5(c)} to $U$ and
     $U-u$ and subtract their representing measures to obtain $u=P[\mu]$.
     Conversely, the Jordan identity
     (Lemma~\ref{lem:poisson_integral_jordan}) gives
@@ -811,11 +820,102 @@ and are not verbatim reproductions of the source.
   \end{proof}
 \end{theorem}
 
+\begin{lemma}[Garnett I.(3.5): Poisson integrals contract $L^p$, disc form]
+  \label{eq:I_3_5}
+  \lean{eLpNorm_poissonIntegral_radial_le, hardyNorm_poissonIntegral_le}
+  \leanok
+  \uses{def:poisson_integral, lem:poisson_integral_withDensity,
+    thm:poisson_reproducing}
+  \bookref{Garnett}{I.(3.5)}{Chapter I, Section 3, printed pages 14--15,
+    PDF pages 26--27}
+  Let $1\le p\le\infty$, let $\sigma$ be normalized arclength on $\partial\D$,
+  and let $U\in L^p(\sigma)$. Then for $0<r<1$,
+  \[
+    \|P[U\,d\sigma](r\,\cdot)\|_{L^p(\sigma)}\le\|U\|_{L^p(\sigma)},
+  \]
+  hence $\sup_{0<r<1}\|P[U\,d\sigma](r\,\cdot)\|_{L^p(\sigma)}
+  \le\|U\|_{L^p(\sigma)}$.
+  \begin{proof}
+    \proves{eq:I_3_5}
+    \leanok
+    For $p=\infty$ use $P_z\ge0$ and $\int P_z\,d\sigma=1$. For
+    $1\le p<\infty$, Jensen's inequality for the probability measure
+    $P_z\,d\sigma$ gives $|P[U\,d\sigma](z)|^p\le\int P_z|U|^p\,d\sigma$.
+    Integrate over $z=r\eta$, exchange the integrals, and use
+    $P_{r\eta}(\zeta)=P_{r\zeta}(\eta)$ for $|\eta|=|\zeta|=1$ together with
+    total mass one. Garnett uses Minkowski's integral inequality instead,
+    which mathlib lacks.
+  \end{proof}
+\end{lemma}
+
+\begin{theorem}[$L^p$ dual representation]
+  \label{thm:lp_duality}
+  \lean{MeasureTheory.Lp.exists_eq_integral_mul,
+    MeasureTheory.Lp.exists_eq_integral_mul_of_isFiniteMeasure,
+    MeasureTheory.Lp.eq_of_forall_integral_mul_eq,
+    MeasureTheory.Lp.lpPairing_mul_injective,
+    ContinuousLinearMap.norm_lpPairing_le,
+    MeasureTheory.Lp.norm_lpPairing_mul_apply_le}
+  \leanok
+  \uses{}
+  \bookref{Rudin, Real and Complex Analysis}{6.16}{Real-valued case;
+    the exponents $p$ and $q$ are interchanged relative to Rudin's notation}
+  Let $\mu$ be a $\sigma$-finite measure and let $p,q$ be conjugate exponents with
+  $1\le q<\infty$. For every bounded real linear functional
+  $\Lambda$ on $L^q(\mu;\mathbb R)$, there exists a unique $U\in L^p(\mu;\mathbb R)$ such that
+  \[
+    \|U\|_p=\|\Lambda\|,
+    \qquad \Lambda(f)=\int Uf\,d\mu\quad(f\in L^q(\mu;\mathbb R)).
+  \]
+  \begin{proof}
+    \proves{thm:lp_duality}
+    \notready
+    The pairing operator-norm bounds, uniqueness, and finite-measure existence are proved.
+    For finite $\mu$, define $\nu(A)=\Lambda(1_A)$ and take its Radon--Nikodym density $U$.
+    Bounded simple-function approximation gives representation on bounded measurable tests.
+    Indicator tests handle $q=1$; truncated conjugate-power tests handle $q>1$ and give
+    $\|U\|_p\le\|\Lambda\|$. Density in $L^q$ and H\"older's inequality finish the proof.
+    The sigma-finite extension remains unproved.
+  \end{proof}
+\end{theorem}
+
+\begin{theorem}[Garnett I.3.5(a): bounded radial $L^p$ norms, disc form]
+  \label{thm:I_3_5(a)}
+  \lean{harmonicOnNhd_hardyNorm_lt_top_iff_exists_memLp_eq_poissonIntegral,
+    ContinuousOn.memLp_circleMeasure, poissonKernel_zero_mul,
+    integral_poissonKernel_mul_radial_eq}
+  \leanok
+  \uses{def:poisson_integral, lem:poisson_integral_withDensity,
+    thm:harmonic_poisson_integral, thm:poisson_reproducing, eq:I_3_5}
+  \bookref{Garnett}{I.3.5(a)}{Chapter I, Section 3, printed pages 17--19,
+    PDF pages 29--31}
+  Let $1<p\le\infty$, and let $\sigma$ be normalized arclength on $\partial\D$.
+  A function $u:\mathbb C\to\mathbb R$ is harmonic on $\D$ and satisfies
+  \[
+    \sup_{0<r<1}\|u(r\,\cdot)\|_{L^p(\sigma)}<\infty
+  \]
+  if and only if there exists $U\in L^p(\sigma)$ such that
+  $u=P[U\,d\sigma]$ on $\D$.
+  \begin{proof}
+    \proves{thm:I_3_5(a)}
+    \leanok
+    \uses{thm:lp_duality}
+    On the unit disc put $u_t(\zeta)=u(t\zeta)$. The reproducing formula
+    gives $u(tz)=\int P_z u_t\,d\sigma$. The uniformly bounded family
+    $u_t\in L^p=(L^q)^*$, where $1/p+1/q=1$, has a weak-star cluster
+    point $U$ as $t\to1$. Testing against the fixed kernel $P_z\in L^q$
+    gives $u=P[U\,d\sigma]$. Conversely, the Poisson operators are
+    contractions on $L^p$ (Lemma~\ref{eq:I_3_5}).
+    The finite-measure dual representation used here is proved in
+    Theorem~\ref{thm:lp_duality}; the sigma-finite extension is not needed here.
+  \end{proof}
+\end{theorem}
+
 \begin{theorem}[Garnett I.3.5(c): positive harmonic functions as Poisson integrals, disc form]
-  \label{thm:positive_harmonic_poisson_measure}
+  \label{thm:I_3_5(c)}
   \lean{harmonicOnNhd_nonneg_iff_exists_eq_poissonIntegral,
     harmonicOnNhd_poissonIntegral_toSignedMeasure, poissonIntegral_toSignedMeasure_nonneg}
-  \notready
+  \leanok
   \uses{def:poisson_integral, lem:poisson_integral_toSignedMeasure,
     lem:poisson_integral_withDensity, thm:harmonic_poisson_integral,
     thm:poisson_reproducing}
@@ -845,20 +945,20 @@ and are not verbatim reproductions of the source.
 \end{theorem}
 
 \begin{theorem}[Garnett I.3.5(b): bounded radial $L^1$ means, disc form]
-  \label{thm:signed_harmonic_poisson_measure}
-  \lean{exists_eq_poissonIntegral_of_iSup_eLpNorm_lt_top,
-    harmonicOnNhd_iSup_eLpNorm_lt_top_iff_exists_eq_poissonIntegral}
-  \notready
+  \label{thm:I_3_5(b)}
+  \lean{exists_eq_poissonIntegral_of_hardyNorm_lt_top,
+    harmonicOnNhd_hardyNorm_lt_top_iff_exists_eq_poissonIntegral}
+  \leanok
   \uses{def:poisson_integral, lem:poisson_integral_jordan}
   \bookref{Garnett}{I.3.5(b)}{Chapter I, Section 3, printed pages 17--19,
     PDF pages approximately 29--31}
   As with (c), the statement formalized here is the disc version Garnett gives
-  inside his proof. A harmonic function $u$ on $\D(c,R)$ satisfies
+  inside his proof. A harmonic function $u$ on $\D$ satisfies
   \[
-    \sup_{0<r<R}\int |u|\,d\sigma_{c,r}<\infty
+    \sup_{0<r<1}\int |u(r\zeta)|\,d\sigma(\zeta)<\infty
   \]
   if and only if $u=P[\nu]$ for a finite \emph{signed} measure $\nu$ carried by
-  $\partial\D(c,R)$.
+  $\partial\D$, where $\sigma$ is normalized arclength on $\partial\D$.
 
   This shares its proof engine with (c): weak-$*$ compactness of the
   approximating measures. The sketch hides two limits, not one. With
@@ -886,41 +986,70 @@ and are not verbatim reproductions of the source.
   $\log|f|$ on $\mathbb{D}$.
 \end{lemma}
 
-\begin{corollary}[$H^\infty$ boundary values, disc form]
-  \label{cor:II_3_2}
-  \notready
-  \uses{thm:bounded_harmonic_poisson_Linfty, thm:I_5_3,
-    def:boundary_function}
-  Source: this is not one of Garnett's numbered statements. It is the step
-  taken from the proof of Garnett's Corollary II.3.2 (Chapter II, Section 3,
-  PDF page 68) that reads ``suppose $f(z)$ is some $H^p$ function; if $p>1$,
-  then by Theorem I.5.3, $f(z)$ has nontangential limit $f(t)$ and
-  $f(z)=P_y*f(x)$'', specialized to $p=\infty$ on the disc, together with the
-  norm bound, which Garnett does not state.
-  Every $f\in H^\infty(\D)$ has a nontangential limit at almost every boundary
-  point, and its boundary function satisfies
-  $\|f^*\|_{L^\infty(d\theta/2\pi)}\le\|f\|_\infty$.
+\begin{corollary}[II.3.1, $p=\infty$: boundary values on the disc]
+  \label{cor:II_3_1(p=∞)}
+  \lean{AnalyticOnNhd.ae_nontangentiallyConvergentAt_of_bounded,
+    HardySpace.MemHpDisc.ae_nontangentiallyConvergentAt}
+  \leanok
+  \uses{thm:I_3_5(a), thm:I_5_3_ac, def:nt_limit}
+  This is the $p=\infty$ endpoint analogue of the boundary-limit conclusion of
+  Garnett II.3.1 on the disc (Chapter II, Section 3, PDF page 67); the numbered
+  theorem itself is stated for $0<p<\infty$.
+  Every bounded analytic function on $\D$, in particular every $f\in H^\infty(\D)$,
+  has a finite nontangential limit at almost every boundary point.
   \begin{proof}
-    \notready
+    \proves{cor:II_3_1(p=∞)}
+    \leanok
     The real and imaginary parts of $f$ are bounded harmonic, hence Poisson
-    integrals of $L^\infty$ boundary data by
-    Theorem~\ref{thm:bounded_harmonic_poisson_Linfty}; an $L^\infty$ density is
-    in particular an $L^1$ density, so Theorem~\ref{thm:I_5_3} gives
-    nontangential limits almost everywhere, and identifies $f^*$ almost
-    everywhere with that $L^\infty$ density, which is what makes $f^*$
-    measurable. The norm bound needs no maximal function:
-    $\|f(z)\|\le\|f\|_\infty$ pointwise on $\D$, and the bound passes to the
-    limit along the filter. Garnett's Corollary II.3.2 itself is the
-    characterization of which $L^p$ functions are boundary values of $H^p$
-    functions; that characterization and the remaining $H^p$ cases are not
-    needed here.
+    integrals of $L^\infty$ boundary data by Theorem~\ref{thm:I_3_5(a)} with
+    $p=\infty$. These densities lie in $L^1$, so Theorem~\ref{thm:I_5_3_ac}
+    gives their nontangential limits almost everywhere. Intersect the two
+    full-measure sets and combine the real and imaginary limits.
+    The $H^\infty$ case uses the equality of the Hardy norm with the pointwise supremum.
+    Both Lean proofs are complete; I.3.5(a) remains an unproved prerequisite.
   \end{proof}
 \end{corollary}
+
+% The boundary L-infinity norm estimate is deferred; it is not part of this completed node.
+
+\begin{corollary}[Garnett II.3.2, $p=\infty$: Poisson representation on the disc]
+  \label{cor:II_3_2(p=∞)}
+  \notready
+  \uses{def:poisson_integral, def:boundary_function, thm:I_3_5(a),
+    thm:I_5_3_ac, eq:I_3_5}
+  \bookref{Garnett}{II.3.2 ($p=\infty$)}{Chapter II, Section 3,
+    printed page 56, PDF page 68; disc form}
+  Let $\sigma$ be normalized arclength on $\partial\D$ and let
+  $U\in L^\infty(\sigma;\mathbb C)$. Then $U$ is the a.e. nontangential
+  boundary value of an $H^\infty(\D)$ function if and only if
+  $P[U\,d\sigma]$ is analytic on $\D$. Every such function equals
+  $P[U\,d\sigma]$ on $\D$. In particular, for $f\in H^\infty(\D)$,
+  \[
+    f(z)=P[f^*\,d\sigma](z),\qquad
+    |f(0)|\le\int_{\partial\D}|f^*|\,d\sigma.
+  \]
+  \begin{proof}
+    \proves{cor:II_3_2(p=∞)}
+    \notready
+    Apply Theorem~\ref{thm:I_3_5(a)} to the real and imaginary parts of
+    a bounded analytic function. Theorem~\ref{thm:I_5_3_ac} identifies the
+    resulting densities with its boundary values. Conversely, positivity
+    and unit mass of the Poisson kernel give the $L^\infty$ bound, and
+    Theorem~\ref{thm:I_5_3_ac} gives the prescribed boundary values.
+    At the origin the kernel is one, giving the displayed inequality.
+  \end{proof}
+\end{corollary}
+
+This records the part of Garnett II.3.2 needed for the boundary-modulus step
+in Theorem~\ref{thm:II_2_2}; the endpoint boundary-existence result alone does
+not state the Poisson representation. The full book corollary covers
+$1\le p\le\infty$. Its remaining cases are deferred; in particular,
+Garnett's $p=1$ argument uses the $L^1$ boundary convergence in II.3.1.
 
 \begin{theorem}[Garnett II.5.3: boundary values and the least-majorant measure]
   \label{thm:II_5_3}
   \notready
-  \uses{thm:II_5_1, lem:II_5_2, thm:II_2_2, thm:I_5_3, cor:II_3_2,
+  \uses{thm:II_5_1, lem:II_5_2, thm:II_2_2, thm:I_5_3, cor:II_3_1(p=∞),
     thm:poisson_measure_unique, def:nt_limit, def:boundary_function,
     lem:poisson_integral_jordan}
   \mainline
@@ -968,7 +1097,7 @@ and are not verbatim reproductions of the source.
     \]
     Each $e^{-(u_j+iv_j)}$ has modulus $e^{-u_j}\le1$, hence lies in
     $H^\infty$ and has nontangential limits almost everywhere by
-    Corollary~\ref{cor:II_3_2}. Those limits are nonzero almost everywhere:
+    Corollary~\ref{cor:II_3_1(p=∞)}. Those limits are nonzero almost everywhere:
     $\log|e^{-(u_j+iv_j)}|=-P[\mu_j]$ has a finite nontangential limit almost
     everywhere by Theorem~\ref{thm:I_5_3} again, so the boundary modulus is
     $e^{-k_j}>0$ almost everywhere. Hence $g$, and then $f=Bg$, have

@@ -1,6 +1,7 @@
 import Mathlib.Analysis.Complex.CanonicalDecomposition
 import Mathlib.Analysis.Complex.JensenFormula
 import Mathlib.Analysis.Complex.Harmonic.MeanValue
+import Mathlib.Analysis.Complex.LocallyUniformLimit
 import Mathlib.Topology.Algebra.InfiniteSum.Defs
 import Mathlib.Topology.UniformSpace.LocallyUniformConvergence
 import Mathlib.Analysis.Meromorphic.Divisor
@@ -14,14 +15,32 @@ open Complex ComplexConjugate
 open scoped Real Topology ENNReal
 open Set Metric Subharmonic MeromorphicOn Filter
 
-/-- The Blaschke sum of the zeros of `f` in the unit disc, counted with multiplicity. -/
-def blaschkeSum (f : ℂ → ℂ) : ℝ≥0∞ :=
-  ∑' z : Function.support (divisor f (ball 0 1)),
-    ENNReal.ofReal (divisor f (ball 0 1) z * (1 - ‖z.1‖))
+/-- The multiplicity function, which counts the number of occurrences of a point in a family,
+with value `∞` for infinitely many. -/
+def Multiplicity {ι : Type*} (a : ι → ℂ) (z : ℂ) : ℕ∞ := (a ⁻¹' {z}).encard
 
-/-- The zeros of `f` in the unit disc satisfy Blaschke's condition when their Blaschke sum is
-finite. -/
-def BlaschkeCondition (f : ℂ → ℂ) : Prop := blaschkeSum f < ∞
+/-- The Blaschke sum of a multiplicity function on the unit disc.
+For an analytic function use `m := analyticOrderAt f`; for a family `a : ι → ℂ`
+use `m := Multiplicity a`. -/
+def blaschkeSum (m : ℂ → ℕ∞) : ℝ≥0∞ := ∑' z : ball (0 : ℂ) 1, (m z) * (1 - ‖z.1‖ₑ)
+
+/-- A multiplicity function satisfies the Blaschke condition on the unit disc if its
+Blaschke sum is finite. For a family of points, membership in the unit disc is a separate
+assumption. -/
+def BlaschkeCondition (m : ℂ → ℕ∞) : Prop := blaschkeSum m < ∞
+
+/-- A sequence counted with multiplicities satisfy the Blaschke condition has only finitely many
+zero terms. -/
+theorem zeroIndexSet_finite {z : ℕ → ℂ} (hz : BlaschkeCondition (Multiplicity z)) :
+    (z ⁻¹'{0}).Finite := by
+  have hterm : (Multiplicity z 0 : ℝ≥0∞) ≤ blaschkeSum (Multiplicity z) := by
+    simpa [blaschkeSum] using ENNReal.le_tsum
+      (f := fun w : ball (0 : ℂ) 1 => Multiplicity z w * (1 - ‖w.1‖ₑ))
+      ⟨0, by simp⟩
+  apply Set.encard_ne_top_iff.mp
+  intro h
+  have hfinite := hterm.trans_lt hz
+  simp [Multiplicity, h] at hfinite
 
 
 /-- The unnormalized Blaschke factor associated to the disk of radius `R`. -/
@@ -31,6 +50,26 @@ noncomputable def BlaschkeFactor (R : ℝ) (w : ℂ) : ℂ → ℂ :=
 lemma BlaschkeFactor_eq_inv_canonicalFactor {R : ℝ} {w z : ℂ} :
   BlaschkeFactor R w z = (canonicalFactor R w z)⁻¹ := by simp [BlaschkeFactor, canonicalFactor]
 
+/-- A unit-disc Blaschke factor has modulus at most one on the unit disc. -/
+lemma norm_BlaschkeFactor_one_le_one {a z : ℂ}
+    (ha : a ∈ ball 0 1) (hz : z ∈ ball 0 1) : ‖BlaschkeFactor 1 a z‖ ≤ 1 := by
+  have ha2 : normSq a ≤ 1 := by
+    rw [normSq_eq_norm_sq]
+    exact pow_le_one₀ (norm_nonneg a) (mem_ball_zero_iff.mp ha).le
+  have hz2 : normSq z ≤ 1 := by
+    rw [normSq_eq_norm_sq]
+    exact pow_le_one₀ (norm_nonneg z) (mem_ball_zero_iff.mp hz).le
+  have hid : normSq (1 - conj a * z) - normSq (z - a) =
+      (1 - normSq a) * (1 - normSq z) := by
+    simp only [normSq_apply, sub_re, sub_im, mul_re, mul_im, conj_re, conj_im,
+      one_re, one_im]
+    ring
+  have hle : ‖z - a‖ ≤ ‖1 - conj a * z‖ := by
+    apply (sq_le_sq₀ (norm_nonneg _) (norm_nonneg _)).mp
+    rw [Complex.sq_norm, Complex.sq_norm]
+    nlinarith [mul_nonneg (sub_nonneg.mpr ha2) (sub_nonneg.mpr hz2)]
+  simpa [BlaschkeFactor, norm_div] using div_le_one_of_le₀ hle (norm_nonneg _)
+
 /-- The normalized Blaschke factor associated to the disk of radius `R`. For `w ≠ 0` this differs
 from `BlaschkeFactor R w` by the unimodular constant `-conj w / ‖w‖`; for `w = 0` we keep the raw
 factor. -/
@@ -38,15 +77,7 @@ noncomputable def normedBlaschkeFactor (R : ℝ) (w : ℂ) : ℂ → ℂ :=
   if w = 0 then BlaschkeFactor R 0
   else (-(conj w) / ‖w‖) • BlaschkeFactor R w
 
-/-- A sequence with summable defects from the unit circle has only finitely many zero terms. -/
-theorem zeroIndexSet_finite {z : ℕ → ℂ} (hz : Summable fun n ↦ 1 - ‖z n‖) :
-    (z ⁻¹'{0}).Finite := by
-  have hcof : (fun n => 1 - ‖z n‖) ⁻¹' (Iio (1 : ℝ)) ∈ cofinite :=
-    hz.tendsto_cofinite_zero (Iio_mem_nhds (by norm_num))
-  refine (Filter.mem_cofinite.mp hcof).subset ?_
-  intro n hn
-  rw [mem_preimage, mem_singleton_iff] at hn
-  simp [mem_compl_iff, mem_preimage, mem_Iio, hn]
+
 
 /-- The `n`th factor in the Blaschke product. `0`-terms are omitted from the infinite
 product and accounted for by `zeroMultiplicity`. -/
@@ -69,7 +100,7 @@ majorant of `log ‖f‖` on the disc, then the Blaschke sum is bounded by `u 0 
 theorem blaschkeSum_le_of_isLeastHarmonicMajorant
     {f : ℂ → ℂ} (hf : AnalyticOn ℂ f (ball 0 1)) (hf0 : f 0 ≠ 0)
     {u : ℂ → ℝ} (hu : IsLeastHarmonicMajorant u (logNormBot ∘ f) (ball 0 1)) :
-    blaschkeSum f ≤ ENNReal.ofReal (u 0 - Real.log ‖f 0‖) := by
+    blaschkeSum (analyticOrderAt f) ≤ ENNReal.ofReal (u 0 - Real.log ‖f 0‖) := by
   -- codex without review (test version)
   have hfa : AnalyticOnNhd ℂ f (ball 0 1) := isOpen_ball.analyticOn_iff_analyticOnNhd.mp hf
   have hne : ∀ᶠ z in codiscreteWithin (ball (0 : ℂ) 1), f z ≠ 0 := by
@@ -185,14 +216,28 @@ theorem blaschkeSum_le_of_isLeastHarmonicMajorant
     by_cases hz : d z = 0
     · simp [hz]
     · exact mul_nonneg (hdnonneg z) (sub_nonneg.mpr (hdmem hz).le)
-  have hsum : blaschkeSum f = ∑' z : ℂ, ENNReal.ofReal ((d z : ℝ) * (1 - ‖z‖)) := by
-    unfold blaschkeSum
-    apply tsum_subtype_eq_of_support_subset
-      (f := fun z : ℂ => ENNReal.ofReal ((d z : ℝ) * (1 - ‖z‖)))
-    intro z hz
-    by_contra h
-    have hz0 : divisor f (ball 0 1) z = 0 := not_not.mp h
-    exact hz (by simp [d, hz0])
+  have horder (z : ℂ) (hz : z ∈ ball 0 1) : analyticOrderAt f z ≠ ⊤ :=
+    hfa.analyticOrderAt_ne_top_of_isPreconnected (convex_ball (0 : ℂ) 1).isPreconnected
+      (show (0 : ℂ) ∈ ball 0 1 by simp) hz
+      (by rw [(hfa 0 (by simp)).analyticOrderAt_eq_zero.mpr hf0]; simp)
+  have hsum : blaschkeSum (analyticOrderAt f) =
+      ∑' z : ℂ, ENNReal.ofReal ((d z : ℝ) * (1 - ‖z‖)) := by
+    calc
+      _ = ∑' z : ball (0 : ℂ) 1,
+          ENNReal.ofReal ((d z : ℝ) * (1 - ‖z.1‖)) := by
+        apply tsum_congr
+        intro z
+        obtain ⟨m, hm⟩ := ENat.ne_top_iff_exists.mp (horder z z.property)
+        have hd : d z = (m : ℤ) := by
+          simp [d, hfa.divisor_apply z.property, ← hm]
+        simp [← hm, hd, ENNReal.ofReal_mul, ENNReal.ofReal_sub _ (norm_nonneg _)]
+      _ = _ := by
+        apply tsum_subtype_eq_of_support_subset
+          (f := fun z : ℂ => ENNReal.ofReal ((d z : ℝ) * (1 - ‖z‖)))
+        intro z hz
+        by_contra hzmem
+        have hdz : d z = 0 := by simp [d, hzmem]
+        exact hz (by simp [hdz])
   -- The ENNReal sum is bounded once every finite partial sum is bounded.
   rw [hsum]
   apply ENNReal.summable.tsum_le_of_sum_le
@@ -258,8 +303,7 @@ lemma AnalyticOnNhd.exists_eq_pow_mul_unitDisc {f : ℂ → ℂ}
 
 /-- Removing a power of `z` preserves the existence of a harmonic majorant of the logarithm. -/
 lemma hasHarmonicMajorant_logNormBot_of_eq_pow_mul {f g : ℂ → ℂ} {n : ℕ}
-    (hg : AnalyticOnNhd ℂ g (ball 0 1))
-    (hfg : ∀ z ∈ ball 0 1, f z = z ^ n * g z)
+    (hg : AnalyticOnNhd ℂ g (ball 0 1)) (hfg : ∀ z ∈ ball 0 1, f z = z ^ n * g z)
     (hmaj : HasHarmonicMajorant (logNormBot ∘ f) (ball 0 1)) :
     HasHarmonicMajorant (logNormBot ∘ g) (ball 0 1) := by
   obtain ⟨u, hu, hle⟩ := hmaj
@@ -295,38 +339,40 @@ lemma hasHarmonicMajorant_logNormBot_of_eq_pow_mul {f g : ℂ → ℂ} {n : ℕ}
 
 /-- Adding a zero of finite multiplicity at the origin preserves the Blaschke condition. -/
 lemma BlaschkeCondition.of_eq_pow_mul {f g : ℂ → ℂ} {n : ℕ}
-    (hgB : BlaschkeCondition g) (hf : AnalyticOnNhd ℂ f (ball 0 1))
-    (hg : AnalyticOnNhd ℂ g (ball 0 1))
-    (hfg : ∀ z ∈ ball 0 1, f z = z ^ n * g z) : BlaschkeCondition f := by
-  have hdiv : ∀ z ≠ 0, divisor f (ball 0 1) z = divisor g (ball 0 1) z := by
-    intro z hz0
-    by_cases hz : z ∈ ball 0 1
-    · rw [hf.divisor_apply hz, hg.divisor_apply hz]
-      have heq : f =ᶠ[𝓝 z] (fun w => w ^ n) * g := by
-        filter_upwards [isOpen_ball.mem_nhds hz] with w hw using hfg w hw
-      have hp : AnalyticAt ℂ (fun w : ℂ => w ^ n) z := by fun_prop
-      rw [analyticOrderAt_congr heq, analyticOrderAt_mul hp (hg z hz),
-        hp.analyticOrderAt_eq_zero.mpr (pow_ne_zero _ hz0), zero_add]
-    · simp [hz]
-  have hsum (k : ℂ → ℂ) : blaschkeSum k =
-      ∑' z : ℂ, ENNReal.ofReal (divisor k (ball 0 1) z * (1 - ‖z‖)) := by
+    (hgB : BlaschkeCondition (analyticOrderAt g)) (hg : AnalyticOnNhd ℂ g (ball 0 1))
+    (hfg : ∀ z ∈ ball 0 1, f z = z ^ n * g z) : BlaschkeCondition (analyticOrderAt f) := by
+  let origin : ball (0 : ℂ) 1 := ⟨0, by simp⟩
+  have horder (z : ℂ) (hz : z ∈ ball 0 1) :
+      analyticOrderAt f z = (if z = 0 then (n : ℕ∞) else 0) + analyticOrderAt g z := by
+    have heq : f =ᶠ[𝓝 z] (fun w => w ^ n) * g := by
+      filter_upwards [isOpen_ball.mem_nhds hz] with w hw using hfg w hw
+    have hp : AnalyticAt ℂ (fun w : ℂ => w ^ n) z := by fun_prop
+    rw [analyticOrderAt_congr heq, analyticOrderAt_mul hp (hg z hz)]
+    by_cases hz0 : z = 0
+    · subst z
+      congr 1
+      rw [if_pos rfl]
+      change analyticOrderAt (id ^ n : ℂ → ℂ) 0 = n
+      simp [analyticOrderAt_pow analyticAt_id, nsmul_eq_mul]
+    · rw [if_neg hz0, hp.analyticOrderAt_eq_zero.mpr (pow_ne_zero _ hz0)]
+  have hterm (z : ball (0 : ℂ) 1) :
+      (analyticOrderAt f z : ℝ≥0∞) * (1 - ‖z.1‖ₑ) =
+        (if z = origin then (n : ℝ≥0∞) else 0) +
+          (analyticOrderAt g z : ℝ≥0∞) * (1 - ‖z.1‖ₑ) := by
+    rw [horder z z.property]
+    by_cases hz : z = origin
+    · subst z
+      simp [origin]
+    · have hz0 : (z : ℂ) ≠ 0 := fun h => hz (Subtype.ext h)
+      simp [hz, hz0]
+  have hsum : blaschkeSum (analyticOrderAt f) = n + blaschkeSum (analyticOrderAt g) := by
     unfold blaschkeSum
-    apply tsum_subtype_eq_of_support_subset
-      (f := fun z : ℂ => ENNReal.ofReal (divisor k (ball 0 1) z * (1 - ‖z‖)))
-    intro z hz
-    by_contra h
-    have hz0 : divisor k (ball 0 1) z = 0 := not_not.mp h
-    exact hz (by simp [hz0])
-  have hrest : (∑' z : ℂ, if z = 0 then 0 else
-      ENNReal.ofReal (divisor f (ball 0 1) z * (1 - ‖z‖))) ≤ blaschkeSum g := by
-    rw [hsum g]
-    apply ENNReal.tsum_le_tsum
-    intro z
-    split_ifs with hz
-    · exact bot_le
-    · rw [hdiv z hz]
-  rw [BlaschkeCondition, hsum f, ENNReal.tsum_eq_add_tsum_ite 0]
-  exact ENNReal.add_lt_top.mpr ⟨ENNReal.ofReal_lt_top, hrest.trans_lt hgB⟩
+    simp_rw [hterm]
+    rw [ENNReal.tsum_add]
+    simp
+  change blaschkeSum (analyticOrderAt f) < ∞
+  rw [hsum]
+  exact ENNReal.add_lt_top.mpr ⟨ENNReal.natCast_lt_top n, hgB⟩
 
 /-- **Theorem 2.1 (first part).** If `f` is analytic on the unit disc, not identically zero, and
 `log ‖f‖` has a harmonic majorant on the disc, then the zeros
@@ -335,20 +381,20 @@ of `f`, counted with multiplicity, satisfy the Blaschke condition `∑ (1 - ‖z
 theorem blaschkeCondition_of_hasHarmonicMajorant {f : ℂ → ℂ}
     (hf : AnalyticOnNhd ℂ f (ball 0 1)) (hf_ne : ∃ z ∈ ball 0 1, f z ≠ 0)
     (hmaj : HasHarmonicMajorant (logNormBot ∘ f) (ball 0 1)) :
-    BlaschkeCondition f := by
+    BlaschkeCondition (analyticOrderAt f) := by
   obtain ⟨n, g, hg, hg0, hfg⟩ := hf.exists_eq_pow_mul_unitDisc hf_ne
   have hgmaj := hasHarmonicMajorant_logNormBot_of_eq_pow_mul hg hfg hmaj
   obtain ⟨u, hu, _⟩ := exists_isLeastHarmonicMajorant_tendsto_poissonModification
     (logNormBot_comp_analytic_subharmonicOn_scalar isOpen_ball hg.analyticOn) hgmaj
   have hsum := blaschkeSum_le_of_isLeastHarmonicMajorant hg.analyticOn hg0 hu
-  have hgB : BlaschkeCondition g := hsum.trans_lt ENNReal.ofReal_lt_top
-  exact hgB.of_eq_pow_mul hf hg hfg
+  have hgB : BlaschkeCondition (analyticOrderAt g) := hsum.trans_lt ENNReal.ofReal_lt_top
+  exact hgB.of_eq_pow_mul hg hfg
 
 /-! ## Theorem 2.2: convergence, zeros, and boundary values of Blaschke products -/
 
 /-- The products omitting zero terms converge locally uniformly on the unit disc. -/
-theorem tendstoLocallyUniformlyOn_blaschkeProductFactor {a : ℕ → ℂ}
-    (ha : ∀ n, a n ∈ ball 0 1) (hsum : Summable (fun n ↦ 1 - ‖a n‖)) :
+lemma tendstoLocallyUniformlyOn_blaschkeProductFactor {a : ℕ → ℂ}
+    (ha : ∀ n, a n ∈ ball 0 1) (hsum : BlaschkeCondition (Multiplicity a)) :
     TendstoLocallyUniformlyOn
       (fun N w => ∏ n ∈ Finset.range N, blaschkeProductFactor a n w)
       (fun w => ∏' n, blaschkeProductFactor a n w) atTop (ball 0 1) := by
@@ -357,50 +403,157 @@ theorem tendstoLocallyUniformlyOn_blaschkeProductFactor {a : ℕ → ℂ}
 /-- The finite products, including the full power accounting for zeros at the origin,
 converge locally uniformly to the Blaschke product on the unit disc. -/
 theorem tendstoLocallyUniformlyOn_blaschkeProduct {a : ℕ → ℂ}
-    (ha : ∀ n, a n ∈ ball 0 1) (hsum : Summable (fun n ↦ 1 - ‖a n‖)) :
+    (ha : ∀ n, a n ∈ ball 0 1) (hsum : BlaschkeCondition (Multiplicity a)) :
     TendstoLocallyUniformlyOn
       (fun N w => w ^ (a ⁻¹' {0}).ncard *
         ∏ n ∈ Finset.range N, blaschkeProductFactor a n w)
       (BlaschkeProduct a) atTop (ball 0 1) := by
-  sorry
+  -- codex with review
+  have hconv := Metric.tendstoLocallyUniformlyOn_iff.mp
+    (tendstoLocallyUniformlyOn_blaschkeProductFactor ha hsum)
+  apply Metric.tendstoLocallyUniformlyOn_iff.mpr
+  intro ε hε z hz
+  obtain ⟨t, ht, hN⟩ := hconv ε hε z hz
+  refine ⟨t ∩ ball 0 1, inter_mem ht self_mem_nhdsWithin, ?_⟩
+  filter_upwards [hN] with N hN w hw
+  have hw1 : ‖w‖ ≤ 1 := (mem_ball_zero_iff.mp hw.2).le
+  simp only [BlaschkeProduct, dist_eq_norm, ← mul_sub, norm_mul, norm_pow]
+  refine lt_of_le_of_lt ?_ (hN w hw.1)
+  rw [dist_eq_norm]
+  exact mul_le_of_le_one_left (norm_nonneg (_ : ℂ)) (pow_le_one₀ (norm_nonneg w) hw1)
 
 /-- A Blaschke product is analytic on the unit disc. -/
 theorem analyticOnNhd_blaschkeProduct {a : ℕ → ℂ}
-    (ha : ∀ n, a n ∈ ball 0 1) (hsum : Summable (fun n ↦ 1 - ‖a n‖)) :
+    (ha : ∀ n, a n ∈ ball 0 1) (hsum : BlaschkeCondition (Multiplicity a)) :
     AnalyticOnNhd ℂ (BlaschkeProduct a) (ball 0 1) := by
-  sorry
+  -- codex without review
+  have hfactor (n : ℕ) : DifferentiableOn ℂ (blaschkeProductFactor a n) (ball 0 1) := by
+    intro z hz
+    by_cases hn : a n = 0
+    · simp only [blaschkeProductFactor, hn, if_pos]
+      fun_prop
+    · have hnorm : ‖conj (a n) * z‖ < 1 := by
+        rw [norm_mul, norm_conj]
+        nlinarith [mem_ball_zero_iff.mp (ha n), mem_ball_zero_iff.mp hz,
+          norm_nonneg (a n), norm_nonneg z]
+      have hden : 1 - conj (a n) * z ≠ 0 := by
+        intro h
+        rw [← sub_eq_zero.mp h, norm_one] at hnorm
+        exact (lt_irrefl _ hnorm)
+      simp only [blaschkeProductFactor, normedBlaschkeFactor, if_neg hn]
+      unfold BlaschkeFactor
+      simp only [ofReal_one, one_pow, one_mul]
+      apply DifferentiableAt.differentiableWithinAt
+      fun_prop
+  apply DifferentiableOn.analyticOnNhd _ isOpen_ball
+  apply (tendstoLocallyUniformlyOn_blaschkeProduct ha hsum).differentiableOn _ isOpen_ball
+  exact Filter.Eventually.of_forall fun N => by fun_prop
 
 /-- A Blaschke product has modulus at most one on the unit disc. -/
 theorem norm_blaschkeProduct_le_one {a : ℕ → ℂ}
-    (ha : ∀ n, a n ∈ ball 0 1) (hsum : Summable (fun n ↦ 1 - ‖a n‖))
+    (ha : ∀ n, a n ∈ ball 0 1) (hsum : BlaschkeCondition (Multiplicity a))
     {w : ℂ} (hw : w ∈ ball 0 1) : ‖BlaschkeProduct a w‖ ≤ 1 := by
-  sorry
+  -- codex without review
+  have hfactor (n : ℕ) : ‖blaschkeProductFactor a n w‖ ≤ 1 := by
+    by_cases hn : a n = 0
+    · simp [blaschkeProductFactor, hn]
+    · simpa [blaschkeProductFactor, normedBlaschkeFactor, hn, norm_smul, norm_div,
+        norm_ne_zero_iff.mpr hn] using norm_BlaschkeFactor_one_le_one (ha n) hw
+  apply le_of_tendsto ((tendstoLocallyUniformlyOn_blaschkeProduct ha hsum).tendsto_at hw).norm
+  filter_upwards [] with N
+  rw [norm_mul, norm_pow, norm_prod]
+  exact mul_le_one₀ (pow_le_one₀ (norm_nonneg w) (mem_ball_zero_iff.mp hw).le)
+    (Finset.prod_nonneg fun n _ => norm_nonneg _)
+    (Finset.prod_le_one (fun n _ => norm_nonneg _) (fun n _ => hfactor n))
 
 /-- The order at a point of the unit disc equals its number of occurrences in the sequence. -/
 theorem analyticOrderAt_blaschkeProduct {a : ℕ → ℂ}
-    (ha : ∀ n, a n ∈ ball 0 1) (hsum : Summable (fun n ↦ 1 - ‖a n‖))
+    (ha : ∀ n, a n ∈ ball 0 1) (hsum : BlaschkeCondition (Multiplicity a))
     {w : ℂ} (hw : w ∈ ball 0 1) :
-    analyticOrderAt (BlaschkeProduct a) w = (a ⁻¹' {w}).encard := by
+    analyticOrderAt (BlaschkeProduct a) w = Multiplicity a w := by
   sorry
 
 /-- The zeros in the unit disc are exactly the points of the defining sequence. -/
 theorem blaschkeProduct_eq_zero_iff {a : ℕ → ℂ}
-    (ha : ∀ n, a n ∈ ball 0 1) (hsum : Summable (fun n ↦ 1 - ‖a n‖))
+    (ha : ∀ n, a n ∈ ball 0 1) (hsum : BlaschkeCondition (Multiplicity a))
     {w : ℂ} (hw : w ∈ ball 0 1) :
     BlaschkeProduct a w = 0 ↔ ∃ n, a n = w := by
-  sorry
+  have h := analyticOrderAt_ne_zero (f := BlaschkeProduct a) (z₀ := w)
+  rw [analyticOrderAt_blaschkeProduct ha hsum hw, Multiplicity, Set.encard_ne_zero,
+    and_iff_right (analyticOnNhd_blaschkeProduct ha hsum w hw)] at h
+  exact h.symm
 
 /-- Extended by zero outside the unit disc, a Blaschke product belongs to `H∞`. -/
 theorem memHpDisc_blaschkeProduct {a : ℕ → ℂ}
-    (ha : ∀ n, a n ∈ ball 0 1) (hsum : Summable (fun n ↦ 1 - ‖a n‖)) :
-    HardySpace.MemHpDisc ∞ ((ball (0 : ℂ) 1).indicator (BlaschkeProduct a)) := by
-  sorry
+    (ha : ∀ n, a n ∈ ball 0 1) (hsum : BlaschkeCondition (Multiplicity a)) :
+    HardySpace.MemHpDisc ∞ ((ball 0 1).indicator (BlaschkeProduct a)) := by
+  refine ⟨(analyticOnNhd_blaschkeProduct ha hsum).analyticOn.congr
+    fun z hz => indicator_of_mem hz _, ?_, fun z hz => indicator_of_notMem hz _⟩
+  refine lt_of_le_of_lt (iSup₂_le fun r hr => ?_) (ENNReal.ofReal_lt_top (r := 1))
+  simp only [eLpNormFixed, mem_Ioo, not_top_lt, and_false, if_false,
+    MeasureTheory.eLpNorm_exponent_top]
+  refine MeasureTheory.eLpNormEssSup_le_of_ae_bound (MeasureTheory.ae_of_all _ fun θ => ?_)
+  have hz : (r : ℂ) * exp (I * θ) ∈ ball 0 1 := radial_point_mem_unitDisc hr.1 hr.2
+  rw [indicator_of_mem hz]
+  exact norm_blaschkeProduct_le_one ha hsum hz
 
 /-- A Blaschke product has nontangential boundary values of modulus one almost everywhere. -/
 theorem ae_hasNontangentialLimit_blaschkeProduct {a : ℕ → ℂ}
-    (ha : ∀ n, a n ∈ ball 0 1) (hsum : Summable (fun n ↦ 1 - ‖a n‖)) :
-    ∀ᵐ ζ ∂circleMeasure 0 1,
-      HasNontangentialLimit (BlaschkeProduct a) ζ
-        (boundaryValue (BlaschkeProduct a) ζ) ∧
-      ‖boundaryValue (BlaschkeProduct a) ζ‖ = 1 := by
+    (ha : ∀ n, a n ∈ ball 0 1) (hsum : BlaschkeCondition (Multiplicity a)) :
+    ∀ᵐ ζ ∂circleMeasure 0 1, ‖boundaryValue (BlaschkeProduct a) ζ‖ = 1 := by
   sorry
+  -- can be formulated using `NontangentiallyConvergentAt`
+
+/-! ## Theorem 2.4: (a) → (b) and (b) ↔ (c) -/
+
+/-- **Theorem 2.4, (a) → (b).** The radial means of the logarithmic modulus of a
+Blaschke product, multiplied by a unimodular constant, tend to zero. -/
+theorem tendsto_withBotRadialMean_logNormBot_blaschkeProduct {a : ℕ → ℂ}
+    (ha : ∀ n, a n ∈ ball 0 1) (hsum : BlaschkeCondition (Multiplicity a))
+    {c : ℂ} (hc : ‖c‖ = 1) :
+    Tendsto (fun r => withBotRadialMean (logNormBot ∘ (fun z => c * BlaschkeProduct a z)) r)
+      (𝓝[<] 1) (𝓝 0) := by
+  sorry
+
+/-- **Theorem 2.4, (b) ↔ (c).** For an analytic function bounded in modulus by one,
+radial logarithmic means tend to zero if and only if zero is the least harmonic majorant
+of its logarithmic modulus. -/
+theorem tendsto_withBotRadialMean_logNormBot_iff_isLeastHarmonicMajorant_zero
+    {f : ℂ → ℂ} (hf : AnalyticOnNhd ℂ f (ball 0 1))
+    (hbound : ∀ z ∈ ball 0 1, ‖f z‖ ≤ 1) :
+    Tendsto (fun r => withBotRadialMean (logNormBot ∘ f) r) (𝓝[<] 1) (𝓝 0) ↔
+      IsLeastHarmonicMajorant 0 (logNormBot ∘ f) (ball 0 1) := by
+  -- codex without review
+  have hzero : IsHarmonicMajorant 0 (logNormBot ∘ f) (ball 0 1) := by
+    refine ⟨InnerProductSpace.harmonicOnNhd_const 0, ?_⟩
+    intro z hz
+    by_cases hfz : f z = 0
+    · simp [logNormBot, hfz]
+    · simpa [Function.comp_def, logNormBot, hfz] using
+        (Real.log_nonpos (norm_nonneg (f z)) (hbound z hz))
+  obtain ⟨u, hu, hlim⟩ := exists_isLeastHarmonicMajorant_tendsto_poissonModification
+    (logNormBot_comp_analytic_subharmonicOn_scalar isOpen_ball hf.analyticOn)
+    ⟨0, hzero⟩
+  have h0 : (0 : ℂ) ∈ ball 0 1 := by simp
+  have hmean : Tendsto (fun r => withBotRadialMean (logNormBot ∘ f) r)
+      (𝓝[<] 1) (𝓝 (u 0 : WithBot ℝ)) := by
+    apply (hlim 0 h0).congr'
+    filter_upwards [show ∀ᶠ r : ℝ in 𝓝[<] 1, 0 < r from
+      (eventually_gt_nhds (by norm_num : (0 : ℝ) < 1)).filter_mono nhdsWithin_le_nhds]
+      with r hr
+    exact poissonModification_zero_eq_withBotRadialMean _ hr
+  constructor
+  · intro hmean0
+    have hu0 : u 0 = 0 := by
+      exact_mod_cast tendsto_nhds_unique hmean hmean0
+    have hle : ∀ z ∈ ball 0 1, u z ≤ 0 := hu.2 0 hzero
+    obtain ⟨c, hc⟩ := harmonic_maximum_minimum_principle_general
+      isOpen_ball (convex_ball (0 : ℂ) 1).isPreconnected hu.1.1
+      (Or.inl ⟨0, h0, fun z hz => (hle z hz).trans_eq hu0.symm⟩)
+    have hueq : ∀ z ∈ ball 0 1, u z = 0 := fun z hz =>
+      (hc z hz).trans ((hc 0 h0).symm.trans hu0)
+    refine ⟨hzero, fun v hv z hz => ?_⟩
+    simpa only [hueq z hz, Pi.zero_apply] using hu.2 v hv z hz
+  · intro hz
+    have hu0 : u 0 = 0 := le_antisymm (hu.2 0 hzero 0 h0) (hz.2 u hu.1 0 h0)
+    simpa only [hu0, WithBot.coe_zero] using hmean
