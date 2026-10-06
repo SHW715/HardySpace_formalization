@@ -37,6 +37,18 @@ def IsHarmonicMajorant (u : V → ℝ) (g : V → WithBot ℝ) (s : Set V) : Pro
 def IsLeastHarmonicMajorant (u : V → ℝ) (g : V → WithBot ℝ) (s : Set V) : Prop :=
   IsHarmonicMajorant u g s ∧ ∀ v : V → ℝ, IsHarmonicMajorant v g s  → ∀ z ∈ s, u z ≤ v z
 
+/-- On an open set, being the least harmonic majorant only depends on the values on that set. -/
+theorem IsLeastHarmonicMajorant.congr {u u' : V → ℝ} {g : V → WithBot ℝ} {s : Set V}
+    (hs : IsOpen s) (hu : IsLeastHarmonicMajorant u g s) (h : EqOn u u' s) :
+    IsLeastHarmonicMajorant u' g s := by
+  refine ⟨⟨fun x hx => ?_, fun z hz => ?_⟩, fun v hv z hz => ?_⟩
+  · exact (InnerProductSpace.harmonicAt_congr_nhds
+      (Filter.eventuallyEq_of_mem (hs.mem_nhds hx) h)).1 (hu.1.1 x hx)
+  · rw [← h hz]
+    exact hu.1.2 z hz
+  · rw [← h hz]
+    exact hu.2 v hv z hz
+
 open Classical in
 /-- A choice of the least harmonic majorant of `g` on `s`, when one exists. -/
 noncomputable def leastHarmonicMajorant' (g : V → WithBot ℝ) (s : Set V)
@@ -119,11 +131,13 @@ theorem hasHarmonicMajorant_iff_radialMean_bddAbove
   sorry
 
 
-/-- When a subharmonic function `v` on the unit disc has a harmonic
+/-- When a subharmonic function `v ≢ ⊥` on the unit disc has a harmonic
 majorant, its least harmonic majorant `u` is recovered as the pointwise radial limit of the Poisson
-modifications: `u z = lim_{r → 1⁻} v_r z`. -/
+modifications: `u z = lim_{r → 1⁻} v_r z`. The hypothesis `v ≢ ⊥` is necessary: `⊥` has every
+harmonic function as a majorant, hence no least one. -/
 theorem exists_isLeastHarmonicMajorant_tendsto_poissonModification {v : ℂ → WithBot ℝ}
-  (hv : SubharmonicOn v (ball 0 1)) (hmaj : HasHarmonicMajorant v (ball 0 1)) :
+  (hv : SubharmonicOn v (ball 0 1)) (hv_ne : ∃ z ∈ ball 0 1, v z ≠ ⊥)
+  (hmaj : HasHarmonicMajorant v (ball 0 1)) :
     ∃ u : ℂ → ℝ, IsLeastHarmonicMajorant u v (ball 0 1) ∧ ∀ z ∈ ball 0 1,
       Tendsto (fun r => poissonModification v r z) (𝓝[<] 1) (𝓝 (u z) ) := by
   sorry

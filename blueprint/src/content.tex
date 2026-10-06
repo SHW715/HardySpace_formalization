@@ -50,8 +50,8 @@ and are not verbatim reproductions of the source.
     = \sup_{0<r<1} v_r(0) < \infty,
   \]
   where $v_r$ is the Poisson extension to $|z|<r$ of the boundary values of
-  $v$ on $|z|=r$. When this condition holds, the least harmonic majorant $u$
-  of $v$ is given by
+  $v$ on $|z|=r$. When this condition holds and $v\not\equiv-\infty$, the
+  least harmonic majorant $u$ of $v$ is given by
   \[
     u(z)=\lim_{r\to 1}
       \frac{1}{2\pi}\int_0^{2\pi}
@@ -263,7 +263,8 @@ and are not verbatim reproductions of the source.
 
 \begin{lemma}[Jordan decomposition of a signed Poisson integral]
   \label{lem:poisson_integral_jordan}
-  \lean{poissonIntegral_eq_posPart_sub_negPart, integrable_poissonKernel_totalVariation}
+  \lean{poissonIntegral_eq_posPart_sub_negPart, integrable_poissonKernel_totalVariation,
+    poissonIntegral_toSignedMeasure_sub, totalVariation_toSignedMeasure_sub_eq_zero}
   \leanok
   \uses{def:poisson_integral, lem:poisson_integral_toSignedMeasure}
   Let $\nu$ be a finite signed measure carried by $\partial\D(c,R)$ and let $w$
@@ -271,6 +272,9 @@ and are not verbatim reproductions of the source.
   \[
     P[\nu](w)=\int P_w\,d\nu^{+}-\int P_w\,d\nu^{-}.
   \]
+  Likewise, if $\nu_1,\nu_2$ are finite positive measures carried by
+  $\partial\D(c,R)$, then so is $\nu_1-\nu_2$, and
+  $P[\nu_1-\nu_2](w)=P[\nu_1](w)-P[\nu_2](w)$.
   \begin{proof}
     \proves{lem:poisson_integral_jordan}
     \leanok
@@ -780,10 +784,32 @@ and are not verbatim reproductions of the source.
 
 \section{Chapter II, Section 5: Nevanlinna class}
 
+\begin{theorem}[Garnett II, (5.1): harmonic-majorant definition of $N$]
+  \label{eq:II_5_1}
+  \lean{Nevanlinna.memNevanlinnaDisc_iff_hasHarmonicMajorant}
+  \leanok
+  \uses{thm:I_6_7, thm:log_abs_subharmonic}
+  \bookref{Garnett}{II, (5.1)}{Chapter II, Section 5, printed page 66, PDF page 78}
+  Let $f$ be analytic on $\D$. Then
+  \[
+    f\in N \quad\Longleftrightarrow\quad
+    \log^+|f| \text{ has a harmonic majorant on }\D.
+  \]
+  \begin{proof}
+    \proves{eq:II_5_1}
+    \leanok
+    Apply Theorem~\ref{thm:I_6_7} to the subharmonic function
+    $\log^+|f|=\max(\log|f|,0)$. For the converse, a harmonic majorant
+    $U\ge\log^+|f|\ge0$ bounds every radial $\log^+$ mean by $U(0)$, by the
+    mean-value property.
+  \end{proof}
+\end{theorem}
+
 \begin{theorem}[Garnett II.5.1: harmonic-majorant characterization of $N$]
   \label{thm:II_5_1}
-  \notready
-  \uses{thm:log_abs_subharmonic, thm:I_6_7,
+  \lean{Nevanlinna.memNevanlinnaDisc_iff_exists_signedMeasure_isLeastHarmonicMajorant}
+  \leanok
+  \uses{eq:II_5_1, thm:log_abs_subharmonic, thm:I_6_7,
     thm:I_3_5(c), lem:poisson_integral_jordan}
   \mainline
   \bookref{Garnett}{II.5.1}{Chapter II, Section 5, PDF page 78}
@@ -792,27 +818,30 @@ and are not verbatim reproductions of the source.
   signed measure $\mu$ on $\partial\mathbb{D}$.
   \begin{proof}
     \proves{thm:II_5_1}
-    \notready
+    \leanok
     If $f\in N$, take a nonnegative harmonic majorant $U$ of $\log^+|f|$
-    and let $u\le U$ be the least harmonic majorant of $\log|f|$.
-    Apply Theorem~\ref{thm:I_3_5(c)} to $U$ and
+    and let $u\le U$ be the least harmonic majorant of $\log|f|$, which
+    exists since $f\not\equiv0$. Apply Theorem~\ref{thm:I_3_5(c)} to $U$ and
     $U-u$ and subtract their representing measures to obtain $u=P[\mu]$.
     Conversely, the Jordan identity
     (Lemma~\ref{lem:poisson_integral_jordan}) gives
-    $\log^+|f|\le P[\mu^+]$, a nonnegative harmonic majorant; hence $f\in N$.
+    $\log^+|f|\le P[\mu^+]$, a nonnegative harmonic majorant; hence $f\in N$
+    by Theorem~\ref{eq:II_5_1}.
   \end{proof}
 \end{theorem}
 
 \begin{theorem}[Logarithm of modulus is subharmonic]
   \label{thm:log_abs_subharmonic}
   \lean{logNormBot_comp_analytic_subharmonicOn_scalar,
-    logNormBot_comp_analytic_subharmonicOn_banach}
+    logNormBot_comp_analytic_subharmonicOn_banach, SubharmonicOn.sup,
+    posLog_norm_comp_analytic_subharmonicOn_banach}
   \leanok
   If $f$ is analytic on an open subset of $\mathbb{C}$, then
   $z\mapsto \log \lVert f(z)\rVert$, interpreted as $-\infty$ at zeros, is
   subharmonic there. This has been formalized both for complex-valued
   functions and, more generally, for functions taking values in a complex
-  Banach space.
+  Banach space. Since the maximum of two subharmonic functions is
+  subharmonic, so is $\log^+\lVert f\rVert=\max(\log\lVert f\rVert,0)$.
   \begin{proof}
     \proves{thm:log_abs_subharmonic}
     \leanok
@@ -870,12 +899,7 @@ and are not verbatim reproductions of the source.
   \begin{proof}
     \proves{thm:lp_duality}
     \notready
-    The pairing operator-norm bounds, uniqueness, and finite-measure existence are proved.
-    For finite $\mu$, define $\nu(A)=\Lambda(1_A)$ and take its Radon--Nikodym density $U$.
-    Bounded simple-function approximation gives representation on bounded measurable tests.
-    Indicator tests handle $q=1$; truncated conjugate-power tests handle $q>1$ and give
-    $\|U\|_p\le\|\Lambda\|$. Density in $L^q$ and H\"older's inequality finish the proof.
-    The sigma-finite extension remains unproved.
+    The pairing operator-norm bounds and uniqueness are proved. Existence remains unproved.
   \end{proof}
 \end{theorem}
 
@@ -906,8 +930,8 @@ and are not verbatim reproductions of the source.
     point $U$ as $t\to1$. Testing against the fixed kernel $P_z\in L^q$
     gives $u=P[U\,d\sigma]$. Conversely, the Poisson operators are
     contractions on $L^p$ (Lemma~\ref{eq:I_3_5}).
-    The finite-measure dual representation used here is proved in
-    Theorem~\ref{thm:lp_duality}; the sigma-finite extension is not needed here.
+    The Lean proof is complete relative to the finite-measure dual representation
+    theorem in Theorem~\ref{thm:lp_duality}, whose existence proof remains open.
   \end{proof}
 \end{theorem}
 

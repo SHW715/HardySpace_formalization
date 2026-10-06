@@ -79,16 +79,22 @@ noncomputable def normedBlaschkeFactor (R : ℝ) (w : ℂ) : ℂ → ℂ :=
 
 
 
-/-- The `n`th factor in the Blaschke product. `0`-terms are omitted from the infinite
-product and accounted for by `zeroMultiplicity`. -/
-noncomputable def blaschkeProductFactor (z : ℕ → ℂ) (n : ℕ) : ℂ → ℂ :=
-  if z n = 0 then 1 else normedBlaschkeFactor 1 (z n)
+/-- The factor of the Blaschke product at a point `a` with multiplicity `m a`: the normalized
+Blaschke factor at `a` raised to the power `m a`. The point `0` is excluded here; it is accounted
+for by the power of `w` in `BlaschkeProduct`. -/
+noncomputable def blaschkeProductFactor (m : ℂ → ℕ∞) (a : ℂ) : ℂ → ℂ :=
+  if a = 0 then 1 else fun w ↦ normedBlaschkeFactor 1 a w ^ (m a).toNat
 
-/-- The Blaschke product associated to a sequence in the unit disc. The definition is meaningful
-as a function for any sequence; convergence and the expected zero set will later be proved under
-the Blaschke condition. -/
-noncomputable def BlaschkeProduct (z : ℕ → ℂ) : ℂ → ℂ :=
-  fun w ↦ w ^ (z ⁻¹'{0}).ncard * ∏' n, blaschkeProductFactor z n w
+/-- The Blaschke product with zero multiplicities `m` in the unit disc,
+`B(w) = w ^ m(0) * ∏_{a ∈ 𝔻, a ≠ 0} b_a(w) ^ m(a)`.
+For an analytic function `f` use `m := analyticOrderAt f`; for a family `a : ι → ℂ`, finite or
+infinite, use `m := Multiplicity a`. Points outside the disc are ignored, as are infinite
+multiplicities (which the Blaschke condition excludes in the disc). Convergence and the expected
+zero set will later be proved under the Blaschke condition. -/
+noncomputable def BlaschkeProduct (m : ℂ → ℕ∞) : ℂ → ℂ :=
+  fun w ↦ w ^ (m 0).toNat * ∏' a : ball (0 : ℂ) 1, blaschkeProductFactor m a w
+
+#check divisor
 
 
 -- The proofs of the rest codes are given by codex without fully review
@@ -117,20 +123,15 @@ theorem blaschkeSum_le_of_isLeastHarmonicMajorant
     have heq : (fun z => Real.log ‖f z‖) =ᶠ[codiscreteWithin (sphere (0 : ℂ) |r|)] v := by
       filter_upwards [codiscreteWithin_mono (sphere_subset_closedBall.trans hsub) hne] with z hz
       simp [v, hz]
-    rw [Real.circleAverage_congr_codiscreteWithin heq hr.ne']
-    calc
-      Real.circleAverage v 0 r ≤ Real.circleAverage u 0 r := by
-        apply Real.circleAverage_mono
+    rw [Real.circleAverage_congr_codiscreteWithin heq hr.ne', ← HarmonicOnNhd.circleAverage_eq (hu.1.1.mono hsub)]
+    apply Real.circleAverage_mono
           ((hfa.mono (sphere_subset_closedBall.trans hsub)).meromorphicOn.circleIntegrable_log_norm
             |>.congr_codiscreteWithin heq)
           ((hu.1.1.continuousOn.mono (sphere_subset_closedBall.trans hsub)).circleIntegrable')
-        intro z hz
-        dsimp [v]
-        split_ifs with hfz
-        · exact le_rfl
-        · simpa [Function.comp_def, logNormBot, hfz] using
-            hu.1.2 z (hsub (sphere_subset_closedBall hz))
-      _ = u 0 := HarmonicOnNhd.circleAverage_eq (hu.1.1.mono hsub)
+    intro z hz; dsimp [v]
+    split_ifs with hfz
+    · exact le_rfl
+    · simpa [Function.comp_def, logNormBot, hfz] using hu.1.2 z (hsub (sphere_subset_closedBall hz))
   let d := divisor f (ball (0 : ℂ) 1)
   have hdnonneg (z : ℂ) : 0 ≤ (d z : ℝ) := by exact_mod_cast hfa.divisor_nonneg z
   have hdmem {z : ℂ} (hz : d z ≠ 0) : ‖z‖ < 1 := by
@@ -385,7 +386,8 @@ theorem blaschkeCondition_of_hasHarmonicMajorant {f : ℂ → ℂ}
   obtain ⟨n, g, hg, hg0, hfg⟩ := hf.exists_eq_pow_mul_unitDisc hf_ne
   have hgmaj := hasHarmonicMajorant_logNormBot_of_eq_pow_mul hg hfg hmaj
   obtain ⟨u, hu, _⟩ := exists_isLeastHarmonicMajorant_tendsto_poissonModification
-    (logNormBot_comp_analytic_subharmonicOn_scalar isOpen_ball hg.analyticOn) hgmaj
+    (logNormBot_comp_analytic_subharmonicOn_scalar isOpen_ball hg.analyticOn)
+    ⟨0, by simp, by simp [logNormBot, hg0]⟩ hgmaj
   have hsum := blaschkeSum_le_of_isLeastHarmonicMajorant hg.analyticOn hg0 hu
   have hgB : BlaschkeCondition (analyticOrderAt g) := hsum.trans_lt ENNReal.ofReal_lt_top
   exact hgB.of_eq_pow_mul hg hfg
@@ -531,16 +533,38 @@ theorem tendsto_withBotRadialMean_logNormBot_iff_isLeastHarmonicMajorant_zero
     · simp [logNormBot, hfz]
     · simpa [Function.comp_def, logNormBot, hfz] using
         (Real.log_nonpos (norm_nonneg (f z)) (hbound z hz))
-  obtain ⟨u, hu, hlim⟩ := exists_isLeastHarmonicMajorant_tendsto_poissonModification
-    (logNormBot_comp_analytic_subharmonicOn_scalar isOpen_ball hf.analyticOn)
-    ⟨0, hzero⟩
   have h0 : (0 : ℂ) ∈ ball 0 1 := by simp
+  have hr_pos : ∀ᶠ r : ℝ in 𝓝[<] 1, 0 < r :=
+    (eventually_gt_nhds (by norm_num : (0 : ℝ) < 1)).filter_mono nhdsWithin_le_nhds
+  by_cases hne : ∃ z ∈ ball (0 : ℂ) 1, (logNormBot ∘ f) z ≠ ⊥
+  swap
+  · -- If `log ‖f‖ ≡ ⊥` on the disc, both sides fail: the radial means are `⊥`, and the
+    -- harmonic majorant `-1` lies below `0`.
+    push Not at hne
+    refine iff_of_false (fun hmean0 => ?_) (fun hz => ?_)
+    · have hbot : ∀ᶠ r : ℝ in 𝓝[<] 1, withBotRadialMean (logNormBot ∘ f) r = ⊥ := by
+        filter_upwards [hr_pos, self_mem_nhdsWithin] with r hr hr1
+        unfold withBotRadialMean withBotIntegral
+        rw [if_neg]
+        rintro ⟨hnull, -⟩
+        have huniv : angularMeasure (univ : Set ℝ) = 0 :=
+          MeasureTheory.measure_mono_null
+            (fun θ _ => hne _ (radial_point_mem_unitDisc hr hr1)) hnull
+        simp at huniv
+      have := tendsto_nhds_unique (tendsto_const_nhds.congr' (hbot.mono fun r hr => hr.symm))
+        hmean0
+      simp at this
+    · have hneg : IsHarmonicMajorant (fun _ => -1) (logNormBot ∘ f) (ball 0 1) :=
+        ⟨InnerProductSpace.harmonicOnNhd_const (-1), fun z hz' => by rw [hne z hz']; exact bot_le⟩
+      have := hz.2 _ hneg 0 h0
+      norm_num at this
+  obtain ⟨u, hu, hlim⟩ := exists_isLeastHarmonicMajorant_tendsto_poissonModification
+    (logNormBot_comp_analytic_subharmonicOn_scalar isOpen_ball hf.analyticOn) hne
+    ⟨0, hzero⟩
   have hmean : Tendsto (fun r => withBotRadialMean (logNormBot ∘ f) r)
       (𝓝[<] 1) (𝓝 (u 0 : WithBot ℝ)) := by
     apply (hlim 0 h0).congr'
-    filter_upwards [show ∀ᶠ r : ℝ in 𝓝[<] 1, 0 < r from
-      (eventually_gt_nhds (by norm_num : (0 : ℝ) < 1)).filter_mono nhdsWithin_le_nhds]
-      with r hr
+    filter_upwards [hr_pos] with r hr
     exact poissonModification_zero_eq_withBotRadialMean _ hr
   constructor
   · intro hmean0

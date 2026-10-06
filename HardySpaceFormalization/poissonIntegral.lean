@@ -359,6 +359,50 @@ theorem poissonIntegral_eq_posPart_sub_negPart {μ : SignedMeasure ℂ}
     VectorMeasure.integral_sub_vectorMeasure hpos' hneg',
     VectorMeasure.integral_toSignedMeasure, VectorMeasure.integral_toSignedMeasure]
 
+/-- The total variation of a difference of finite measures vanishes on every set on which both
+measures vanish. -/
+theorem totalVariation_toSignedMeasure_sub_eq_zero {α : Type*} [MeasurableSpace α]
+    {μ₁ μ₂ : Measure α} [IsFiniteMeasure μ₁] [IsFiniteMeasure μ₂] {S : Set α}
+    (h₁ : μ₁ S = 0) (h₂ : μ₂ S = 0) :
+    (μ₁.toSignedMeasure - μ₂.toSignedMeasure).totalVariation S = 0 := by
+  set μ := μ₁.toSignedMeasure - μ₂.toSignedMeasure
+  have hvar : μ.variation ≤ μ₁ + μ₂ := by
+    refine VectorMeasure.variation_le_of_forall_enorm_le fun E hE => ?_
+    have habs : |μ₁.real E - μ₂.real E| ≤ μ₁.real E + μ₂.real E := by
+      rw [abs_le]
+      constructor <;> linarith [measureReal_nonneg (μ := μ₁) (s := E),
+        measureReal_nonneg (μ := μ₂) (s := E)]
+    simp only [μ, sub_apply, Measure.toSignedMeasure_apply_measurable hE,
+      Real.enorm_eq_ofReal_abs, Measure.add_apply]
+    grw [ENNReal.ofReal_le_ofReal habs]
+    rw [ENNReal.ofReal_add measureReal_nonneg measureReal_nonneg, ofReal_measureReal,
+      ofReal_measureReal]
+  have hS : μ.variation S = 0 :=
+    le_zero_iff.mp ((Measure.le_iff'.mp hvar S).trans (by simp [h₁, h₂]))
+  obtain ⟨hpos, hneg⟩ := toJordanDecomposition_le_variation μ
+  rw [SignedMeasure.totalVariation, Measure.add_apply,
+    le_zero_iff.mp ((Measure.le_iff'.mp hpos S).trans hS.le),
+    le_zero_iff.mp ((Measure.le_iff'.mp hneg S).trans hS.le), add_zero]
+
+/-- The Poisson integral of a difference of finite measures carried by the boundary circle is the
+difference of their Poisson integrals. -/
+theorem poissonIntegral_toSignedMeasure_sub {μ₁ μ₂ : Measure ℂ} [IsFiniteMeasure μ₁]
+    [IsFiniteMeasure μ₂] (hμ₁ : μ₁ (sphere c R)ᶜ = 0) (hμ₂ : μ₂ (sphere c R)ᶜ = 0)
+    (hw : w ∈ ball c R) :
+    P[c; μ₁.toSignedMeasure - μ₂.toSignedMeasure] w =
+      P[c; μ₁.toSignedMeasure] w - P[c; μ₂.toSignedMeasure] w := by
+  have hint : ∀ (ν : Measure ℂ) [IsFiniteMeasure ν], ν (sphere c R)ᶜ = 0 →
+      (ν.toSignedMeasure).Integrable (fun z : ℂ => poissonKernel c w z) := by
+    intro ν _ hν
+    show Integrable (fun z : ℂ => poissonKernel c w z) (ν.toSignedMeasure).variation
+    rw [Measure.variation_toSignedMeasure]
+    simpa [poissonKernel_eq_re_herglotzRieszKernel, RCLike.re_eq_complex_re] using
+      (integrable_herglotzRieszKernel hν hw).re
+  rw [poissonIntegral, integral_smul_eq_integral_flip,
+    VectorMeasure.integral_sub_vectorMeasure (hint μ₁ hμ₁) (hint μ₂ hμ₂),
+    VectorMeasure.integral_toSignedMeasure, VectorMeasure.integral_toSignedMeasure,
+    poissonIntegral_toSignedMeasure_apply, poissonIntegral_toSignedMeasure_apply]
+
 /-!
 ### The Poisson extension theorem
 -/
@@ -806,8 +850,7 @@ theorem harmonicOnNhd_hardyNorm_lt_top_iff_exists_memLp_eq_poissonIntegral
 radial `L¹` means are uniformly bounded is the Poisson integral of a finite signed measure carried
 by the unit circle. -/
 theorem exists_eq_poissonIntegral_of_hardyNorm_lt_top {u : ℂ → ℝ}
-    (hu : InnerProductSpace.HarmonicOnNhd u (ball 0 1))
-    (hbdd : hardyNorm u 1 < ∞) :
+  (hu : InnerProductSpace.HarmonicOnNhd u (ball 0 1)) (hbdd : hardyNorm u 1 < ∞) :
     ∃ ν : SignedMeasure ℂ, ν.totalVariation (sphere 0 1)ᶜ = 0 ∧
       ∀ w ∈ ball 0 1, u w = P[0; ν] w := by
   sorry

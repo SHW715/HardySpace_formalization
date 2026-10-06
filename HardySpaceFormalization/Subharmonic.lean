@@ -6,6 +6,7 @@ import Mathlib.Analysis.Complex.Harmonic.MeanValue
 import Mathlib.Analysis.Complex.Harmonic.Poisson
 import Mathlib.Analysis.Convex.Integral
 import Mathlib.Analysis.Normed.Module.HahnBanach
+import Mathlib.Analysis.SpecialFunctions.Log.PosLog
 import HardySpaceFormalization.Harmonic_max_principle
 import HardySpaceFormalization.poissonIntegral
 import HardySpaceFormalization.circleMeasure
@@ -254,6 +255,14 @@ theorem SubharmonicOn.const_mul [Nontrivial E] {p : ℝ} (hp : 0 ≤ p) (hu : Su
           exact (le_div_iff₀' hp_pos).mp hle_scaled
         simpa [huy] using WithBot.coe_le_coe.mpr hle
 
+omit [MeasurableSpace E] [BorelSpace E] in
+/-- The pointwise maximum of two subharmonic functions is subharmonic. -/
+theorem SubharmonicOn.sup {v : E → WithBot ℝ} (hu : SubharmonicOn u s)
+    (hv : SubharmonicOn v s) : SubharmonicOn (u ⊔ v) s := by
+  refine ⟨hu.1.sup hv.1, fun x r h hclosed hcont hharm hbd y hy => sup_le ?_ ?_⟩
+  · exact hu.2 x r h hclosed hcont hharm (fun z hz => le_sup_left.trans (hbd z hz)) y hy
+  · exact hv.2 x r h hclosed hcont hharm (fun z hz => le_sup_right.trans (hbd z hz)) y hy
+
 /-- Weighted Jensen inequality for the exponential on a circle.  If `P` is a nonnegative
 probability density with respect to `circleAverage`, then applying `exp` after the weighted
 average is bounded by the weighted average after applying `exp`. -/
@@ -493,6 +502,18 @@ theorem norm_rpow_comp_analytic_subharmonicOn_banach [DecidableEq F] {f : ℂ �
   SubharmonicOn (fun z => ((‖f z‖ ^ p : ℝ) : WithBot ℝ)) s := by
   simpa [Function.comp_def, exp_mul_logNorm_eq_norm_rpow hp] using
     ((logNormBot_comp_analytic_subharmonicOn_banach hs hf).const_mul hp.le).expBot_comp
+
+/-- For analytic `f`, the function `log⁺ ‖f‖ = max (log ‖f‖) 0` is subharmonic. -/
+theorem posLog_norm_comp_analytic_subharmonicOn_banach {f : ℂ → F} {s : Set ℂ} [DecidableEq F]
+    (hs : IsOpen s) (hf : AnalyticOn ℂ f s) :
+    SubharmonicOn (fun z => (log⁺ ‖f z‖ : WithBot ℝ)) s := by
+  have h0 : SubharmonicOn (fun _ : ℂ => ((0 : ℝ) : WithBot ℝ)) s :=
+    harmonicOnNhd_subharmonicOn _ s (InnerProductSpace.harmonicOnNhd_const 0)
+  convert (logNormBot_comp_analytic_subharmonicOn_banach hs hf).sup h0 using 1
+  funext z
+  by_cases hfz : f z = 0
+  · simp [logNormBot, hfz]
+  · simp [logNormBot, hfz, posLog_apply, max_comm]
 
 /- From math perspective, for `s ⊆ ℝ^n` case, it will be more natural to consider notion of 'log |f|'
 being 'pluri-subharmonic' rather than 'subharmonic', even if this theorem is still correct (as

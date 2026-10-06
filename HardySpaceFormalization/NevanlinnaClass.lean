@@ -1,4 +1,6 @@
 import HardySpaceFormalization.HardySpaceDisc
+import HardySpaceFormalization.HarmonicMajorant
+import Mathlib.Analysis.SpecialFunctions.Log.PosLog
 
 /-!
 # The Nevanlinna class on the unit disc
@@ -49,6 +51,13 @@ lemma nevanlinnaCharacteristic_zero :
   simp [nevanlinnaCharacteristic, nevanlinnaRadialMean]
 
 -- # Here we prove some properties of `log^+` functions:
+
+/-- `ENNReal.ofReal` already takes the positive part, so it does not distinguish `log⁺` from
+`log`. -/
+lemma ofReal_posLog (x : ℝ) : ENNReal.ofReal (log⁺ x) = ENNReal.ofReal (Real.log x) := by
+  rcases le_total (Real.log x) 0 with h | h
+  · simp [posLog_apply, max_eq_left h, ENNReal.ofReal_of_nonpos h]
+  · rw [posLog_apply, max_eq_right h]
 
 /-- The elementary estimate behind the inclusion `H^p ⊆ N`:
 `log x ≤ x^p / p` for `0 < p` and `0 ≤ x`. Applying `ENNReal.ofReal` to the
@@ -202,7 +211,74 @@ theorem memNevanlinnaDisc_of_memHpDisc {p : ℝ≥0∞} (hp : 0 < p)
     exact memNevanlinnaDisc_of_memHpDisc_of_lt_one (p := 2⁻¹) ⟨by norm_num, by norm_num⟩
       (HpDisc_mono (by norm_num) hhalf hf)
 
-
+/-- **Garnett II, (5.1).** An analytic function belongs to the Nevanlinna class if and only if
+`log⁺ ‖f‖` has a harmonic majorant on the unit disc. -/
+theorem memNevanlinnaDisc_iff_hasHarmonicMajorant {f : ℂ → ℂ}
+    (hf : AnalyticOn ℂ f unitDisc) (hf_out : ∀ z ∉ unitDisc, f z = 0) :
+    MemNevanlinnaDisc f ↔
+      Subharmonic.HasHarmonicMajorant (fun z => (log⁺ ‖f z‖ : WithBot ℝ)) unitDisc := by
+  -- Claude without review
+  constructor
+  · intro hN
+    -- Garnett: `log⁺ |f|` is subharmonic, so Theorem I.6.7 applies.
+    have hsub : SubharmonicOn (fun z => (log⁺ ‖f z‖ : WithBot ℝ)) (ball 0 1) :=
+      posLog_norm_comp_analytic_subharmonicOn_banach isOpen_ball hf
+    refine (Subharmonic.hasHarmonicMajorant_iff_radialMean_bddAbove hsub).mpr ?_
+    refine lt_of_le_of_lt (iSup₂_le fun r hr => ?_)
+      (EReal.coe_lt_top (nevanlinnaCharacteristic f).toReal)
+    -- Each radial mean of `log⁺ ‖f‖` is bounded by the Nevanlinna characteristic.
+    have hmeas :
+        AEStronglyMeasurable (fun θ : ℝ => log⁺ ‖f (r * exp (I * θ))‖) angularMeasure :=
+      (continuous_posLog.comp (radial_cont hf.continuousOn hr).norm).aestronglyMeasurable
+    have hbound : ∫ θ, log⁺ ‖f (r * exp (I * θ))‖ ∂angularMeasure ≤
+        (nevanlinnaCharacteristic f).toReal := by
+      rw [integral_eq_lintegral_of_nonneg_ae
+        (Filter.Eventually.of_forall fun θ => posLog_nonneg) hmeas]
+      refine ENNReal.toReal_mono hN.2.1.ne ?_
+      simp only [ofReal_posLog]
+      exact nevanlinnaRadialMean_le_characteristic f hr
+    have hmean : Subharmonic.withBotRadialMean (fun z => (log⁺ ‖f z‖ : WithBot ℝ)) r ≤
+        ((nevanlinnaCharacteristic f).toReal : WithBot ℝ) := by
+      unfold Subharmonic.withBotRadialMean withBotIntegral
+      split_ifs
+      · exact WithBot.coe_le_coe.mpr (by simpa using hbound)
+      · exact bot_le
+    split_ifs with hbot
+    · exact bot_le
+    · exact EReal.coe_le_coe_iff.mpr ((WithBot.unbot_le_iff hbot).mpr hmean)
+  · -- Conversely, by the mean-value property a harmonic majorant `U` bounds every radial
+    -- Nevanlinna mean by `U 0`.
+    rintro ⟨U, hU, hle⟩
+    have hlog : ∀ z ∈ unitDisc, log⁺ ‖f z‖ ≤ U z :=
+      fun z hz => WithBot.coe_le_coe.mp (hle z hz)
+    have hU_nonneg : ∀ z ∈ unitDisc, 0 ≤ U z := fun z hz => posLog_nonneg.trans (hlog z hz)
+    refine ⟨hf, lt_of_le_of_lt ?_ (ENNReal.ofReal_lt_top (r := U 0)), hf_out⟩
+    refine iSup₂_le fun r hr => ?_
+    have hsub : closedBall (0 : ℂ) |r| ⊆ unitDisc :=
+      closedBall_subset_ball (by simpa [abs_of_pos hr.1] using hr.2)
+    have hcircle : CircleIntegrable U 0 r :=
+      (hU.continuousOn.mono (sphere_subset_closedBall.trans hsub)).circleIntegrable'
+    have hint : Integrable (fun θ => U (circleMap 0 r θ)) angularMeasure :=
+      (integrable_map_measure hcircle.aestronglyMeasurable_circleMeasure
+        (measurable_circleMap 0 r).aemeasurable).mp hcircle.integrable_circleMeasure
+    have hrad : ∀ θ : ℝ, circleMap 0 r θ = r * exp (I * θ) := by
+      intro θ
+      simp [circleMap, mul_comm]
+    have hmean : (∫ θ, U (r * exp (I * θ)) ∂angularMeasure) = U 0 := by
+      simpa only [circleAverage_eq_integral_circleMeasure hcircle,
+        integral_circleMeasure_eq_integral_angularMeasure
+          hcircle.aestronglyMeasurable_circleMeasure, hrad] using
+        (HarmonicOnNhd.circleAverage_eq (hU.mono hsub))
+    calc
+      nevanlinnaRadialMean f r ≤
+          ∫⁻ θ, ENNReal.ofReal (U (r * exp (I * θ))) ∂angularMeasure :=
+        lintegral_mono fun θ => by
+          rw [← ofReal_posLog]
+          exact ENNReal.ofReal_le_ofReal (hlog _ (radial_point_mem_unitDisc hr.1 hr.2))
+      _ = ENNReal.ofReal (U 0) := by
+        rw [← ofReal_integral_eq_lintegral_ofReal (by simpa only [hrad] using hint)
+          (Filter.Eventually.of_forall fun θ =>
+            hU_nonneg _ (radial_point_mem_unitDisc hr.1 hr.2)), hmean]
 
 /-!
 ### Algebraic structure of the Nevanlinna class
