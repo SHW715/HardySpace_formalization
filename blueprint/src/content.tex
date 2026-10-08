@@ -222,6 +222,41 @@ and are not verbatim reproductions of the source.
   than separate definitions.
 \end{definition}
 
+\begin{lemma}[Linearity in the boundary measure]
+  \label{lem:poisson_integral_linear}
+  \lean{poissonIntegral_neg, poissonIntegral_smul, poissonIntegral_add,
+    poissonIntegral_sub}
+  \leanok
+  \uses{def:poisson_integral}
+  For vector measures $\nu,\nu_1,\nu_2$ and $r\in\mathbb R$,
+  $P[-\nu]=-P[\nu]$ and $P[r\nu]=rP[\nu]$. If $P_w$ is integrable against
+  $|\nu_1|$ and $|\nu_2|$, then
+  $P[\nu_1\pm\nu_2](w)=P[\nu_1](w)\pm P[\nu_2](w)$.
+  \begin{proof}
+    \proves{lem:poisson_integral_linear}
+    \leanok
+    The integral against a vector measure is linear in the measure.
+  \end{proof}
+\end{lemma}
+
+\begin{lemma}[Integrability of the Poisson kernel against boundary data]
+  \label{lem:poisson_kernel_integrable}
+  \lean{integrable_poissonKernel_toSignedMeasure,
+    integrable_poissonKernel_withDensityᵥ}
+  \leanok
+  \uses{def:poisson_integral}
+  Let $w\in\D(c,R)$, let $\mu$ be a finite positive measure carried by
+  $\partial\D(c,R)$, and let $k\in L^1(\mu)$ be real. Then $P_w$ is integrable
+  against the variation of $\mu$ and of $k\,d\mu$. (The case of a signed
+  measure is in Lemma~\ref{lem:poisson_integral_jordan}.)
+  \begin{proof}
+    \proves{lem:poisson_kernel_integrable}
+    \leanok
+    The kernel is bounded on $\partial\D(c,R)$ for interior $w$, the variation
+    of $\mu$ is $\mu$, and that of $k\,d\mu$ is bounded by $|k|\,d\mu$.
+  \end{proof}
+\end{lemma}
+
 \begin{lemma}[Boundary data given as a density]
   \label{lem:poisson_integral_withDensity}
   \lean{poissonIntegral_withDensityᵥ}
@@ -625,16 +660,15 @@ and are not verbatim reproductions of the source.
     analyticOrderAt_blaschkeProduct, blaschkeProduct_eq_zero_iff,
     memHpDisc_blaschkeProduct, ae_hasNontangentialLimit_blaschkeProduct}
   \leanok
-  \uses{def:blaschke_factor, def:boundary_function}
+  \uses{def:blaschke_product, def:blaschke_condition, def:boundary_function}
   \mainline
   \bookref{Garnett}{II.2.2}{Chapter II, Section 2, PDF page 64}
-  If $\{a_n\}\subset\mathbb{D}$ satisfies the Blaschke condition, then the
-  associated Blaschke product converges uniformly on compact subsets of
-  $\mathbb{D}$ to a bounded analytic function whose zeros are exactly the
-  $a_n$ with the prescribed multiplicities, and whose boundary modulus is one
-  almost everywhere. More precisely, $B(z)=z^mP(z)$, where
-  $m=\#\{n:a_n=0\}$, satisfies $|B|\le1$ on $\D$ and
-  $\operatorname{ord}_w B=\#\{n:a_n=w\}$ for every $w\in\D$.
+  If $m$ satisfies the Blaschke condition, then the finite partial products
+  of $B_m$ converge uniformly on compact subsets of $\mathbb{D}$ to a bounded
+  analytic function whose zeros are exactly the points with $m(w)>0$, with
+  the prescribed multiplicities, and whose boundary modulus is one almost
+  everywhere. More precisely, $|B_m|\le1$ on $\D$ and
+  $\operatorname{ord}_w B_m=m(w)$ for every $w\in\D$.
   Its extension by zero outside $\D$ belongs to $H^\infty(\D)$.
   Almost everywhere on the circle, its canonical boundary value is its
   nontangential limit and has modulus one.
@@ -646,7 +680,7 @@ and are not verbatim reproductions of the source.
     $B(z)=z^mP(z)$ is formalized: multiplication by $z^m$, whose modulus
     is at most one on $\D$, preserves locally uniform convergence.
     Analyticity of $B$ is formalized from this convergence: the finite
-    products are holomorphic since $|\overline{a_n}z|<1$ on $\D$,
+    products are holomorphic since $|\overline{a}z|<1$ for $a,z\in\D$,
     and a locally uniform limit of holomorphic functions is holomorphic.
     The bound $|B|\le1$ is formalized by bounding each finite product
     and passing to the pointwise limit. The factor bound follows from
@@ -715,6 +749,21 @@ and are not verbatim reproductions of the source.
   $-\overline a\,b_{R,a}/|a|$ otherwise.
 \end{definition}
 
+\begin{definition}[Blaschke product of a multiplicity function]
+  \label{def:blaschke_product}
+  \lean{blaschkeProductFactor, BlaschkeProduct}
+  \leanok
+  \uses{def:blaschke_factor, def:blaschke_sum}
+  For $m:\mathbb C\to\mathbb N\cup\{\infty\}$, with $b_a$ the normalized factor
+  $b_{1,a}$,
+  \[
+    B_m(z)=z^{m(0)}\prod_{a\in\D\setminus\{0\}}b_a(z)^{m(a)},
+  \]
+  the product taken unconditionally, i.e.\ as the limit along finite subsets of $\D$.
+  An analytic function uses $m=\operatorname{ord}(f)$ and a finite or infinite
+  family $(a_i)$ uses $m(a)=\#\{i:a_i=a\}$. Points outside $\D$ are ignored.
+\end{definition}
+
 \section{Chapter II, Section 4: boundary uniqueness and outer functions}
 
 \begin{corollary}[Garnett II.4.2: boundary uniqueness]
@@ -755,6 +804,7 @@ and are not verbatim reproductions of the source.
 \begin{theorem}[Garnett II.4.4: construction from logarithmic data]
   \label{thm:II_4_4}
   \notready
+  \uses{def:outer_factor}
   \mainline
   \bookref{Garnett}{II.4.4}{Chapter II, Section 4, PDF page 75}
   Given a nonnegative boundary function $\varphi$ with
@@ -767,20 +817,51 @@ and are not verbatim reproductions of the source.
 \begin{theorem}[Outer uniqueness]
   \label{thm:outer_uniqueness}
   \notready
-  \uses{cor:II_4_2, def:boundary_function}
+  \uses{def:outer_factor, cor:II_4_2, def:boundary_function}
   If two outer functions have the same boundary modulus almost everywhere,
   then their quotient is a unimodular constant. Equivalently, the boundary
   modulus determines the outer factor up to the expected constant.
 \end{theorem}
 
-\begin{definition}[Outer factor]
+\begin{definition}[Outer functions on the disc]
   \label{def:outer_factor}
-  \notready
-  \uses{thm:II_4_4, thm:outer_uniqueness}
-  The outer factor $F$ in the Nevanlinna factorization is the zero-free
-  analytic factor built from the absolutely continuous part of the boundary
-  measure representing the least harmonic majorant.
+  \lean{outerFunction, IsOuterFunction}
+  \leanok
+  \uses{def:poisson_integral}
+  \bookref{Garnett}{II.4, II.5}{Printed pages 64 and 70, PDF pages 76 and 82}
+  For real $k\in L^1(\sigma)$, where $\sigma$ is normalized arclength on
+  $\partial\D$, put
+  \[
+    O_k(z)=\exp\left(\int_{\partial\D}
+      \frac{\zeta+z}{\zeta-z}\,k(\zeta)\,d\sigma(\zeta)\right).
+  \]
+  A function $f$ is outer on $\D$ if $f=C O_k$ on $\D$ for some such $k$
+  and a constant $|C|=1$.
 \end{definition}
+
+\begin{theorem}[Basic properties of outer functions]
+  \label{thm:outer_function_properties}
+  \lean{outerFunction_ne_zero, analyticOn_outerFunction, norm_outerFunction,
+    log_norm_outerFunction, isOuterFunction_outerFunction,
+    IsOuterFunction.analyticOn, IsOuterFunction.ne_zero,
+    IsOuterFunction.exists_log_norm_eq}
+  \leanok
+  \uses{def:outer_factor, def:poisson_integral}
+  \bookref{Garnett}{II.4, II.5}{Printed pages 64 and 70, PDF pages 76 and 82}
+  For real $k\in L^1(\sigma)$, $O_k$ is analytic and zero-free on $\D$, and
+  $\log|O_k|=P[k\,d\sigma]$ on $\D$. Hence every outer function $F$ is
+  analytic and zero-free on $\D$, and $\log|F|=P[k\,d\sigma]$ for some real
+  $k\in L^1(\sigma)$.
+  \begin{proof}
+    \proves{thm:outer_function_properties}
+    \notready
+    The integral $\int\frac{\zeta+z}{\zeta-z}\,k(\zeta)\,d\sigma(\zeta)$ is
+    analytic in $z\in\D$, and its real part is $P[k\,d\sigma](z)$ because the
+    real part of the Herglotz--Riesz kernel is the Poisson kernel.
+    Exponentiating gives the claims for $O_k$; multiplying by $|C|=1$ gives
+    those for $F$.
+  \end{proof}
+\end{theorem}
 
 \section{Chapter II, Section 5: Nevanlinna class}
 
@@ -999,15 +1080,33 @@ and are not verbatim reproductions of the source.
 
 \begin{lemma}[Garnett II.5.2: remove the zeros of a Nevanlinna function]
   \label{lem:II_5_2}
-  \notready
+  \lean{Nevanlinna.MemNevanlinnaDisc.blaschkeCondition,
+    Nevanlinna.MemNevanlinnaDisc.exists_eq_blaschkeProduct_mul}
+  \leanok
   \uses{thm:II_5_1, thm:II_2_1, thm:II_2_2, thm:II_2_4}
   \mainline
   \bookref{Garnett}{II.5.2}{Chapter II, Section 5, PDF page 78}
   Let $f\in N$ be nonzero and let $B$ be the Blaschke product formed from the
-  zeros of $f$, counted with multiplicity. Then $B$ converges, the quotient
-  $g=f/B$ is analytic and zero-free on $\mathbb{D}$, and $g$ still belongs to
-  the Nevanlinna class. Moreover, $\log|g|$ is the least harmonic majorant of
-  $\log|f|$ on $\mathbb{D}$.
+  zeros of $f$, counted with multiplicity. Then $B$ converges and $f=Bg$, where
+  the quotient $g=f/B$, with its removable singularities filled in, is analytic
+  and zero-free on $\mathbb{D}$, and $g$ still belongs to the Nevanlinna class.
+  Moreover, $\log|g|$ is the least harmonic majorant of $\log|f|$ on
+  $\mathbb{D}$.
+  \begin{proof}
+    \proves{lem:II_5_2}
+    \notready
+    \uses{eq:II_5_1, thm:I_6_7}
+    By (5.1), $\log|f|\le\log^+|f|\le U$ for a harmonic $U$, so
+    Theorem~\ref{thm:II_2_1} gives the Blaschke condition, and
+    Theorem~\ref{thm:I_6_7} gives the least harmonic majorant $u\le U$ of
+    $\log|f|$. Since $B$ has the zeros of $f$ with the same multiplicities
+    (Theorem~\ref{thm:II_2_2}), $f/B$ has only removable singularities;
+    removing them gives a zero-free analytic $g$ with $f=Bg$. As $|B|\le1$,
+    $\log|g|$ is a harmonic majorant of $\log|f|$, so $u\le\log|g|$.
+    Conversely, $u-\log|g|$ is a harmonic majorant of $\log|B|$, whose least
+    harmonic majorant is $0$ by Theorem~\ref{thm:II_2_4}; hence
+    $u=\log|g|$. Finally $\log^+|g|=\max(u,0)\le U$, so $g\in N$ by (5.1).
+  \end{proof}
 \end{lemma}
 
 \begin{corollary}[II.3.1, $p=\infty$: boundary values on the disc]
@@ -1072,7 +1171,11 @@ Garnett's $p=1$ argument uses the $L^1$ boundary convergence in II.3.1.
 
 \begin{theorem}[Garnett II.5.3: boundary values and the least-majorant measure]
   \label{thm:II_5_3}
-  \notready
+  \lean{Nevanlinna.MemNevanlinnaDisc.ae_nontangentiallyConvergentAt,
+    Nevanlinna.MemNevanlinnaDisc.ae_boundaryValue_ne_zero,
+    Nevanlinna.MemNevanlinnaDisc.integrable_log_norm_boundaryValue,
+    Nevanlinna.MemNevanlinnaDisc.exists_mutuallySingular_isLeastHarmonicMajorant}
+  \leanok
   \uses{thm:II_5_1, lem:II_5_2, thm:II_2_2, thm:I_5_3, cor:II_3_1(p=∞),
     thm:poisson_measure_unique, def:nt_limit, def:boundary_function,
     lem:poisson_integral_jordan}
@@ -1083,8 +1186,9 @@ Garnett's $p=1$ argument uses the $L^1$ boundary convergence in II.3.1.
     \item $f$ has a nontangential limit $f^*(\zeta)$ at almost every
       $\zeta\in\partial\D$, and $f^*\ne0$ almost everywhere;
     \item $\log|f^*|\in L^1(d\theta/2\pi)$;
-    \item the least harmonic majorant of $\log|f|$ is $P[\mu]$ for a unique
-      finite signed measure $\mu$ on $\partial\D$, and
+    \item the least harmonic majorant of $\log|f|$ is $P[\mu]$ for a finite
+      signed measure $\mu$ on $\partial\D$, unique by
+      Theorem~\ref{thm:poisson_measure_unique}, and
       \begin{equation}
         \label{eq:II_5_3_decomposition}
         d\mu=\log|f^*|\,\frac{d\theta}{2\pi}+d\mu_s,
@@ -1097,6 +1201,7 @@ Garnett's $p=1$ argument uses the $L^1$ boundary convergence in II.3.1.
   the singular part; Garnett's class $N^+$ is the subclass where
   $\mu_s\le0$.
   \begin{proof}
+    \proves{thm:II_5_3}
     \notready
     Let $B$ be the Blaschke product over the zeros of $f$ and $g=f/B$. By
     Theorem~\ref{thm:II_5_1} and Lemma~\ref{lem:II_5_2}, $g$ is zero-free and
@@ -1139,36 +1244,115 @@ Garnett's $p=1$ argument uses the $L^1$ boundary convergence in II.3.1.
 
 \begin{theorem}[Jordan decomposition of singular measures]
   \label{thm:jordan_decomposition_singular_measure}
-  \notready
-  If $\nu$ is a finite real signed measure on $\partial\mathbb{D}$ and is
-  singular with respect to Lebesgue measure, then its Jordan decomposition
-  $\nu=\nu^+-\nu^-$ has $\nu^+$ and $\nu^-$ finite positive singular measures.
+  \lean{MeasureTheory.SignedMeasure.totalVariation_apply_eq_zero_iff,
+    MeasureTheory.SignedMeasure.mutuallySingular_toENNRealVectorMeasure_iff}
+  \leanok
+  \bookref{Garnett}{II, (5.7)}{Printed page 70, PDF page 82}
+  Let $\nu$ be a finite real signed measure with Jordan decomposition
+  $\nu=\nu^+-\nu^-$. Then $|\nu|(S)=0$ if and only if $\nu^+(S)=\nu^-(S)=0$,
+  and $\nu\perp\sigma$ if and only if $\nu^+\perp\sigma$ and $\nu^-\perp\sigma$.
+  In particular, if $\nu$ is carried by $\partial\mathbb{D}$ and singular with
+  respect to Lebesgue measure, then $\nu^+$ and $\nu^-$ are finite positive
+  measures with the same two properties.
+  \begin{proof}
+    \proves{thm:jordan_decomposition_singular_measure}
+    \leanok
+    The total variation is $|\nu|=\nu^++\nu^-$, and a sum of positive measures
+    vanishes on $S$, or is singular to $\sigma$, exactly when both summands do.
+  \end{proof}
 \end{theorem}
 
 \begin{definition}[Singular function formula]
   \label{def:singular_function_formula}
-  \notready
-  For a finite positive singular measure $\sigma$ on $\partial\mathbb{D}$, the
-  associated singular function is the analytic exponential
+  \lean{singularFunction, IsSingularFunction, isSingularFunction_singularFunction}
+  \leanok
+  \uses{def:poisson_integral}
+  \bookref{Garnett}{II, (5.8)}{Printed page 70, PDF page 82}
+  For a finite positive measure $\mu$ carried by $\partial\D$ and singular
+  to normalized arclength $\sigma$, put
   \[
-    S_\sigma(z)=\exp\left(-\int_{\partial\mathbb{D}}
-      \frac{\zeta+z}{\zeta-z}\,d\sigma(\zeta)\right).
+    S_\mu(z)=\exp\left(-\int_{\partial\mathbb{D}}
+      \frac{\zeta+z}{\zeta-z}\,d\mu(\zeta)\right).
   \]
-  It is bounded by one in the disc and has boundary modulus one almost
-  everywhere.
+  A function $S$ is singular on $\D$ if $S=S_\mu$ on $\D$ for some such $\mu$.
 \end{definition}
+
+\begin{theorem}[Garnett II, (5.9): modulus of $S_\mu$]
+  \label{eq:II_5_9}
+  \lean{singularFunction_ne_zero, analyticOn_singularFunction,
+    norm_singularFunction, log_norm_singularFunction, singularFunction_zero}
+  \leanok
+  \uses{def:singular_function_formula, def:poisson_integral}
+  \bookref{Garnett}{II, (5.9)}{Printed page 70, PDF page 82}
+  For a finite positive measure $\mu$ carried by $\partial\D$, $S_\mu$ is
+  analytic and zero-free on $\D$,
+  \[
+    \log|S_\mu(z)|=-P[\mu](z)\quad(z\in\D),
+  \]
+  and $S_\mu(0)=e^{-\mu(\partial\D)}$.
+  \begin{proof}
+    \proves{eq:II_5_9}
+    \leanok
+    The Herglotz--Riesz transform of $\mu$ is analytic on $\D$, and its real
+    part is $P[\mu]$ because the real part of the Herglotz--Riesz kernel is the
+    Poisson kernel. At $z=0$ the kernel equals $1$ on $\partial\D$.
+  \end{proof}
+\end{theorem}
+
+\begin{theorem}[Characterization of singular functions]
+  \label{thm:singular_function_characterization}
+  \lean{IsSingularFunction.analyticOn, IsSingularFunction.ne_zero,
+    IsSingularFunction.norm_le_one,
+    IsSingularFunction.ae_hasNontangentialLimit_norm_eq_one,
+    IsSingularFunction.zero_pos, isSingularFunction_iff}
+  \leanok
+  \uses{def:singular_function_formula, def:nt_limit}
+  \bookref{Garnett}{II.5}{Printed page 70, PDF page 82}
+  A function $S$ is singular if and only if it is analytic on $\D$,
+  has no zeros there, satisfies $|S|\le1$, has nontangential limits of
+  modulus one $\sigma$-almost everywhere, and $S(0)$ is positive real.
+  \begin{proof}
+    \proves{thm:singular_function_characterization}
+    \notready
+    \uses{eq:II_5_9, lem:I_5_4, cor:II_3_2(p=∞), thm:I_3_5(c), thm:I_5_3}
+    The exponential integral is analytic and satisfies
+    $\log|S_\mu|=-P[\mu]$. Positivity, the singular Poisson boundary theorem,
+    and bounded-analytic Fatou give the four properties.
+    Conversely, represent the nonnegative harmonic function $-\log|S|$
+    as $P[\mu]$. Its zero boundary limit makes the absolutely continuous
+    part of $\mu$ vanish. Then $S/S_\mu$ is a unimodular constant,
+    equal to one by positivity at the origin.
+  \end{proof}
+\end{theorem}
 
 \begin{definition}[Singular factors]
   \label{def:singular_factors}
   \notready
   \uses{thm:jordan_decomposition_singular_measure,
-    def:singular_function_formula, lem:I_5_4}
+    def:singular_function_formula, thm:singular_function_characterization}
   If the singular part of the representing measure is
   $\nu_s=\nu_s^+-\nu_s^-$, then the canonical factorization uses the two
-  singular functions $S_1=S_{\nu_s^+}$ and $S_2=S_{\nu_s^-}$.
+  singular functions $S_1=S_{\nu_s^-}$ and $S_2=S_{\nu_s^+}$ in $S_1/S_2$.
 \end{definition}
 
 \section{Final factorization and uniqueness}
+
+\begin{definition}[Canonical factorization]
+  \label{def:canonical_factorization}
+  \lean{Nevanlinna.IsCanonicalFactorization}
+  \leanok
+  \uses{def:blaschke_condition, def:blaschke_product, def:outer_factor,
+    def:singular_function_formula}
+  \bookref{Garnett}{II, (5.10)}{Printed page 71, PDF page 83}
+  Let $|C|=1$, let $F$ be outer, and let $\mu_1,\mu_2$ be finite positive
+  measures carried by $\partial\D$, each singular to normalized arclength,
+  with $\mu_1\perp\mu_2$. Then $(C,F,\mu_1,\mu_2)$ is a canonical
+  factorization of $f$ if the zeros of $f$ in $\D$, counted with multiplicity,
+  satisfy the Blaschke condition and, with $B$ their Blaschke product,
+  \[
+    f = C\,B\,F\,S_{\mu_1}/S_{\mu_2}\quad\text{on }\D.
+  \]
+\end{definition}
 
 \begin{theorem}[Zeros determine the Blaschke factor]
   \label{thm:zeros_determine_blaschke}
@@ -1196,42 +1380,80 @@ Garnett's $p=1$ argument uses the $L^1$ boundary convergence in II.3.1.
   normalization convention.
 \end{theorem}
 
-\begin{theorem}[Uniqueness of Nevanlinna factorization]
+\begin{theorem}[Garnett II.5.5: uniqueness of canonical factorization]
   \label{thm:nevanlinna_factorization_uniqueness}
-  \notready
-  \uses{thm:zeros_determine_blaschke,
-    thm:boundary_modulus_determines_outer,
-    thm:singular_measure_determines_factors}
-  In the canonical factorization, the Blaschke factor is determined by the
-  zero multiset, the outer factor by the a.e. boundary modulus, and the
-  singular factors by the singular part of the representing measure. The only
-  remaining ambiguity is the conventional unimodular constant.
+  \lean{Nevanlinna.IsCanonicalFactorization.unique}
+  \leanok
+  \mainline
+  \uses{def:canonical_factorization}
+  \bookref{Garnett}{II.5.5}{Chapter II, Section 5, PDF page 83}
+  If $(C,F,\mu_1,\mu_2)$ and $(C',F',\nu_1,\nu_2)$ are canonical
+  factorizations of the same $f$, then $\mu_1=\nu_1$, $\mu_2=\nu_2$, and
+  $CF=C'F'$ on $\D$.
+  \begin{proof}
+    \proves{thm:nevanlinna_factorization_uniqueness}
+    \notready
+    \uses{thm:zeros_determine_blaschke,
+      thm:boundary_modulus_determines_outer,
+      thm:singular_measure_determines_factors}
+    Both factorizations use the Blaschke product of the zeros of $f$, which
+    cancels. Since $|B|=|S_{\mu_j}|=|S_{\nu_j}|=1$ almost everywhere on
+    $\partial\D$, the outer parts have the same boundary modulus, so their
+    absolutely continuous log-data agree. Comparing $\log|f/B|$ then gives
+    $\mu_2-\mu_1=\nu_2-\nu_1$. Both sides are Jordan decompositions by
+    mutual singularity, hence $\mu_j=\nu_j$, and dividing out the singular
+    factors gives $CF=C'F'$.
+  \end{proof}
 \end{theorem}
 
-\begin{theorem}[Garnett II.5.5: canonical factorization in $N$]
+\begin{theorem}[Garnett II.5.5: existence of canonical factorization in $N$]
   \label{thm:nevanlinna_canonical_factorization}
-  \notready
-  \uses{thm:II_5_1, lem:II_5_2, thm:II_5_3, def:outer_factor,
-    def:singular_factors, thm:nevanlinna_factorization_uniqueness}
+  \lean{Nevanlinna.MemNevanlinnaDisc.exists_isCanonicalFactorization}
+  \leanok
+  \uses{def:canonical_factorization, thm:II_5_1, lem:II_5_2, thm:II_5_3,
+    def:outer_factor, def:singular_factors}
   \mainline
   \bookref{Garnett}{II.5.5}{Chapter II, Section 5, PDF page 83}
-  If $f\in N$ and $f$ is not identically zero, then there exist a unimodular
-  constant $C$, a Blaschke product $B$, an outer function $F$, and singular
-  functions $S_1,S_2$ such that
-  \[
-    f = C\,B\,F\,S_1/S_2.
-  \]
-  Conversely, every expression of this form belongs to the Nevanlinna class.
-  The factors are unique after fixing the standard normalizations.
+  If $f\in N$ and $f\not\equiv0$, then $f$ has a canonical factorization
+  $f=C\,B\,F\,S_{\mu_1}/S_{\mu_2}$ on $\D$.
 \end{theorem}
 
 \begin{proof}
-  \notready
-  Remove the zeros using the Blaschke product. Apply the boundary-value and
-  logarithmic-integrability theorem to the zero-free quotient. Split the
-  representing measure of the least harmonic majorant into absolutely
-  continuous and singular parts. The absolutely continuous part gives the
-  outer factor, while the positive and negative singular parts give
-  $S_1$ and $S_2$. The uniqueness statement follows by comparing zero sets,
-  boundary moduli, and singular measures.
+  \proves{thm:nevanlinna_canonical_factorization}
+  \leanok
+  \uses{thm:outer_function_properties, eq:II_5_9, lem:poisson_integral_linear,
+    lem:poisson_kernel_integrable, thm:jordan_decomposition_singular_measure}
+  By Lemma~\ref{lem:II_5_2}, $f=Bg$ with $g\in N$ zero-free and $\log|g|$ the
+  least harmonic majorant of $\log|f|$. By (5.2) and (5.3), that majorant is
+  $P[k\,d\sigma+\mu_s]$ with $k=\log|f^*|\in L^1(\sigma)$ and
+  $\mu_s\perp\sigma$; least harmonic majorants are unique, so
+  $\log|g|=P[k\,d\sigma+\mu_s]$ on $\D$. Put $\mu_2=\mu_s^+$ and
+  $\mu_1=\mu_s^-$, which are carried by $\partial\D$, singular to $\sigma$,
+  and mutually singular. By linearity of the Poisson integral and (5.9),
+  $\log|g|=\log|O_k S_{\mu_1}/S_{\mu_2}|$ on $\D$.
+
+  Garnett concludes by taking a single-valued logarithm of the zero-free
+  quotient $g$. We instead note that $g/(O_k S_{\mu_1}/S_{\mu_2})$ is analytic
+  on $\D$ with modulus one, hence a unimodular constant $C$ by the maximum
+  modulus principle. This is equivalent and avoids holomorphic logarithms on
+  the disc.
 \end{proof}
+
+\begin{theorem}[Garnett II.5.5: converse]
+  \label{thm:II_5_5_converse}
+  \notready
+  \mainline
+  \uses{thm:II_5_1, thm:II_2_2, def:outer_factor, def:singular_function_formula}
+  \bookref{Garnett}{II.5.5}{Chapter II, Section 5, PDF page 83}
+  If $|C|=1$, $B$ is a convergent Blaschke product, $F$ is outer, and
+  $S_1,S_2$ are singular functions, then $CBFS_1/S_2\in N$.
+  \begin{proof}
+    \proves{thm:II_5_5_converse}
+    \notready
+    \uses{thm:outer_function_properties, eq:II_5_9, lem:poisson_integral_linear,
+      lem:poisson_kernel_integrable}
+    Since $|B|\le1$, the harmonic function
+    $\log|F|+\log|S_1|-\log|S_2|$ majorizes $\log|CBFS_1/S_2|$.
+    Its finite signed-measure Poisson representation yields membership in $N$.
+  \end{proof}
+\end{theorem}

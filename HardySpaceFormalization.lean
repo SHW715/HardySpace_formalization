@@ -5,10 +5,12 @@
 -- and the legacy `HardySpaceFirstDefs`, `HardySpaceMajorantDefs`, `Harmonic_max_complex_case`,
 -- `Subharmonic_used` (they do not compile).
 import HardySpaceFormalization.BlaschkeProduct
+import HardySpaceFormalization.CanonicalFactorization
 import HardySpaceFormalization.HardyNorm_Bounded_inequality
 import HardySpaceFormalization.HardySpaceBoundary
 import HardySpaceFormalization.HardySpaceComplete
 import HardySpaceFormalization.HardySpaceDisc
+import HardySpaceFormalization.HarmonicComp
 import HardySpaceFormalization.HarmonicHarnack
 import HardySpaceFormalization.HarmonicMajorant
 import HardySpaceFormalization.Harmonic_max_principle
@@ -16,7 +18,10 @@ import HardySpaceFormalization.LpDuality
 import HardySpaceFormalization.NevanlinnaClass
 import HardySpaceFormalization.Nevanlinna_properties
 import HardySpaceFormalization.NontangentialLimit
+import HardySpaceFormalization.OuterFunction
 import HardySpaceFormalization.Poisson_lemma
+import HardySpaceFormalization.SignedMeasure
+import HardySpaceFormalization.SingularFunction
 import HardySpaceFormalization.Subharmonic
 import HardySpaceFormalization.circleMeasure
 import HardySpaceFormalization.eLpNormFixed

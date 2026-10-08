@@ -1,5 +1,6 @@
 import HardySpaceFormalization.NevanlinnaClass
 import HardySpaceFormalization.HarmonicMajorant
+import HardySpaceFormalization.BlaschkeProduct
 
 
 /-!
@@ -58,8 +59,8 @@ theorem memNevanlinnaDisc_iff_exists_signedMeasure_isLeastHarmonicMajorant {f : 
     simp
   · rintro ⟨μ, hμ, hmajor⟩
     have hparts : μ.toJordanDecomposition.posPart (sphere 0 1)ᶜ = 0 ∧
-        μ.toJordanDecomposition.negPart (sphere 0 1)ᶜ = 0 := by
-      simpa [SignedMeasure.totalVariation, Measure.add_apply] using hμ
+        μ.toJordanDecomposition.negPart (sphere 0 1)ᶜ = 0 :=
+      SignedMeasure.totalVariation_apply_eq_zero_iff.mp hμ
     let U := P[0; μ.toJordanDecomposition.posPart.toSignedMeasure]
     have hU : InnerProductSpace.HarmonicOnNhd U unitDisc :=
       harmonicOnNhd_poissonIntegral_toSignedMeasure hparts.1
@@ -82,6 +83,62 @@ theorem memNevanlinnaDisc_iff_exists_signedMeasure_isLeastHarmonicMajorant {f : 
     refine (memNevanlinnaDisc_iff_hasHarmonicMajorant hf hf_out).mpr ⟨U, hU, fun z hz => ?_⟩
     exact WithBot.coe_le_coe.mpr (max_le (hU_nonneg z hz) (hlog z hz))
 
+/-- **Garnett II.5.2 (convergence).** The zeros of a nonzero function in the Nevanlinna class,
+counted with multiplicity, satisfy the Blaschke condition; hence the Blaschke product formed from
+them converges. -/
+theorem MemNevanlinnaDisc.blaschkeCondition {f : ℂ → ℂ} (hf : MemNevanlinnaDisc f)
+    (hf_ne : ∃ z ∈ unitDisc, f z ≠ 0) :
+    BlaschkeCondition (analyticOrderAt f) := by
+  sorry
+
+/-- **Garnett II.5.2.** Let `f ≢ 0` belong to the Nevanlinna class and let `B` be the Blaschke
+product formed from the zeros of `f`, counted with multiplicity. Then `f = B * g` on the disc for
+a zero-free `g` in the Nevanlinna class, and `log ‖g‖` is the least harmonic majorant of
+`log ‖f‖`. Since `B ≢ 0`, `g` is `f / B` with its removable singularities filled in. -/
+theorem MemNevanlinnaDisc.exists_eq_blaschkeProduct_mul {f : ℂ → ℂ} (hf : MemNevanlinnaDisc f)
+    (hf_ne : ∃ z ∈ unitDisc, f z ≠ 0) :
+    ∃ g : ℂ → ℂ, MemNevanlinnaDisc g ∧ (∀ z ∈ unitDisc, g z ≠ 0) ∧
+      (∀ z ∈ unitDisc, f z = BlaschkeProduct (analyticOrderAt f) z * g z) ∧
+      Subharmonic.IsLeastHarmonicMajorant (fun z => Real.log ‖g z‖) (logNormBot ∘ f) unitDisc := by
+  sorry
+
+/-- **Garnett II.5.3 (nontangential limits).** A function in the Nevanlinna class has a
+nontangential limit at almost every point of the unit circle. Garnett's hypothesis `f ≢ 0` is not
+needed here. -/
+theorem MemNevanlinnaDisc.ae_nontangentiallyConvergentAt {f : ℂ → ℂ}
+    (hf : MemNevanlinnaDisc f) :
+    ∀ᵐ ζ ∂circleMeasure 0 1, NontangentiallyConvergentAt f ζ := by
+  sorry
+
+/-- **Garnett II.5.3 (nonvanishing boundary values).** The boundary function of a nonzero function
+in the Nevanlinna class is nonzero almost everywhere. Garnett's `log |f*| ∈ L¹` contains this, but
+`Real.log 0 = 0` in Lean, so it is stated separately. -/
+theorem MemNevanlinnaDisc.ae_boundaryValue_ne_zero {f : ℂ → ℂ}
+    (hf : MemNevanlinnaDisc f) (hf_ne : ∃ z ∈ unitDisc, f z ≠ 0) :
+    ∀ᵐ ζ ∂circleMeasure 0 1, boundaryValue f ζ ≠ 0 := by
+  sorry
+
+/-- **Garnett II, (5.2).** For a nonzero function `f` in the Nevanlinna class, `log ‖f*‖` is
+integrable on the unit circle. -/
+theorem MemNevanlinnaDisc.integrable_log_norm_boundaryValue {f : ℂ → ℂ}
+    (hf : MemNevanlinnaDisc f) (hf_ne : ∃ z ∈ unitDisc, f z ≠ 0) :
+    Integrable (fun ζ => Real.log ‖boundaryValue f ζ‖) (circleMeasure 0 1) := by
+  sorry
+
+/-- **Garnett II, (5.3).** For a nonzero function `f` in the Nevanlinna class, the least harmonic
+majorant of `log ‖f‖` is the Poisson integral of `log ‖f*‖ dθ/2π + dμ_s`, for a finite signed
+measure `μ_s` on the unit circle singular to arclength. -/
+theorem MemNevanlinnaDisc.exists_mutuallySingular_isLeastHarmonicMajorant {f : ℂ → ℂ}
+    (hf : MemNevanlinnaDisc f) (hf_ne : ∃ z ∈ unitDisc, f z ≠ 0) :
+    ∃ μs : SignedMeasure ℂ, μs.totalVariation (sphere 0 1)ᶜ = 0 ∧
+      μs ⟂ᵥ (circleMeasure 0 1).toENNRealVectorMeasure ∧
+      Subharmonic.IsLeastHarmonicMajorant
+        P[0; (fun ζ => Real.log ‖boundaryValue f ζ‖) ∂ᵥ circleMeasure 0 1 + μs]
+        (logNormBot ∘ f) unitDisc := by
+  sorry
+
 end Nevanlinna
+
+#check toMeromorphicNFOn
 
 end

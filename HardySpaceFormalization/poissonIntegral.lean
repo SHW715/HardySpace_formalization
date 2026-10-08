@@ -1,5 +1,7 @@
 import HardySpaceFormalization.Poisson_lemma
+import HardySpaceFormalization.HarmonicComp
 import Mathlib.MeasureTheory.VectorMeasure.Decomposition.Jordan
+import HardySpaceFormalization.SignedMeasure
 import HardySpaceFormalization.Harmonic_max_principle
 import HardySpaceFormalization.circleMeasure
 import HardySpaceFormalization.HardySpaceDisc
@@ -202,6 +204,44 @@ variable {ν : VectorMeasure ℂ E} {μ : Measure ℂ} [IsFiniteMeasure μ] {f :
 #check P[c ; f ∂ᵥμ] -- Poisson integral for function
 #check P[c ; μ.toSignedMeasure]  -- Poisson integral for (positive) measure
 
+/-!
+### Linearity in the boundary measure
+
+The Poisson integral is linear in the boundary vector measure. Negation and real scaling hold
+everywhere. Addition and subtraction hold at every point `w` where the Poisson kernel is integrable
+against both measures; elsewhere the integral takes the junk value `0`.
+-/
+
+section Linearity
+
+variable {ν₁ ν₂ : VectorMeasure ℂ E}
+
+/-- The Poisson integral of `-ν` is minus the Poisson integral of `ν`. -/
+@[simp]
+theorem poissonIntegral_neg (ν : VectorMeasure ℂ E) : P[c; -ν] = -P[c; ν] :=
+  funext fun _ => VectorMeasure.integral_neg_vectorMeasure
+
+/-- The Poisson integral commutes with real scaling of the boundary measure. -/
+@[simp]
+theorem poissonIntegral_smul (r : ℝ) (ν : VectorMeasure ℂ E) : P[c; r • ν] = r • P[c; ν] :=
+  funext fun _ => VectorMeasure.integral_smul_vectorMeasure _ r
+
+/-- The Poisson integral is additive in the boundary measure at every point where the Poisson
+kernel is integrable against both measures. -/
+theorem poissonIntegral_add (h₁ : ν₁.Integrable (poissonKernel c w))
+    (h₂ : ν₂.Integrable (poissonKernel c w)) :
+    P[c; ν₁ + ν₂] w = P[c; ν₁] w + P[c; ν₂] w :=
+  VectorMeasure.integral_add_vectorMeasure h₁ h₂
+
+/-- The Poisson integral is subtractive in the boundary measure at every point where the Poisson
+kernel is integrable against both measures. -/
+theorem poissonIntegral_sub (h₁ : ν₁.Integrable (poissonKernel c w))
+    (h₂ : ν₂.Integrable (poissonKernel c w)) :
+    P[c; ν₁ - ν₂] w = P[c; ν₁] w - P[c; ν₂] w :=
+  VectorMeasure.integral_sub_vectorMeasure h₁ h₂
+
+end Linearity
+
 
 /-!
 ### Bridges to the Bochner integral
@@ -225,6 +265,29 @@ theorem poissonIntegral_toSignedMeasure_apply {ν : Measure ℂ} [IsFiniteMeasur
     P[c; ν.toSignedMeasure] w = ∫ z, poissonKernel c w z ∂ν := by
   rw [poissonIntegral_toSignedMeasure]
 
+/-- For an interior point, the Poisson kernel is integrable, in the vector-measure sense, against
+a finite positive measure carried by the boundary circle. -/
+theorem integrable_poissonKernel_toSignedMeasure {μ : Measure ℂ} [IsFiniteMeasure μ]
+    (hμ : μ (sphere c R)ᶜ = 0) (hw : w ∈ ball c R) :
+    μ.toSignedMeasure.Integrable (fun z : ℂ => poissonKernel c w z) := by
+  show Integrable (fun z : ℂ => poissonKernel c w z) μ.toSignedMeasure.variation
+  rw [Measure.variation_toSignedMeasure]
+  exact integrable_poissonKernel hμ hw
+
+/-- For an interior point, the Poisson kernel is integrable, in the vector-measure sense, against
+an integrable density times a finite measure carried by the boundary circle. -/
+theorem integrable_poissonKernel_withDensityᵥ {μ : Measure ℂ} [IsFiniteMeasure μ]
+    {k : ℂ → ℝ} (hμ : μ (sphere c R)ᶜ = 0) (hw : w ∈ ball c R) (hk : Integrable k μ) :
+    (μ.withDensityᵥ k).Integrable (fun z : ℂ => poissonKernel c w z) := by
+  -- `k dμ = k⁺ dμ - k⁻ dμ`, and both parts are finite measures carried by the circle.
+  haveI := isFiniteMeasure_withDensity_ofReal (μ := μ) hk.2
+  haveI := isFiniteMeasure_withDensity_ofReal (μ := μ) hk.neg.2
+  rw [withDensityᵥ_eq_withDensity_pos_part_sub_withDensity_neg_part hk, sub_eq_add_neg]
+  exact (integrable_poissonKernel_toSignedMeasure (withDensity_absolutelyContinuous μ _ hμ)
+    hw).add_vectorMeasure
+    (integrable_poissonKernel_toSignedMeasure (withDensity_absolutelyContinuous μ _ hμ)
+      hw).neg_vectorMeasure
+
 /-- The Poisson integral of a density function is the weighted Bochner integral with Poisson kernel. -/
 theorem poissonIntegral_withDensityᵥ {μ : Measure ℂ} [IsFiniteMeasure μ]
     {k : ℂ → ℝ} (hμ : μ (sphere c R)ᶜ = 0) (hw : w ∈ ball c R) (hk : Integrable k μ) :
@@ -239,14 +302,8 @@ theorem poissonIntegral_withDensityᵥ {μ : Measure ℂ} [IsFiniteMeasure μ]
   have hcar₁ : μ₁ (sphere c R)ᶜ = 0 := withDensity_absolutelyContinuous μ _ hμ
   have hcar₂ : μ₂ (sphere c R)ᶜ = 0 := withDensity_absolutelyContinuous μ _ hμ
   -- Integrability of the kernel against each part, in the measure and the vector-measure sense.
-  have hV₁ : (μ₁.toSignedMeasure).Integrable P := by
-    show Integrable P (μ₁.toSignedMeasure).variation
-    rw [Measure.variation_toSignedMeasure]
-    exact integrable_poissonKernel hcar₁ hw
-  have hV₂ : (μ₂.toSignedMeasure).Integrable P := by
-    show Integrable P (μ₂.toSignedMeasure).variation
-    rw [Measure.variation_toSignedMeasure]
-    exact integrable_poissonKernel hcar₂ hw
+  have hV₁ : (μ₁.toSignedMeasure).Integrable P := integrable_poissonKernel_toSignedMeasure hcar₁ hw
+  have hV₂ : (μ₂.toSignedMeasure).Integrable P := integrable_poissonKernel_toSignedMeasure hcar₂ hw
   -- The two weighted integrals over `μ`, which the difference has to be reassembled from.
   have hsm₁ : Integrable (fun z : ℂ => (ENNReal.ofReal (k z)).toReal • P z) μ := by
     simpa [hP, ENNReal.toReal_ofReal', mul_comm] using
@@ -306,28 +363,6 @@ theorem integrable_poissonKernel_totalVariation {μ : SignedMeasure ℂ}
   rw [ENNReal.ofReal_add ENNReal.toReal_nonneg ENNReal.toReal_nonneg,
       ENNReal.ofReal_toReal ha_ne, ENNReal.ofReal_toReal hb_ne]
 
-/-- Both parts of the Jordan decomposition of a signed measure are bounded by its variation. -/
-theorem toJordanDecomposition_le_variation {α : Type*} [MeasurableSpace α] (μ : SignedMeasure α) :
-    μ.toJordanDecomposition.posPart ≤ μ.variation ∧
-      μ.toJordanDecomposition.negPart ≤ μ.variation := by
-  -- Claude without review
-  obtain ⟨i, hi₁, hi₂, hi₃, hpos, hneg⟩ := μ.toJordanDecomposition_spec
-  constructor <;> refine Measure.le_intro fun E hE _ => ?_
-  · calc μ.toJordanDecomposition.posPart E
-        ≤ ‖μ (i ∩ E)‖ₑ := by
-          rw [hpos, SignedMeasure.toMeasureOfZeroLE_apply _ hi₂ hi₁ hE, Real.enorm_eq_ofReal_abs,
-            ← ENNReal.ofReal_eq_coe_nnreal]
-          exact ENNReal.ofReal_le_ofReal (le_abs_self _)
-      _ ≤ μ.variation (i ∩ E) := VectorMeasure.enorm_measure_le_variation _ _
-      _ ≤ μ.variation E := measure_mono Set.inter_subset_right
-  · calc μ.toJordanDecomposition.negPart E
-        ≤ ‖μ (iᶜ ∩ E)‖ₑ := by
-          rw [hneg, SignedMeasure.toMeasureOfLEZero_apply _ hi₃ hi₁.compl hE,
-            Real.enorm_eq_ofReal_abs, ← ENNReal.ofReal_eq_coe_nnreal]
-          exact ENNReal.ofReal_le_ofReal (neg_le_abs _)
-      _ ≤ μ.variation (iᶜ ∩ E) := VectorMeasure.enorm_measure_le_variation _ _
-      _ ≤ μ.variation E := measure_mono Set.inter_subset_right
-
 /-- The Poisson integral of a signed boundary measure splits along the Jordan decomposition
 `μ = μ⁺ - μ⁻`, whenever the Poisson kernel is integrable against the total variation of `μ`. -/
 theorem poissonIntegral_eq_posPart_sub_negPart {μ : SignedMeasure ℂ}
@@ -359,49 +394,15 @@ theorem poissonIntegral_eq_posPart_sub_negPart {μ : SignedMeasure ℂ}
     VectorMeasure.integral_sub_vectorMeasure hpos' hneg',
     VectorMeasure.integral_toSignedMeasure, VectorMeasure.integral_toSignedMeasure]
 
-/-- The total variation of a difference of finite measures vanishes on every set on which both
-measures vanish. -/
-theorem totalVariation_toSignedMeasure_sub_eq_zero {α : Type*} [MeasurableSpace α]
-    {μ₁ μ₂ : Measure α} [IsFiniteMeasure μ₁] [IsFiniteMeasure μ₂] {S : Set α}
-    (h₁ : μ₁ S = 0) (h₂ : μ₂ S = 0) :
-    (μ₁.toSignedMeasure - μ₂.toSignedMeasure).totalVariation S = 0 := by
-  set μ := μ₁.toSignedMeasure - μ₂.toSignedMeasure
-  have hvar : μ.variation ≤ μ₁ + μ₂ := by
-    refine VectorMeasure.variation_le_of_forall_enorm_le fun E hE => ?_
-    have habs : |μ₁.real E - μ₂.real E| ≤ μ₁.real E + μ₂.real E := by
-      rw [abs_le]
-      constructor <;> linarith [measureReal_nonneg (μ := μ₁) (s := E),
-        measureReal_nonneg (μ := μ₂) (s := E)]
-    simp only [μ, sub_apply, Measure.toSignedMeasure_apply_measurable hE,
-      Real.enorm_eq_ofReal_abs, Measure.add_apply]
-    grw [ENNReal.ofReal_le_ofReal habs]
-    rw [ENNReal.ofReal_add measureReal_nonneg measureReal_nonneg, ofReal_measureReal,
-      ofReal_measureReal]
-  have hS : μ.variation S = 0 :=
-    le_zero_iff.mp ((Measure.le_iff'.mp hvar S).trans (by simp [h₁, h₂]))
-  obtain ⟨hpos, hneg⟩ := toJordanDecomposition_le_variation μ
-  rw [SignedMeasure.totalVariation, Measure.add_apply,
-    le_zero_iff.mp ((Measure.le_iff'.mp hpos S).trans hS.le),
-    le_zero_iff.mp ((Measure.le_iff'.mp hneg S).trans hS.le), add_zero]
-
 /-- The Poisson integral of a difference of finite measures carried by the boundary circle is the
 difference of their Poisson integrals. -/
 theorem poissonIntegral_toSignedMeasure_sub {μ₁ μ₂ : Measure ℂ} [IsFiniteMeasure μ₁]
     [IsFiniteMeasure μ₂] (hμ₁ : μ₁ (sphere c R)ᶜ = 0) (hμ₂ : μ₂ (sphere c R)ᶜ = 0)
     (hw : w ∈ ball c R) :
     P[c; μ₁.toSignedMeasure - μ₂.toSignedMeasure] w =
-      P[c; μ₁.toSignedMeasure] w - P[c; μ₂.toSignedMeasure] w := by
-  have hint : ∀ (ν : Measure ℂ) [IsFiniteMeasure ν], ν (sphere c R)ᶜ = 0 →
-      (ν.toSignedMeasure).Integrable (fun z : ℂ => poissonKernel c w z) := by
-    intro ν _ hν
-    show Integrable (fun z : ℂ => poissonKernel c w z) (ν.toSignedMeasure).variation
-    rw [Measure.variation_toSignedMeasure]
-    simpa [poissonKernel_eq_re_herglotzRieszKernel, RCLike.re_eq_complex_re] using
-      (integrable_herglotzRieszKernel hν hw).re
-  rw [poissonIntegral, integral_smul_eq_integral_flip,
-    VectorMeasure.integral_sub_vectorMeasure (hint μ₁ hμ₁) (hint μ₂ hμ₂),
-    VectorMeasure.integral_toSignedMeasure, VectorMeasure.integral_toSignedMeasure,
-    poissonIntegral_toSignedMeasure_apply, poissonIntegral_toSignedMeasure_apply]
+      P[c; μ₁.toSignedMeasure] w - P[c; μ₂.toSignedMeasure] w :=
+  poissonIntegral_sub (integrable_poissonKernel_toSignedMeasure hμ₁ hw)
+    (integrable_poissonKernel_toSignedMeasure hμ₂ hw)
 
 /-!
 ### The Poisson extension theorem
@@ -467,6 +468,25 @@ theorem poissonIntegral_circleMeasure_eq_self {u : ℂ → ℝ}
     hu.continuousOn.mono sphere_subset_closedBall
   rw [poissonIntegral_circleMeasure_withDensityᵥ_eq_circleAverage hR hw hcont]
   exact InnerProductSpace.HarmonicOnNhd.circleAverage_poissonKernel_smul hu hw
+
+/-- **Poisson formula for the dilates** `u_r(z) = u(rz)`.  For `u` harmonic on the unit disc and
+`0 < r < 1`, the dilate `u_r` is harmonic on a neighbourhood of the closed disc, so it is the
+Poisson integral of its values on the unit circle. -/
+lemma integral_poissonKernel_mul_radial_eq {u : ℂ → ℝ}
+    (hu : InnerProductSpace.HarmonicOnNhd u (ball 0 1)) {r : ℝ}
+    (hr : 0 < r ∧ r < 1) {w : ℂ} (hw : w ∈ ball 0 1) :
+    ∫ z, poissonKernel 0 w z * u (r * z) ∂circleMeasure 0 1 = u (r * w) := by
+  have hmaps : MapsTo (fun z : ℂ => (r : ℂ) * z) (closedBall 0 1) (ball 0 1) := by
+    intro z hz
+    rw [mem_ball_zero_iff, norm_mul, Complex.norm_real, Real.norm_eq_abs, abs_of_pos hr.1]
+    exact (mul_le_of_le_one_right hr.1.le (mem_closedBall_zero_iff.mp hz)).trans_lt hr.2
+  have hur : InnerProductSpace.HarmonicOnNhd (fun z : ℂ => u (r * z)) (closedBall 0 1) :=
+    hu.comp_analyticOnNhd (fun z _ => analyticAt_const.mul analyticAt_id) hmaps
+  have hc : ContinuousOn (fun z : ℂ => u (r * z)) (sphere 0 1) :=
+    hur.continuousOn.mono sphere_subset_closedBall
+  change (∫ z, poissonKernel 0 w z • u (r * z) ∂circleMeasure 0 1) = _
+  rw [integral_poissonKernel_smul_circleMeasure_eq_circleAverage zero_le_one hw hc]
+  exact hur.circleAverage_poissonKernel_smul hw
 
 /-- **The Poisson kernel has total mass one.**  At an interior point, integrating the kernel
 against normalized arclength gives `1`.
@@ -578,14 +598,10 @@ theorem harmonicOnNhd_poissonIntegral_withDensityᵥ {μ : Measure ℂ} [IsFinit
   -- `k dμ = k⁺ dμ - k⁻ dμ`, so `P[k dμ]` is a difference of Poisson integrals of measures.
   have heq (x : ℂ) (hx : x ∈ ball c R) :
       P[c; k ∂ᵥμ] x = P[c; μ₁.toSignedMeasure] x - P[c; μ₂.toSignedMeasure] x := by
-    have hV₁ : (μ₁.toSignedMeasure).Integrable fun z => poissonKernel c x z := by
-      show Integrable _ (μ₁.toSignedMeasure).variation
-      rw [Measure.variation_toSignedMeasure]
-      exact integrable_poissonKernel hcar₁ hx
-    have hV₂ : (μ₂.toSignedMeasure).Integrable fun z => poissonKernel c x z := by
-      show Integrable _ (μ₂.toSignedMeasure).variation
-      rw [Measure.variation_toSignedMeasure]
-      exact integrable_poissonKernel hcar₂ hx
+    have hV₁ : (μ₁.toSignedMeasure).Integrable fun z => poissonKernel c x z :=
+      integrable_poissonKernel_toSignedMeasure hcar₁ hx
+    have hV₂ : (μ₂.toSignedMeasure).Integrable fun z => poissonKernel c x z :=
+      integrable_poissonKernel_toSignedMeasure hcar₂ hx
     simp only [poissonIntegral, integral_smul_eq_integral_flip]
     rw [withDensityᵥ_eq_withDensity_pos_part_sub_withDensity_neg_part hk,
       VectorMeasure.integral_sub_vectorMeasure hV₁ hV₂]
@@ -721,34 +737,6 @@ theorem hardyNorm_poissonIntegral_le {p : ℝ≥0∞} (hp : 1 ≤ p) {U : ℂ �
   rw [eLpNormFixed, if_neg hp']
   exact eLpNorm_poissonIntegral_radial_le hp hU hr
 
-
-/-- The Poisson formula for radial boundary data, with the kernel on the unit circle. -/
-lemma integral_poissonKernel_mul_radial_eq {u : ℂ → ℝ}
-    (hu : InnerProductSpace.HarmonicOnNhd u (ball 0 1)) {r : ℝ}
-    (hr : 0 < r ∧ r < 1) {w : ℂ} (hw : w ∈ ball 0 1) :
-    ∫ z, poissonKernel 0 w z * u (r * z) ∂circleMeasure 0 1 = u (r * w) := by
-  have hmaps : MapsTo (fun z : ℂ => (r : ℂ) * z) (sphere 0 1) (ball 0 1) := by
-    intro z hz
-    simp only [mem_ball_zero_iff, norm_mul, Complex.norm_real, Real.norm_eq_abs,
-      abs_of_pos hr.1, mem_sphere_zero_iff_norm.mp hz, mul_one]
-    exact hr.2
-  have hc : ContinuousOn (fun z : ℂ => u (r * z)) (sphere 0 1) :=
-    hu.continuousOn.comp (by fun_prop) hmaps
-  have hur : InnerProductSpace.HarmonicOnNhd u (closedBall 0 r) :=
-    fun z hz => hu z ((closedBall_subset_ball hr.2) hz)
-  have hwr : (r : ℂ) * w ∈ ball (0 : ℂ) r := by
-    rw [mem_ball_zero_iff, norm_mul, Complex.norm_real, Real.norm_eq_abs, abs_of_pos hr.1]
-    simpa using mul_lt_mul_of_pos_left (mem_ball_zero_iff.mp hw) hr.1
-  change (∫ z, poissonKernel 0 w z • u (r * z) ∂circleMeasure 0 1) = _
-  rw [integral_poissonKernel_smul_circleMeasure_eq_circleAverage zero_le_one hw hc]
-  rw [← hur.circleAverage_poissonKernel_smul hwr]
-  simp only [circleAverage, smul_eq_mul]
-  congr 1
-  apply intervalIntegral.integral_congr
-  intro θ _
-  have heq : circleMap 0 r θ = (r : ℂ) * circleMap 0 1 θ := by simp [circleMap]
-  dsimp only [Pi.mul_apply]
-  rw [heq, poissonKernel_zero_mul (by exact_mod_cast hr.1.ne')]
 
 /-- **Garnett I.3.5(a), disc form.** For `1 < p ≤ ∞`, harmonic functions with uniformly bounded
 radial `Lᵖ` norms are exactly the Poisson integrals of `Lᵖ` boundary data. -/

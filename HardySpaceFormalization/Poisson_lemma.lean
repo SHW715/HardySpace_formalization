@@ -236,6 +236,66 @@ theorem analyticOnNhd_integral_herglotzRieszKernel {μ : Measure ℂ} [IsFiniteM
     h_bound (integrable_const _) h_diff
   exact hderiv.differentiableAt
 
+/-- **The weighted Herglotz-Riesz transform of a boundary measure is analytic.** For a finite
+measure `μ` carried by the circle `sphere c R` and an integrable weight `g`, the function
+`w ↦ ∫ z, herglotzRieszKernel c w z * g z ∂μ` is analytic on `ball c R`.
+
+This is the weighted form of `analyticOnNhd_integral_herglotzRieszKernel`; the derivative bound
+is multiplied by `‖g‖`. It makes the outer functions `exp (∫ (ζ + z) / (ζ - z) k(ζ) dσ)`
+analytic. -/
+theorem analyticOnNhd_integral_herglotzRieszKernel_mul {μ : Measure ℂ} [IsFiniteMeasure μ]
+    (hμ : μ (sphere c R)ᶜ = 0) {g : ℂ → ℂ} (hg : Integrable g μ) :
+    AnalyticOnNhd ℂ (fun w : ℂ => ∫ z, herglotzRieszKernel c w z * g z ∂μ) (ball c R) := by
+  -- Claude without review
+  refine DifferentiableOn.analyticOnNhd ?_ isOpen_ball
+  intro w₀ hw₀
+  refine DifferentiableAt.differentiableWithinAt ?_
+  have hw₀_norm : ‖w₀ - c‖ < R := by simpa [Metric.mem_ball, dist_eq_norm] using hw₀
+  set ε : ℝ := (R - ‖w₀ - c‖) / 2 with hε
+  have hε_pos : 0 < ε := by simp only [hε]; linarith
+  set ρ : ℝ := ‖w₀ - c‖ + ε with hρ
+  have hρ_lt : ρ < R := by simp only [hρ, hε]; linarith
+  -- every point of `ball w₀ ε` lies at distance at most `ρ` from the centre
+  have hball : ∀ x ∈ ball w₀ ε, ‖x - c‖ ≤ ρ := by
+    intro x hx
+    have hx' : ‖x - w₀‖ < ε := by simpa [Metric.mem_ball, dist_eq_norm] using hx
+    calc ‖x - c‖ = ‖(x - w₀) + (w₀ - c)‖ := by rw [sub_add_sub_cancel]
+      _ ≤ ‖x - w₀‖ + ‖w₀ - c‖ := norm_add_le _ _
+      _ ≤ ρ := by simp only [hρ]; linarith
+  have hae : ∀ᵐ z ∂μ, z ∈ sphere c R := ae_iff.2 hμ
+  have hpos : 0 < R - ρ := by linarith
+  -- the derivative of the weighted kernel is dominated by a multiple of `‖g‖` on `ball w₀ ε`
+  have h_bound : ∀ᵐ z ∂μ, ∀ x ∈ ball w₀ ε,
+      ‖2 * (z - c) / ((z - c) - (x - c)) ^ 2 * g z‖ ≤ 2 * R / (R - ρ) ^ 2 * ‖g z‖ := by
+    filter_upwards [hae] with z hz x hx
+    rw [norm_mul]
+    exact mul_le_mul_of_nonneg_right
+      (norm_deriv_herglotzRieszKernel_le hρ_lt hz (hball x hx)) (norm_nonneg _)
+  -- and the weighted kernel is differentiable there, the denominator being bounded away from zero
+  have h_diff : ∀ᵐ z ∂μ, ∀ x ∈ ball w₀ ε,
+      HasDerivAt (fun y : ℂ => herglotzRieszKernel c y z * g z)
+        (2 * (z - c) / ((z - c) - (x - c)) ^ 2 * g z) x := by
+    filter_upwards [hae] with z hz x hx
+    refine (hasDerivAt_herglotzRieszKernel ?_).mul_const (g z)
+    exact norm_pos_iff.1 (hpos.trans_le (le_norm_sub_sub_of_mem_sphere (w := x) hz (hball x hx)))
+  -- at `w₀` the kernel is bounded on the circle, so the weighted kernel is integrable
+  have hint : Integrable (fun z => herglotzRieszKernel c w₀ z * g z) μ := by
+    refine hg.bdd_mul (c := (R + ‖w₀ - c‖) / (R - ‖w₀ - c‖))
+      (measurable_herglotzRieszKernel c w₀).aestronglyMeasurable ?_
+    filter_upwards [hae] with z hz
+    exact norm_herglotzRieszKernel_le hw₀_norm hz le_rfl
+  obtain ⟨-, hderiv⟩ := hasDerivAt_integral_of_dominated_loc_of_deriv_le
+    (μ := μ) (F := fun x z : ℂ => herglotzRieszKernel c x z * g z)
+    (F' := fun x z : ℂ => 2 * (z - c) / ((z - c) - (x - c)) ^ 2 * g z)
+    (bound := fun z : ℂ => 2 * R / (R - ρ) ^ 2 * ‖g z‖)
+    (s := ball w₀ ε) (x₀ := w₀) (isOpen_ball.mem_nhds (mem_ball_self hε_pos))
+    (Filter.Eventually.of_forall fun x =>
+      (measurable_herglotzRieszKernel c x).aestronglyMeasurable.mul hg.aestronglyMeasurable)
+    hint
+    ((Measurable.aestronglyMeasurable (by fun_prop)).mul hg.aestronglyMeasurable)
+    h_bound (hg.norm.const_mul _) h_diff
+  exact hderiv.differentiableAt
+
 
 /-- For a fixed boundary point `z`, the Poisson kernel is harmonic as a function of the interior
 point `w`. -/

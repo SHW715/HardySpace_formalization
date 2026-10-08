@@ -49,6 +49,12 @@ theorem IsLeastHarmonicMajorant.congr {u u' : V → ℝ} {g : V → WithBot ℝ}
   · rw [← h hz]
     exact hu.2 v hv z hz
 
+/-- The least harmonic majorant is unique on `s`: two least harmonic majorants of `g` on `s`
+agree there. -/
+theorem IsLeastHarmonicMajorant.unique {u v : V → ℝ} {g : V → WithBot ℝ} {s : Set V}
+    (hu : IsLeastHarmonicMajorant u g s) (hv : IsLeastHarmonicMajorant v g s) : EqOn u v s :=
+  fun z hz => le_antisymm (hu.2 v hv.1 z hz) (hv.2 u hu.1 z hz)
+
 open Classical in
 /-- A choice of the least harmonic majorant of `g` on `s`, when one exists. -/
 noncomputable def leastHarmonicMajorant' (g : V → WithBot ℝ) (s : Set V)

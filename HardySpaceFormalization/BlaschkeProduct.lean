@@ -15,6 +15,7 @@ open Complex ComplexConjugate
 open scoped Real Topology ENNReal
 open Set Metric Subharmonic MeromorphicOn Filter
 
+-- # useless definition
 /-- The multiplicity function, which counts the number of occurrences of a point in a family,
 with value `∞` for infinitely many. -/
 def Multiplicity {ι : Type*} (a : ι → ℂ) (z : ℂ) : ℕ∞ := (a ⁻¹' {z}).encard
@@ -94,7 +95,11 @@ zero set will later be proved under the Blaschke condition. -/
 noncomputable def BlaschkeProduct (m : ℂ → ℕ∞) : ℂ → ℂ :=
   fun w ↦ w ^ (m 0).toNat * ∏' a : ball (0 : ℂ) 1, blaschkeProductFactor m a w
 
-#check divisor
+variable {f : ℂ → ℂ}
+#check BlaschkeCondition (analyticOrderAt f)
+#check BlaschkeProduct (analyticOrderAt f)
+
+
 
 
 -- The proofs of the rest codes are given by codex without fully review
@@ -394,30 +399,27 @@ theorem blaschkeCondition_of_hasHarmonicMajorant {f : ℂ → ℂ}
 
 /-! ## Theorem 2.2: convergence, zeros, and boundary values of Blaschke products -/
 
-/-- The products omitting zero terms converge locally uniformly on the unit disc. -/
-lemma tendstoLocallyUniformlyOn_blaschkeProductFactor {a : ℕ → ℂ}
-    (ha : ∀ n, a n ∈ ball 0 1) (hsum : BlaschkeCondition (Multiplicity a)) :
-    TendstoLocallyUniformlyOn
-      (fun N w => ∏ n ∈ Finset.range N, blaschkeProductFactor a n w)
-      (fun w => ∏' n, blaschkeProductFactor a n w) atTop (ball 0 1) := by
+/-- The finite partial products of the factors at nonzero points converge locally uniformly
+on the unit disc, along finite sets of points of the disc (unconditional convergence). -/
+lemma tendstoLocallyUniformlyOn_blaschkeProductFactor {m : ℂ → ℕ∞} (hm : BlaschkeCondition m) :
+  TendstoLocallyUniformlyOn
+    (fun (s : Finset (ball (0 : ℂ) 1)) w => ∏ a ∈ s, blaschkeProductFactor m a w)
+      (fun w => ∏' a : ball (0 : ℂ) 1, blaschkeProductFactor m a w) atTop (ball 0 1) := by
   sorry
 
 /-- The finite products, including the full power accounting for zeros at the origin,
 converge locally uniformly to the Blaschke product on the unit disc. -/
-theorem tendstoLocallyUniformlyOn_blaschkeProduct {a : ℕ → ℂ}
-    (ha : ∀ n, a n ∈ ball 0 1) (hsum : BlaschkeCondition (Multiplicity a)) :
-    TendstoLocallyUniformlyOn
-      (fun N w => w ^ (a ⁻¹' {0}).ncard *
-        ∏ n ∈ Finset.range N, blaschkeProductFactor a n w)
-      (BlaschkeProduct a) atTop (ball 0 1) := by
+theorem tendstoLocallyUniformlyOn_blaschkeProduct {m : ℂ → ℕ∞} (hm : BlaschkeCondition m) :
+  TendstoLocallyUniformlyOn (fun (s : Finset (ball (0 : ℂ) 1)) w => w ^ (m 0).toNat *
+    ∏ a ∈ s, blaschkeProductFactor m a w) (BlaschkeProduct m) atTop (ball 0 1) := by
   -- codex with review
   have hconv := Metric.tendstoLocallyUniformlyOn_iff.mp
-    (tendstoLocallyUniformlyOn_blaschkeProductFactor ha hsum)
+    (tendstoLocallyUniformlyOn_blaschkeProductFactor hm)
   apply Metric.tendstoLocallyUniformlyOn_iff.mpr
   intro ε hε z hz
   obtain ⟨t, ht, hN⟩ := hconv ε hε z hz
   refine ⟨t ∩ ball 0 1, inter_mem ht self_mem_nhdsWithin, ?_⟩
-  filter_upwards [hN] with N hN w hw
+  filter_upwards [hN] with s hN w hw
   have hw1 : ‖w‖ ≤ 1 := (mem_ball_zero_iff.mp hw.2).le
   simp only [BlaschkeProduct, dist_eq_norm, ← mul_sub, norm_mul, norm_pow]
   refine lt_of_le_of_lt ?_ (hN w hw.1)
@@ -425,71 +427,68 @@ theorem tendstoLocallyUniformlyOn_blaschkeProduct {a : ℕ → ℂ}
   exact mul_le_of_le_one_left (norm_nonneg (_ : ℂ)) (pow_le_one₀ (norm_nonneg w) hw1)
 
 /-- A Blaschke product is analytic on the unit disc. -/
-theorem analyticOnNhd_blaschkeProduct {a : ℕ → ℂ}
-    (ha : ∀ n, a n ∈ ball 0 1) (hsum : BlaschkeCondition (Multiplicity a)) :
-    AnalyticOnNhd ℂ (BlaschkeProduct a) (ball 0 1) := by
+theorem analyticOnNhd_blaschkeProduct {m : ℂ → ℕ∞} (hm : BlaschkeCondition m) :
+  AnalyticOnNhd ℂ (BlaschkeProduct m) (ball 0 1) := by
   -- codex without review
-  have hfactor (n : ℕ) : DifferentiableOn ℂ (blaschkeProductFactor a n) (ball 0 1) := by
+  have hfactor (a : ball (0 : ℂ) 1) :
+      DifferentiableOn ℂ (blaschkeProductFactor m a) (ball 0 1) := by
     intro z hz
-    by_cases hn : a n = 0
-    · simp only [blaschkeProductFactor, hn, if_pos]
+    by_cases ha0 : (a : ℂ) = 0
+    · simp only [blaschkeProductFactor, ha0, if_pos]
       fun_prop
-    · have hnorm : ‖conj (a n) * z‖ < 1 := by
+    · have hnorm : ‖conj (a : ℂ) * z‖ < 1 := by
         rw [norm_mul, norm_conj]
-        nlinarith [mem_ball_zero_iff.mp (ha n), mem_ball_zero_iff.mp hz,
-          norm_nonneg (a n), norm_nonneg z]
-      have hden : 1 - conj (a n) * z ≠ 0 := by
+        nlinarith [mem_ball_zero_iff.mp a.2, mem_ball_zero_iff.mp hz,
+          norm_nonneg (a : ℂ), norm_nonneg z]
+      have hden : 1 - conj (a : ℂ) * z ≠ 0 := by
         intro h
         rw [← sub_eq_zero.mp h, norm_one] at hnorm
         exact (lt_irrefl _ hnorm)
-      simp only [blaschkeProductFactor, normedBlaschkeFactor, if_neg hn]
+      simp only [blaschkeProductFactor, normedBlaschkeFactor, if_neg ha0]
       unfold BlaschkeFactor
-      simp only [ofReal_one, one_pow, one_mul]
+      simp only [ofReal_one, one_pow, one_mul, Pi.smul_apply, smul_eq_mul]
       apply DifferentiableAt.differentiableWithinAt
       fun_prop
   apply DifferentiableOn.analyticOnNhd _ isOpen_ball
-  apply (tendstoLocallyUniformlyOn_blaschkeProduct ha hsum).differentiableOn _ isOpen_ball
-  exact Filter.Eventually.of_forall fun N => by fun_prop
+  apply (tendstoLocallyUniformlyOn_blaschkeProduct hm).differentiableOn _ isOpen_ball
+  exact Filter.Eventually.of_forall fun s => by fun_prop
 
 /-- A Blaschke product has modulus at most one on the unit disc. -/
-theorem norm_blaschkeProduct_le_one {a : ℕ → ℂ}
-    (ha : ∀ n, a n ∈ ball 0 1) (hsum : BlaschkeCondition (Multiplicity a))
-    {w : ℂ} (hw : w ∈ ball 0 1) : ‖BlaschkeProduct a w‖ ≤ 1 := by
+theorem norm_blaschkeProduct_le_one {m : ℂ → ℕ∞} (hm : BlaschkeCondition m)
+  {w : ℂ} (hw : w ∈ ball 0 1) : ‖BlaschkeProduct m w‖ ≤ 1 := by
   -- codex without review
-  have hfactor (n : ℕ) : ‖blaschkeProductFactor a n w‖ ≤ 1 := by
-    by_cases hn : a n = 0
-    · simp [blaschkeProductFactor, hn]
-    · simpa [blaschkeProductFactor, normedBlaschkeFactor, hn, norm_smul, norm_div,
-        norm_ne_zero_iff.mpr hn] using norm_BlaschkeFactor_one_le_one (ha n) hw
-  apply le_of_tendsto ((tendstoLocallyUniformlyOn_blaschkeProduct ha hsum).tendsto_at hw).norm
-  filter_upwards [] with N
+  have hfactor (a : ball (0 : ℂ) 1) : ‖blaschkeProductFactor m a w‖ ≤ 1 := by
+    by_cases ha0 : (a : ℂ) = 0
+    · simp [blaschkeProductFactor, ha0]
+    · have hb : ‖normedBlaschkeFactor 1 a w‖ ≤ 1 := by
+        simpa [normedBlaschkeFactor, ha0, norm_smul, norm_div, norm_ne_zero_iff.mpr ha0] using
+          norm_BlaschkeFactor_one_le_one a.2 hw
+      simp only [blaschkeProductFactor, if_neg ha0, norm_pow]
+      exact pow_le_one₀ (norm_nonneg _) hb
+  apply le_of_tendsto ((tendstoLocallyUniformlyOn_blaschkeProduct hm).tendsto_at hw).norm
+  filter_upwards [] with s
   rw [norm_mul, norm_pow, norm_prod]
   exact mul_le_one₀ (pow_le_one₀ (norm_nonneg w) (mem_ball_zero_iff.mp hw).le)
-    (Finset.prod_nonneg fun n _ => norm_nonneg _)
-    (Finset.prod_le_one (fun n _ => norm_nonneg _) (fun n _ => hfactor n))
+    (Finset.prod_nonneg fun a _ => norm_nonneg _)
+    (Finset.prod_le_one (fun a _ => norm_nonneg _) (fun a _ => hfactor a))
 
-/-- The order at a point of the unit disc equals its number of occurrences in the sequence. -/
-theorem analyticOrderAt_blaschkeProduct {a : ℕ → ℂ}
-    (ha : ∀ n, a n ∈ ball 0 1) (hsum : BlaschkeCondition (Multiplicity a))
-    {w : ℂ} (hw : w ∈ ball 0 1) :
-    analyticOrderAt (BlaschkeProduct a) w = Multiplicity a w := by
+/-- The order at a point of the unit disc equals the prescribed multiplicity there. -/
+theorem analyticOrderAt_blaschkeProduct {m : ℂ → ℕ∞} (hm : BlaschkeCondition m)
+  {w : ℂ} (hw : w ∈ ball 0 1) : analyticOrderAt (BlaschkeProduct m) w = m w := by
   sorry
 
-/-- The zeros in the unit disc are exactly the points of the defining sequence. -/
-theorem blaschkeProduct_eq_zero_iff {a : ℕ → ℂ}
-    (ha : ∀ n, a n ∈ ball 0 1) (hsum : BlaschkeCondition (Multiplicity a))
-    {w : ℂ} (hw : w ∈ ball 0 1) :
-    BlaschkeProduct a w = 0 ↔ ∃ n, a n = w := by
-  have h := analyticOrderAt_ne_zero (f := BlaschkeProduct a) (z₀ := w)
-  rw [analyticOrderAt_blaschkeProduct ha hsum hw, Multiplicity, Set.encard_ne_zero,
-    and_iff_right (analyticOnNhd_blaschkeProduct ha hsum w hw)] at h
+/-- The zeros in the unit disc are exactly the points of positive multiplicity. -/
+theorem blaschkeProduct_eq_zero_iff {m : ℂ → ℕ∞} (hm : BlaschkeCondition m)
+  {w : ℂ} (hw : w ∈ ball 0 1) : BlaschkeProduct m w = 0 ↔ m w ≠ 0 := by
+  have h := analyticOrderAt_ne_zero (f := BlaschkeProduct m) (z₀ := w)
+  rw [analyticOrderAt_blaschkeProduct hm hw,
+    and_iff_right (analyticOnNhd_blaschkeProduct hm w hw)] at h
   exact h.symm
 
 /-- Extended by zero outside the unit disc, a Blaschke product belongs to `H∞`. -/
-theorem memHpDisc_blaschkeProduct {a : ℕ → ℂ}
-    (ha : ∀ n, a n ∈ ball 0 1) (hsum : BlaschkeCondition (Multiplicity a)) :
-    HardySpace.MemHpDisc ∞ ((ball 0 1).indicator (BlaschkeProduct a)) := by
-  refine ⟨(analyticOnNhd_blaschkeProduct ha hsum).analyticOn.congr
+theorem memHpDisc_blaschkeProduct {m : ℂ → ℕ∞} (hm : BlaschkeCondition m) :
+  HardySpace.MemHpDisc ∞ ((ball 0 1).indicator (BlaschkeProduct m)) := by
+  refine ⟨(analyticOnNhd_blaschkeProduct hm).analyticOn.congr
     fun z hz => indicator_of_mem hz _, ?_, fun z hz => indicator_of_notMem hz _⟩
   refine lt_of_le_of_lt (iSup₂_le fun r hr => ?_) (ENNReal.ofReal_lt_top (r := 1))
   simp only [eLpNormFixed, mem_Ioo, not_top_lt, and_false, if_false,
@@ -497,12 +496,11 @@ theorem memHpDisc_blaschkeProduct {a : ℕ → ℂ}
   refine MeasureTheory.eLpNormEssSup_le_of_ae_bound (MeasureTheory.ae_of_all _ fun θ => ?_)
   have hz : (r : ℂ) * exp (I * θ) ∈ ball 0 1 := radial_point_mem_unitDisc hr.1 hr.2
   rw [indicator_of_mem hz]
-  exact norm_blaschkeProduct_le_one ha hsum hz
+  exact norm_blaschkeProduct_le_one hm hz
 
 /-- A Blaschke product has nontangential boundary values of modulus one almost everywhere. -/
-theorem ae_hasNontangentialLimit_blaschkeProduct {a : ℕ → ℂ}
-    (ha : ∀ n, a n ∈ ball 0 1) (hsum : BlaschkeCondition (Multiplicity a)) :
-    ∀ᵐ ζ ∂circleMeasure 0 1, ‖boundaryValue (BlaschkeProduct a) ζ‖ = 1 := by
+theorem ae_hasNontangentialLimit_blaschkeProduct {m : ℂ → ℕ∞} (hm : BlaschkeCondition m) :
+    ∀ᵐ ζ ∂circleMeasure 0 1, ‖boundaryValue (BlaschkeProduct m) ζ‖ = 1 := by
   sorry
   -- can be formulated using `NontangentiallyConvergentAt`
 
@@ -510,11 +508,10 @@ theorem ae_hasNontangentialLimit_blaschkeProduct {a : ℕ → ℂ}
 
 /-- **Theorem 2.4, (a) → (b).** The radial means of the logarithmic modulus of a
 Blaschke product, multiplied by a unimodular constant, tend to zero. -/
-theorem tendsto_withBotRadialMean_logNormBot_blaschkeProduct {a : ℕ → ℂ}
-    (ha : ∀ n, a n ∈ ball 0 1) (hsum : BlaschkeCondition (Multiplicity a))
-    {c : ℂ} (hc : ‖c‖ = 1) :
-    Tendsto (fun r => withBotRadialMean (logNormBot ∘ (fun z => c * BlaschkeProduct a z)) r)
-      (𝓝[<] 1) (𝓝 0) := by
+theorem tendsto_withBotRadialMean_logNormBot_blaschkeProduct {m : ℂ → ℕ∞}
+  (hm : BlaschkeCondition m) {c : ℂ} (hc : ‖c‖ = 1) :
+  Tendsto (fun r => withBotRadialMean (logNormBot ∘ (fun z => c * BlaschkeProduct m z)) r)
+    (𝓝[<] 1) (𝓝 0) := by
   sorry
 
 /-- **Theorem 2.4, (b) ↔ (c).** For an analytic function bounded in modulus by one,
