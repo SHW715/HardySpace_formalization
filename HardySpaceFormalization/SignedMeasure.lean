@@ -1,5 +1,6 @@
 import Mathlib.MeasureTheory.VectorMeasure.Decomposition.Jordan
 import Mathlib.MeasureTheory.VectorMeasure.Variation.Basic
+import Mathlib.MeasureTheory.VectorMeasure.WithDensity
 
 /-!
 # Jordan parts and variation of signed measures
@@ -8,7 +9,9 @@ General facts about finite signed measures that mathlib does not yet provide. Th
 are bounded by the variation. A difference of finite measures has null total variation wherever
 both measures vanish. The Jordan parts inherit nullity and mutual singularity from the signed
 measure; this is Garnett's remark after (5.7) that the singular parts `μ₁, μ₂` are positive
-singular measures. Nothing here depends on the disc.
+singular measures. Null total variation on a measurable set means vanishing on its measurable
+subsets; in particular a density measure `f dμ` vanishes wherever `μ` does. Nothing here depends
+on the disc.
 -/
 
 open MeasureTheory Set
@@ -71,6 +74,28 @@ theorem totalVariation_apply_eq_zero_iff {s : SignedMeasure α} {S : Set α} :
     s.totalVariation S = 0 ↔
       s.toJordanDecomposition.posPart S = 0 ∧ s.toJordanDecomposition.negPart S = 0 := by
   rw [totalVariation, Measure.add_apply, add_eq_zero]
+
+/-- A signed measure has null total variation on a measurable set `S` if and only if it vanishes
+on every measurable subset of `S`. -/
+theorem totalVariation_apply_eq_zero_iff_forall {s : SignedMeasure α} {S : Set α}
+    (hS : MeasurableSet S) :
+    s.totalVariation S = 0 ↔ ∀ A ⊆ S, MeasurableSet A → s A = 0 := by
+  refine ⟨fun h A hA _ => s.null_of_totalVariation_zero (measure_mono_null hA h), fun h => ?_⟩
+  obtain ⟨i, hi₁, hi₂, hi₃, hpos, hneg⟩ := s.toJordanDecomposition_spec
+  rw [totalVariation_apply_eq_zero_iff, hpos, hneg, toMeasureOfZeroLE_apply _ hi₂ hi₁ hS,
+    toMeasureOfLEZero_apply _ hi₃ hi₁.compl hS]
+  simp [h _ inter_subset_right (hi₁.inter hS), h _ inter_subset_right (hi₁.compl.inter hS)]
+
+/-- A density measure `f dμ` has null total variation on every measurable set on which `μ`
+vanishes. No integrability is needed: otherwise `μ.withDensityᵥ f = 0`. -/
+theorem totalVariation_withDensityᵥ_apply_eq_zero {μ : Measure α} {f : α → ℝ} {S : Set α}
+    (hS : MeasurableSet S) (hμ : μ S = 0) : totalVariation (μ.withDensityᵥ f) S = 0 := by
+  rw [totalVariation_apply_eq_zero_iff_forall hS]
+  intro A hA hAm
+  by_cases hf : Integrable f μ
+  · rw [withDensityᵥ_apply hf hAm]
+    exact setIntegral_measure_zero _ (measure_mono_null hA hμ)
+  · simp [Measure.withDensityᵥ, hf]
 
 /-- A signed measure is mutually singular with a measure `μ` if and only if both of its Jordan
 parts are. -/

@@ -22,7 +22,10 @@ the Nevanlinna class on the unit disc. Its ultimate goal is a formal proof of
 the canonical factorization theorem for the Nevanlinna class, decomposing a
 nonzero function into its Blaschke, singular, and outer factors. This
 blueprint records the mathematical dependency graph and the current
-formalization status.
+formalization status. Implemented proofs determine their dependencies; Garnett
+supplies the proof plans for unimplemented steps. Dependencies are recorded at
+roadmap-node granularity: when only part of a grouped theorem is used, the proof
+identifies that part. A proof marked complete may still have open prerequisites.
 
 \medskip
 \noindent\textbf{Main reference.}
@@ -32,45 +35,160 @@ the theorem numbers and chapter/section references below refer to Garnett's
 book. The statements in this blueprint are formalization-oriented paraphrases
 and are not verbatim reproductions of the source.
 
-\section{Chapter I prerequisites}
+\section{Chapter I: Poisson integrals and boundary values}
 
-\begin{theorem}[Harmonic majorants of subharmonic functions, Garnett I.6.7]
-  \label{thm:I_6_7}
-  \lean{Subharmonic.hasHarmonicMajorant_iff_radialMean_bddAbove,
-    Subharmonic.exists_isLeastHarmonicMajorant_tendsto_poissonModification}
+\begin{definition}[Poisson integral of boundary data]
+  \label{def:poisson_integral}
+  \lean{poissonIntegral, poissonIntegral_toSignedMeasure,
+    poissonIntegral_toSignedMeasure_apply}
   \leanok
-  \uses{thm:poisson_extension}
-  \mainline
-  \bookref{Garnett}{I.6.7}{Chapter I, Section 6, PDF page 36}
-  Let $v$ be subharmonic on $\mathbb{D}$. Then $v$ has a harmonic majorant on
-  $\mathbb{D}$ if and only if
+  Boundary data is a vector measure $\nu$ with values in a real normed space,
+  and
   \[
-    \sup_{0<r<1}\frac{1}{2\pi}
-      \int_0^{2\pi}v(r e^{i\theta})\,d\theta
-    = \sup_{0<r<1} v_r(0) < \infty,
+    P[\nu](w)=\int P_w(z)\,d\nu(z).
   \]
-  where $v_r$ is the Poisson extension to $|z|<r$ of the boundary values of
-  $v$ on $|z|=r$. When this condition holds and $v\not\equiv-\infty$, the
-  least harmonic majorant $u$ of $v$ is given by
+  The kernel is real-valued, so it pairs with $\nu$ by scalar multiplication.
+  A finite positive measure $\mu$ enters as the associated signed measure, and
+  data given as a function $f$ against a reference measure $\mu$ enters as the
+  vector measure $f\,d\mu$. For a finite positive measure, compatibility with
+  the ordinary integral gives $P[\mu](w)=\int P_w\,d\mu$ for every $w$, without
+  a support hypothesis. This follows from the integral pairing identity for
+  the associated signed measure.
+\end{definition}
+
+\begin{lemma}[Basic properties of the Poisson integral]
+  \label{lem:poisson_integral_linear}
+  \uses{def:poisson_integral}
+  \lean{poissonIntegral_neg, poissonIntegral_smul, poissonIntegral_add,
+    poissonIntegral_sub, integrable_poissonKernel_toSignedMeasure,
+    integrable_poissonKernel_withDensityᵥ, poissonIntegral_withDensityᵥ,
+    poissonIntegral_eq_posPart_sub_negPart, integrable_poissonKernel_totalVariation,
+    poissonIntegral_toSignedMeasure_sub, totalVariation_toSignedMeasure_sub_eq_zero,
+    poissonIntegral_toSignedMeasure_nonneg}
+  \leanok
+  For vector measures, $P[-\nu]=-P[\nu]$ and $P[a\nu]=aP[\nu]$ for
+  $a\in\mathbb R$. If $P_w$ is integrable against $|\nu_1|$ and $|\nu_2|$, then
+  $P[\nu_1\pm\nu_2](w)=P[\nu_1](w)\pm P[\nu_2](w)$.
+
+  Let $w\in\D(c,R)$, let $\mu$ be a finite positive measure carried by
+  $\partial\D(c,R)$, and let $k\in L^1(\mu)$ be real. The kernel $P_w$ is
+  integrable against $\mu$ and the variation of $k\,d\mu$, and
   \[
-    u(z)=\lim_{r\to 1}
-      \frac{1}{2\pi}\int_0^{2\pi}
-        P_{z/r}(\theta)v(r e^{i\theta})\,d\theta
-      =\lim_{r\to 1}v_r(z).
+    P[k\,d\mu](w)=\int P_w(z)k(z)\,d\mu(z).
   \]
-  The Poisson-modification comparison uses the Dirichlet problem
-  (Theorem~\ref{thm:poisson_extension}), first for continuous boundary
-  majorants and then by decreasing approximation for subharmonic data.
+  For a finite signed measure $\nu$ carried by the same circle, $P_w$ is
+  integrable against $|\nu|$ and its Jordan decomposition gives
+  \[
+    P[\nu](w)=\int P_w\,d\nu^+-\int P_w\,d\nu^-.
+  \]
+  Differences of finite positive measures carried by the circle are still
+  carried by the circle, and their Poisson integrals subtract accordingly.
+  For a positive measure, $P[\mu](w)\ge0$.
+  \begin{proof}
+    \proves{lem:poisson_integral_linear}
+    \leanok
+    Linearity follows from the vector-measure integral. At an interior point
+    the kernel is bounded on the boundary circle, which gives the stated
+    integrability. Split a real density into its positive and negative parts
+    to obtain the density formula. Apply linearity to the Jordan decomposition
+    to obtain the signed-measure formula. Positivity follows from $P_w\ge0$
+    on the boundary circle.
+  \end{proof}
+\end{lemma}
+
+\begin{theorem}[Poisson integrals of boundary data are harmonic]
+  \label{thm:harmonic_poisson_integral}
+  \uses{def:poisson_integral}
+  \lean{harmonicOnNhd_circleAverage_poissonKernel_smul,
+    harmonicOnNhd_poissonIntegral_toSignedMeasure,
+    harmonicOnNhd_poissonIntegral_withDensityᵥ}
+  \leanok
+  For a finite positive measure $\mu$ carried by the circle and real
+  $k\in L^1(\mu)$, both $P[\mu]$ and $P[k\,d\mu]$ are harmonic inside.
+  If $f$ is continuous on $\partial\D(c,R)$ then $P[f\,d\sigma]$ is harmonic on
+  the open disc, where $\sigma$ is normalized arclength.
+  \begin{proof}
+    \proves{thm:harmonic_poisson_integral}
+    \uses{lem:poisson_integral_linear}
+    \leanok
+    For a positive measure, take the real part of its analytic
+    Herglotz--Riesz transform. For a real density, split it into its positive
+    and negative parts and use linearity.
+    Harmonicity of the circle average follows from harmonicity of the kernel in
+    the interior variable, by differentiating under the integral sign.
+  \end{proof}
 \end{theorem}
 
-\section{Nontangential limits and boundary values}
+\begin{theorem}[Poisson integral formula]
+  \label{thm:poisson_reproducing}
+  \uses{def:poisson_integral}
+  \lean{poissonIntegral_circleMeasure_eq_self, poissonIntegral_circleMeasure_eq_one,
+    integral_poissonKernel_smul_circleMeasure_eq_circleAverage,
+    poissonIntegral_circleMeasure_withDensityᵥ_eq_circleAverage}
+  \leanok
+  If $u$ is harmonic on a neighbourhood of $\overline{\D}(c,R)$ then
+  $u(w)=P[u\,d\sigma_{c,R}](w)$ for every interior $w$. Taking $u\equiv 1$ gives
+  $P[\sigma_{c,R}](w)=1$: the kernel has total mass one at every interior point.
+  \begin{proof}
+    \proves{thm:poisson_reproducing}
+    \uses{lem:poisson_integral_linear}
+    \leanok
+    Transport to the circle average and apply the mathlib form of the Poisson
+    formula. Total mass one is the case $u\equiv 1$, read through the density
+    lemma.
+  \end{proof}
+\end{theorem}
+
+\begin{theorem}[Dirichlet problem on a disc]
+  \label{thm:poisson_extension}
+  \uses{def:poisson_integral}
+  \lean{poissonIntegral_continuousOn_closedBall_eq_boundary}
+  \leanok
+  For continuous real boundary data $u$ on $\partial\D(c,R)$ there is a function
+  continuous on $\overline{\D}(c,R)$, harmonic inside, equal to
+  $P[u\,d\sigma_{c,R}]$ on the open disc and to $u$ on the circle.
+
+  \begin{proof}
+    \proves{thm:poisson_extension}
+    \uses{thm:harmonic_poisson_integral, thm:poisson_reproducing}
+    \notready
+    The Poisson kernel has mass one and its mass away from a boundary
+    point tends uniformly to zero. Uniform continuity of the boundary data
+    gives continuity of the extension; interior harmonicity is already
+    formalized. The continuous-extension declaration still has an open proof.
+  \end{proof}
+\end{theorem}
+
+\begin{theorem}[A boundary measure is determined by its Poisson integral]
+  \label{thm:poisson_measure_unique}
+  \uses{def:poisson_integral}
+  \lean{eq_of_eqOn_poissonIntegral}
+  \leanok
+  \mainline
+  \bookref{Garnett}{I.3, after Theorem 3.1}{Printed page 15, PDF page 27}
+  If $\mu$ and $\nu$ are finite signed measures carried by $\partial\D(c,R)$,
+  $R>0$, with $P[\mu]=P[\nu]$ on $\D(c,R)$, then $\mu=\nu$.
+  \begin{proof}
+    \proves{thm:poisson_measure_unique}
+    \uses{thm:poisson_extension}
+    \notready
+    The standard weak-star argument: $P[\mu](r\,\cdot)\,d\sigma\to\mu$ when
+    tested against continuous functions on the circle, because the Poisson
+    integral of continuous data converges uniformly to it. This is what
+    licenses speaking of \emph{the} representing measure in
+    Theorem~\ref{thm:II_5_3}, and it is used again in the uniqueness part of
+    the canonical factorization
+    (Theorem~\ref{thm:nevanlinna_factorization_uniqueness}) and in Garnett's
+    Theorem II.5.4.
+  \end{proof}
+\end{theorem}
 
 \begin{definition}[Nontangential approach region]
   \label{def:nt_region}
   \lean{Complex.stolzSetAt}
   \leanok
   \mainline
-  \bookref{Garnett}{I.4}{Chapter I, Section 4, PDF page 23, disc form}
+  \bookref{Garnett}{I.4}{Chapter I, Section 4, printed page 21, PDF page 33, disc form}
   For $\zeta\in\partial\D$ and $\alpha>1$ put
   \[
     \Gamma_\alpha(\zeta)
@@ -92,7 +210,7 @@ and are not verbatim reproductions of the source.
   \leanok
   \uses{def:nt_region}
   \mainline
-  \bookref{Garnett}{I.5}{Chapter I, Section 5, PDF page 27}
+  \bookref{Garnett}{I.5}{Chapter I, Section 5, printed page 27, PDF page 39}
   Write $\mathcal{N}_{\Gamma_\alpha(\zeta)}(\zeta)$ for the neighbourhood filter
   of $\zeta$ within $\Gamma_\alpha(\zeta)$. The \emph{nontangential filter} at
   $\zeta$ is their supremum in the lattice of filters,
@@ -126,10 +244,10 @@ and are not verbatim reproductions of the source.
 
 \begin{lemma}[The nontangential filter is nontrivial]
   \label{lem:nt_filter_neBot}
+  \uses{def:nt_region, def:nt_limit}
   \lean{radial_mem_stolzSetAt, nontangentially_neBot_of_norm_eq_one,
     ae_nontangentially_neBot_circleMeasure}
   \leanok
-  \uses{def:nt_region, def:nt_limit}
   For $\zeta\in\partial\D$ and $\alpha>1$ the radial segment $[0,1)\zeta$ lies in
   $\Gamma_\alpha(\zeta)$; hence $\mathcal{N}_\zeta\neq\bot$.
   \begin{proof}
@@ -145,12 +263,12 @@ and are not verbatim reproductions of the source.
 
 \begin{lemma}[Boundary values: pointwise, relational and canonical]
   \label{lem:boundary_value_bridge}
+  \uses{def:boundary_function}
   \lean{NontangentiallyConvergentAt.hasNontangentialLimit,
     HasNontangentialLimit.boundaryValue_eq,
     IsAEBoundaryValue.ae_eq_boundaryValue,
     IsAEBoundaryValue.aestronglyMeasurable_boundaryValue}
   \leanok
-  \uses{def:boundary_function, lem:nt_filter_neBot}
   Let $\mu$ be a measure on $\partial\D$ carried by the circle.
   \begin{enumerate}
     \item If $f$ converges nontangentially at $\zeta$, then $f\to f^*(\zeta)$
@@ -166,19 +284,19 @@ and are not verbatim reproductions of the source.
   existence theorem produces.
   \begin{proof}
     \proves{lem:boundary_value_bridge}
+    \uses{lem:nt_filter_neBot}
     \leanok
-    (1) is uniqueness of limits along the nontrivial filter
-    $\mathcal{N}_\zeta$; (2) applies (1) at almost every $\zeta$, using
-    Lemma~\ref{lem:nt_filter_neBot}; (3) is congruence of almost everywhere
-    strong measurability along (2).
+    (1) is the choice of the canonical limit. For (2), uniqueness of limits
+    uses the nontrivial filter $\mathcal{N}_\zeta$. Apply (2) almost
+    everywhere for (3), and transfer measurability along that equality for (4).
   \end{proof}
 \end{lemma}
 
 \begin{lemma}[Poisson kernel over a Stolz region]
   \label{lem:poisson_stolz_bound}
+  \uses{def:nt_region}
   \lean{poissonKernel_le_of_mem_stolzSetAt}
   \leanok
-  \uses{def:nt_region, thm:poisson_reproducing}
   Let $\alpha>1$. There is a constant $C_\alpha$ such that for every
   $\zeta\in\partial\D$, every $z\in\Gamma_\alpha(\zeta)$ and every
   $\theta$,
@@ -196,6 +314,7 @@ and are not verbatim reproductions of the source.
   Theorem~\ref{thm:I_5_3_ac}.
   \begin{proof}
     \proves{lem:poisson_stolz_bound}
+    \uses{thm:poisson_reproducing}
     \leanok
     From $|e^{i\theta}-z|\ge 1-|z|$ and, by the triangle inequality and the
     definition of $\Gamma_\alpha(\zeta)$,
@@ -206,200 +325,11 @@ and are not verbatim reproductions of the source.
   \end{proof}
 \end{lemma}
 
-\begin{definition}[Poisson integral of boundary data]
-  \label{def:poisson_integral}
-  \lean{poissonIntegral}
-  \leanok
-  Boundary data is a vector measure $\nu$ with values in a real normed space,
-  and
-  \[
-    P[\nu](w)=\int P_w(z)\,d\nu(z).
-  \]
-  The kernel is real-valued, so it pairs with $\nu$ by scalar multiplication.
-  A finite positive measure $\mu$ enters as the associated signed measure, and
-  data given as a function $f$ against a reference measure $\mu$ enters as the
-  vector measure $f\,d\mu$; both are theorems about this one definition rather
-  than separate definitions.
-\end{definition}
-
-\begin{lemma}[Linearity in the boundary measure]
-  \label{lem:poisson_integral_linear}
-  \lean{poissonIntegral_neg, poissonIntegral_smul, poissonIntegral_add,
-    poissonIntegral_sub}
-  \leanok
-  \uses{def:poisson_integral}
-  For vector measures $\nu,\nu_1,\nu_2$ and $r\in\mathbb R$,
-  $P[-\nu]=-P[\nu]$ and $P[r\nu]=rP[\nu]$. If $P_w$ is integrable against
-  $|\nu_1|$ and $|\nu_2|$, then
-  $P[\nu_1\pm\nu_2](w)=P[\nu_1](w)\pm P[\nu_2](w)$.
-  \begin{proof}
-    \proves{lem:poisson_integral_linear}
-    \leanok
-    The integral against a vector measure is linear in the measure.
-  \end{proof}
-\end{lemma}
-
-\begin{lemma}[Integrability of the Poisson kernel against boundary data]
-  \label{lem:poisson_kernel_integrable}
-  \lean{integrable_poissonKernel_toSignedMeasure,
-    integrable_poissonKernel_withDensityᵥ}
-  \leanok
-  \uses{def:poisson_integral}
-  Let $w\in\D(c,R)$, let $\mu$ be a finite positive measure carried by
-  $\partial\D(c,R)$, and let $k\in L^1(\mu)$ be real. Then $P_w$ is integrable
-  against the variation of $\mu$ and of $k\,d\mu$. (The case of a signed
-  measure is in Lemma~\ref{lem:poisson_integral_jordan}.)
-  \begin{proof}
-    \proves{lem:poisson_kernel_integrable}
-    \leanok
-    The kernel is bounded on $\partial\D(c,R)$ for interior $w$, the variation
-    of $\mu$ is $\mu$, and that of $k\,d\mu$ is bounded by $|k|\,d\mu$.
-  \end{proof}
-\end{lemma}
-
-\begin{lemma}[Boundary data given as a density]
-  \label{lem:poisson_integral_withDensity}
-  \lean{poissonIntegral_withDensityᵥ}
-  \leanok
-  \uses{def:poisson_integral}
-  Let $\mu$ be a finite measure carried by $\partial\D$, let $k\in L^1(\mu)$ and
-  let $w$ lie in the open disc. Then
-  \[
-    P[k\,d\mu](w)=\int P_w(z)\,k(z)\,d\mu(z).
-  \]
-  \begin{proof}
-    \proves{lem:poisson_integral_withDensity}
-    \leanok
-    Write $k\,d\mu$ through its positive and negative parts, integrate the
-    kernel against each, and recombine. The kernel is bounded on
-    $\partial\D$ for $w$ interior, so it is integrable against every finite
-    measure carried by the circle and against $k$ times such a measure.
-  \end{proof}
-\end{lemma}
-
-\begin{lemma}[Boundary data given as a finite positive measure]
-  \label{lem:poisson_integral_toSignedMeasure}
-  \lean{poissonIntegral_toSignedMeasure, poissonIntegral_toSignedMeasure_apply}
-  \leanok
-  \uses{def:poisson_integral}
-  For a finite positive measure $\mu$ on $\partial\D(c,R)$ and every $w$,
-  \[
-    P[\mu](w)=\int P_w(z)\,d\mu(z),
-  \]
-  an ordinary Bochner integral. Unlike the previous lemma this needs no
-  hypothesis on $w$ or on the support of $\mu$.
-  \begin{proof}
-    \proves{lem:poisson_integral_toSignedMeasure}
-    \leanok
-    Immediate from the pairing identity for the integral against the signed
-    measure associated with $\mu$.
-  \end{proof}
-\end{lemma}
-
-\begin{lemma}[Jordan decomposition of a signed Poisson integral]
-  \label{lem:poisson_integral_jordan}
-  \lean{poissonIntegral_eq_posPart_sub_negPart, integrable_poissonKernel_totalVariation,
-    poissonIntegral_toSignedMeasure_sub, totalVariation_toSignedMeasure_sub_eq_zero}
-  \leanok
-  \uses{def:poisson_integral, lem:poisson_integral_toSignedMeasure}
-  Let $\nu$ be a finite signed measure carried by $\partial\D(c,R)$ and let $w$
-  be interior. Writing $\nu=\nu^{+}-\nu^{-}$ for the Jordan decomposition,
-  \[
-    P[\nu](w)=\int P_w\,d\nu^{+}-\int P_w\,d\nu^{-}.
-  \]
-  Likewise, if $\nu_1,\nu_2$ are finite positive measures carried by
-  $\partial\D(c,R)$, then so is $\nu_1-\nu_2$, and
-  $P[\nu_1-\nu_2](w)=P[\nu_1](w)-P[\nu_2](w)$.
-  \begin{proof}
-    \proves{lem:poisson_integral_jordan}
-    \leanok
-    The kernel is bounded on the circle at an interior point, hence integrable
-    against the total variation of $\nu$, so the integral splits along the
-    decomposition.
-  \end{proof}
-\end{lemma}
-
-\begin{lemma}[Harnack's inequality on a disc]
-  \label{lem:harnack_inequality}
-  \lean{InnerProductSpace.harnack_inequality, InnerProductSpace.harnack_le,
-    InnerProductSpace.le_harnack, poissonKernel_le_of_mem_ball,
-    le_poissonKernel_of_mem_ball}
-  \leanok
-  Let $u$ be harmonic on a neighbourhood of $\overline{\D}(c,R)$ and nonnegative
-  on $\partial\D(c,R)$. Then for $w$ with $\rho=|w-c|<R$,
-  \[
-    \frac{R-\rho}{R+\rho}\,u(c)\ \le\ u(w)\ \le\ \frac{R+\rho}{R-\rho}\,u(c).
-  \]
-  The two-sided kernel estimate
-  $\frac{R-\rho}{R+\rho}\le P_w(\zeta)\le\frac{R+\rho}{R-\rho}$ underlying it is
-  recorded separately, since it is used on its own.
-  \begin{proof}
-    \proves{lem:harnack_inequality}
-    \leanok
-    The kernel bounds come from mathlib's estimates on the real part of the
-    Herglotz--Riesz kernel. Insert them into the Poisson integral formula
-    $u(w)=\int P_w u\,d\sigma$, using $u\ge0$ on the circle to preserve the
-    inequalities, and identify $\int u\,d\sigma$ with $u(c)$ by the mean value
-    property.
-  \end{proof}
-\end{lemma}
-
-\begin{theorem}[Poisson integrals of continuous data are harmonic]
-  \label{thm:harmonic_poisson_integral}
-  \lean{harmonicOnNhd_circleAverage_poissonKernel_smul,
-    integral_poissonKernel_smul_circleMeasure_eq_circleAverage,
-    poissonIntegral_circleMeasure_withDensityᵥ_eq_circleAverage}
-  \leanok
-  \uses{def:poisson_integral}
-  If $f$ is continuous on $\partial\D(c,R)$ then $P[f\,d\sigma]$ is harmonic on
-  the open disc, where $\sigma$ is normalized arclength. For $w$ interior the
-  Poisson integral coincides with the circle average of $P_w\cdot f$.
-  \begin{proof}
-    \proves{thm:harmonic_poisson_integral}
-    \leanok
-    Harmonicity of the circle average follows from harmonicity of the kernel in
-    the interior variable, by differentiating under the integral sign; the
-    identification with the Poisson integral is the circle average / circle
-    measure transport, whose integrability hypothesis holds because both
-    factors are continuous on the circle.
-  \end{proof}
-\end{theorem}
-
-\begin{theorem}[Poisson integral formula]
-  \label{thm:poisson_reproducing}
-  \lean{poissonIntegral_circleMeasure_eq_self, poissonIntegral_circleMeasure_eq_one}
-  \leanok
-  \uses{def:poisson_integral, thm:harmonic_poisson_integral}
-  If $u$ is harmonic on a neighbourhood of $\overline{\D}(c,R)$ then
-  $u(w)=P[u\,d\sigma_{c,R}](w)$ for every interior $w$. Taking $u\equiv 1$ gives
-  $P[\sigma_{c,R}](w)=1$: the kernel has total mass one at every interior point.
-  \begin{proof}
-    \proves{thm:poisson_reproducing}
-    \leanok
-    Transport to the circle average and apply the mathlib form of the Poisson
-    formula. Total mass one is the case $u\equiv 1$, read through the density
-    lemma.
-  \end{proof}
-\end{theorem}
-
-\begin{theorem}[Dirichlet problem on a disc]
-  \label{thm:poisson_extension}
-  \lean{poissonIntegral_continuousOn_closedBall_eq_boundary}
-  \notready
-  \uses{def:poisson_integral, thm:harmonic_poisson_integral}
-  For continuous real boundary data $u$ on $\partial\D(c,R)$ there is a function
-  continuous on $\overline{\D}(c,R)$, harmonic inside, equal to
-  $P[u\,d\sigma_{c,R}]$ on the open disc and to $u$ on the circle.
-
-  This is the solution of the Dirichlet problem on a disc. It is the single
-  open declaration on which the subharmonic comparison results depend.
-\end{theorem}
-
 \begin{theorem}[Differentiation of measures on the circle]
   \label{thm:circle_differentiation}
-  \lean{MeasureTheory.Besicovitch.ae_tendsto_rnDeriv,
-    MeasureTheory.VitaliFamily.ae_eventually_measure_zero_of_singular,
-    MeasureTheory.Besicovitch.tendsto_filterAt,
+  \lean{Besicovitch.ae_tendsto_rnDeriv,
+    VitaliFamily.ae_eventually_measure_zero_of_singular,
+    Besicovitch.tendsto_filterAt,
     ae_tendsto_average_abs_sub_circleMeasure,
     norm_circleMap_sub_circleMap, abs_sub_le_norm_circleMap_sub,
     circleMeasure_closedBall_le_of_norm_eq_one}
@@ -434,10 +364,9 @@ and are not verbatim reproductions of the source.
 
 \begin{lemma}[Uniform ball-density bound for positive Poisson integrals]
   \label{lem:poisson_ball_density_bound}
+  \uses{def:poisson_integral}
   \lean{integral_poissonKernel_le_of_measure_closedBall_le}
   \leanok
-  \uses{def:poisson_integral, lem:poisson_stolz_bound,
-    thm:circle_differentiation}
   Let $\nu$ be a finite positive measure carried by $\partial\D$, let
   $\|\zeta\|=1$, and suppose that for every $r>0$,
   \[
@@ -450,6 +379,7 @@ and are not verbatim reproductions of the source.
   \]
   \begin{proof}
     \proves{lem:poisson_ball_density_bound}
+    \uses{lem:poisson_stolz_bound, thm:circle_differentiation}
     \leanok
     Decompose the circle into dyadic chordal annuli centred at $\zeta$: with
     $\delta=1-|z|$, put $S_0=\overline B(\zeta,\delta)$ and
@@ -472,10 +402,9 @@ and are not verbatim reproductions of the source.
 
 \begin{lemma}[Density-zero Poisson integrals]
   \label{lem:poisson_density_zero}
+  \uses{def:nt_limit, def:poisson_integral}
   \lean{hasNontangentialLimit_integral_poissonKernel_of_density_zero}
   \leanok
-  \uses{def:nt_limit, def:poisson_integral,
-    lem:poisson_ball_density_bound, lem:poisson_stolz_bound}
   Let $\nu$ be a finite positive measure carried by $\partial\D$. If
   \[
     \frac{\nu(\overline B(\zeta,r))}
@@ -485,6 +414,7 @@ and are not verbatim reproductions of the source.
   then $P[\nu](z)\to0$ nontangentially as $z\to\zeta$.
   \begin{proof}
     \proves{lem:poisson_density_zero}
+    \uses{lem:poisson_ball_density_bound, lem:poisson_stolz_bound}
     \leanok
     Restrict $\nu$ to a small fixed ball about $\zeta$ and its complement.
     Density zero supplies a uniform ball-density bound for the near part, so
@@ -497,10 +427,9 @@ and are not verbatim reproductions of the source.
 
 \begin{lemma}[Garnett I.5.4: singular Poisson integrals vanish at the boundary]
   \label{lem:I_5_4}
+  \uses{def:nt_limit, def:poisson_integral}
   \lean{isAEBoundaryValue_poissonIntegral_zero_of_mutuallySingular}
   \leanok
-  \uses{def:nt_limit, def:poisson_integral, lem:poisson_density_zero,
-    thm:circle_differentiation}
   \mainline
   \bookref{Garnett}{I.5.4}{Chapter I, Section 5, PDF pages 41--42}
   If $\nu$ is a finite signed measure on $\partial\D$ that is singular with
@@ -514,6 +443,7 @@ and are not verbatim reproductions of the source.
   modulus one almost everywhere.
   \begin{proof}
     \proves{lem:I_5_4}
+    \uses{lem:poisson_density_zero, thm:circle_differentiation, lem:poisson_integral_linear}
     \leanok
     Mutual singularity makes the total variation of $\nu$ singular with
     respect to $\sigma$. Expanding the Jordan decomposition and using
@@ -529,11 +459,10 @@ and are not verbatim reproductions of the source.
 
 \begin{theorem}[Fatou at Lebesgue points]
   \label{thm:I_5_3_ac}
+  \uses{def:nt_limit, def:poisson_integral}
   \lean{hasNontangentialLimit_poissonIntegral_of_lebesguePoint,
     isAEBoundaryValue_poissonIntegral}
   \leanok
-  \uses{def:nt_limit, def:poisson_integral, lem:poisson_density_zero,
-    thm:circle_differentiation}
   Let $k\in L^1(d\theta/2\pi)$. Then at every Lebesgue point $\zeta$ of $k$,
   and hence almost everywhere,
   \[
@@ -541,6 +470,8 @@ and are not verbatim reproductions of the source.
   \]
   \begin{proof}
     \proves{thm:I_5_3_ac}
+    \uses{lem:poisson_density_zero, thm:circle_differentiation, thm:poisson_reproducing,
+      lem:poisson_integral_linear}
     \leanok
     At a Lebesgue point put
     $d\rho_\zeta=|k-k(\zeta)|\,d\sigma$. Its ball-density quotient is exactly
@@ -554,12 +485,10 @@ and are not verbatim reproductions of the source.
 
 \begin{theorem}[Garnett I.5.3: Fatou theorem, $p=1$ disc form]
   \label{thm:I_5_3}
+  \uses{def:nt_limit, def:boundary_function, def:poisson_integral}
   \lean{isAEBoundaryValue_poissonIntegral_rnDeriv,
     boundaryValue_poissonIntegral, integrable_boundaryValue_poissonIntegral}
   \leanok
-  \uses{thm:I_5_3_ac, lem:I_5_4,
-    def:nt_limit, def:boundary_function, def:poisson_integral,
-    lem:poisson_integral_withDensity, lem:boundary_value_bridge}
   \mainline
   \bookref{Garnett}{I.5.3}{Chapter I, Section 5, PDF pages 40--41}
   Let $\mu$ be a finite signed measure on $\partial\D$, with Lebesgue
@@ -575,36 +504,345 @@ and are not verbatim reproductions of the source.
   $1\le p\le\infty$; only this $p=1$ disc form is used in this project.
   \begin{proof}
     \proves{thm:I_5_3}
+    \uses{thm:I_5_3_ac, lem:I_5_4, lem:poisson_integral_linear, lem:boundary_value_bridge}
     \leanok
     Split $\mu$ by the Lebesgue decomposition, which mathlib provides as
     \texttt{MeasureTheory.SignedMeasure.singularPart\_add\_withDensity\_rnDeriv\_eq}, and add
     Theorem~\ref{thm:I_5_3_ac} to Lemma~\ref{lem:I_5_4}, using that
     nontangential limits are limits along a filter and therefore additive.
     The density part is identified with its signed Poisson integral by
-    Lemma~\ref{lem:poisson_integral_withDensity}; integrability of the kernel
+    Lemma~\ref{lem:poisson_integral_linear}; integrability of the kernel
     against both summands then identifies their sum with $P[\mu]$. Finally use
     Lemma~\ref{lem:boundary_value_bridge} for the canonical boundary function.
   \end{proof}
 \end{theorem}
 
-\begin{theorem}[A boundary measure is determined by its Poisson integral]
-  \label{thm:poisson_measure_unique}
+\section{Chapter I: harmonic representation}
+
+\begin{lemma}[Garnett I.(3.5): Poisson integrals contract $L^p$, disc form]
+  \label{eq:I_3_5}
+  \uses{def:poisson_integral}
+  \lean{eLpNorm_poissonIntegral_radial_le, hardyNorm_poissonIntegral_le}
+  \leanok
+  \bookref{Garnett}{I.(3.5)}{Chapter I, Section 3, printed pages 14--15,
+    PDF pages 26--27}
+  Let $1\le p\le\infty$, let $\sigma$ be normalized arclength on $\partial\D$,
+  and let $U\in L^p(\sigma)$. Then for $0<r<1$,
+  \[
+    \|P[U\,d\sigma](r\,\cdot)\|_{L^p(\sigma)}\le\|U\|_{L^p(\sigma)},
+  \]
+  hence $\sup_{0<r<1}\|P[U\,d\sigma](r\,\cdot)\|_{L^p(\sigma)}
+  \le\|U\|_{L^p(\sigma)}$.
+  \begin{proof}
+    \proves{eq:I_3_5}
+    \uses{lem:poisson_integral_linear, thm:poisson_reproducing}
+    \leanok
+    For $p=\infty$ use $P_z\ge0$ and $\int P_z\,d\sigma=1$. For
+    $1\le p<\infty$, Jensen's inequality for the probability measure
+    $P_z\,d\sigma$ gives $|P[U\,d\sigma](z)|^p\le\int P_z|U|^p\,d\sigma$.
+    Integrate over $z=r\eta$, exchange the integrals, and use
+    $P_{r\eta}(\zeta)=P_{r\zeta}(\eta)$ for $|\eta|=|\zeta|=1$ together with
+    total mass one. Garnett uses Minkowski's integral inequality instead,
+    which mathlib lacks.
+  \end{proof}
+\end{lemma}
+
+\begin{theorem}[$L^p$ dual representation]
+  \label{thm:lp_duality}
+  \lean{MeasureTheory.Lp.exists_eq_integral_mul,
+    MeasureTheory.Lp.exists_eq_integral_mul_of_isFiniteMeasure,
+    MeasureTheory.Lp.eq_of_forall_integral_mul_eq,
+    MeasureTheory.Lp.lpPairing_mul_injective,
+    ContinuousLinearMap.norm_lpPairing_le,
+    MeasureTheory.Lp.norm_lpPairing_mul_apply_le}
+  \leanok
+  \bookref{Rudin, Real and Complex Analysis}{6.16}{Real-valued case;
+    the exponents $p$ and $q$ are interchanged relative to Rudin's notation}
+  Let $\mu$ be a $\sigma$-finite measure and let $p,q$ be conjugate exponents with
+  $1\le q<\infty$. For every bounded real linear functional
+  $\Lambda$ on $L^q(\mu;\mathbb R)$, there exists a unique $U\in L^p(\mu;\mathbb R)$ such that
+  \[
+    \|U\|_p=\|\Lambda\|,
+    \qquad \Lambda(f)=\int Uf\,d\mu\quad(f\in L^q(\mu;\mathbb R)).
+  \]
+  \begin{proof}
+    \proves{thm:lp_duality}
+    \notready
+    The pairing operator-norm bounds and uniqueness are proved. Existence remains unproved.
+  \end{proof}
+\end{theorem}
+
+\begin{theorem}[Garnett I.3.5(a): bounded radial $L^p$ norms, disc form]
+  \label{thm:I_3_5(a)}
+  \uses{def:poisson_integral}
+  \lean{harmonicOnNhd_hardyNorm_lt_top_iff_exists_memLp_eq_poissonIntegral,
+    ContinuousOn.memLp_circleMeasure, poissonKernel_zero_mul,
+    integral_poissonKernel_mul_radial_eq}
+  \leanok
+  \bookref{Garnett}{I.3.5(a)}{Chapter I, Section 3, printed pages 17--19,
+    PDF pages 29--31}
+  Let $1<p\le\infty$, and let $\sigma$ be normalized arclength on $\partial\D$.
+  A function $u:\mathbb C\to\mathbb R$ is harmonic on $\D$ and satisfies
+  \[
+    \sup_{0<r<1}\|u(r\,\cdot)\|_{L^p(\sigma)}<\infty
+  \]
+  if and only if there exists $U\in L^p(\sigma)$ such that
+  $u=P[U\,d\sigma]$ on $\D$.
+  \begin{proof}
+    \proves{thm:I_3_5(a)}
+    \uses{lem:poisson_integral_linear, thm:harmonic_poisson_integral, thm:poisson_reproducing,
+      eq:I_3_5, thm:lp_duality}
+    \leanok
+    On the unit disc put $u_t(\zeta)=u(t\zeta)$. The reproducing formula
+    gives $u(tz)=\int P_z u_t\,d\sigma$. The uniformly bounded family
+    $u_t\in L^p=(L^q)^*$, where $1/p+1/q=1$, has a weak-star cluster
+    point $U$ as $t\to1$. Testing against the fixed kernel $P_z\in L^q$
+    gives $u=P[U\,d\sigma]$. Conversely, the Poisson operators are
+    contractions on $L^p$ (Lemma~\ref{eq:I_3_5}).
+    The Lean proof is complete relative to the finite-measure dual representation
+    theorem in Theorem~\ref{thm:lp_duality}, whose existence proof remains open.
+  \end{proof}
+\end{theorem}
+
+\begin{theorem}[Garnett I.3.5(b): bounded radial $L^1$ means, disc form]
+  \label{thm:I_3_5(b)}
+  \uses{def:poisson_integral}
+  \lean{exists_eq_poissonIntegral_of_hardyNorm_lt_top,
+    harmonicOnNhd_hardyNorm_lt_top_iff_exists_eq_poissonIntegral}
+  \leanok
+  \bookref{Garnett}{I.3.5(b)}{Printed pages 17--18, PDF pages 29--30}
+  A real harmonic function $u$ on $\D$ satisfies
+  \[
+    \sup_{0<r<1}\int|u(r\zeta)|\,d\sigma(\zeta)<\infty
+  \]
+  if and only if $u=P[\nu]$ for a finite signed measure on $\partial\D$.
+  \begin{proof}
+    \proves{thm:I_3_5(b)}
+    \uses{thm:poisson_reproducing, lem:poisson_integral_linear, thm:harmonic_poisson_integral}
+    \notready
+    The measures $d\nu_r=u(r\zeta)\,d\sigma$ have uniformly bounded total
+    variation. Take a weak-star cluster point $\nu$ as $r\uparrow1$.
+    In the reproducing identity $u(rz)=\int P_z\,d\nu_r$, test against the
+    fixed continuous kernel $P_z$ and use continuity of $u$ to get $u=P[\nu]$.
+    Conversely, positivity and unit mass of the kernel bound the radial
+    $L^1$ means by the total variation of $\nu$. Both linked proofs are open.
+  \end{proof}
+\end{theorem}
+
+\begin{theorem}[Garnett I.3.5(c): nonnegative harmonic representation, disc form]
+  \label{thm:I_3_5(c)}
+  \uses{def:poisson_integral}
+  \lean{harmonicOnNhd_nonneg_iff_exists_eq_poissonIntegral}
+  \leanok
+  \mainline
+  \bookref{Garnett}{I.3.5(c)}{Printed pages 18--19, PDF pages 30--31}
+  A real function $u$ on $\D$ is harmonic and nonnegative if and only if
+  $u=P[\mu]$ for a finite positive measure $\mu$ carried by $\partial\D$.
+  The measure has total mass $u(0)$.
+  \begin{proof}
+    \proves{thm:I_3_5(c)}
+    \uses{thm:I_3_5(b), thm:poisson_reproducing, thm:harmonic_poisson_integral,
+      lem:poisson_integral_linear}
+    \notready
+    Use the weak-star construction in the proof of I.3.5(b), as Garnett
+    does: the approximating measures $u(r\zeta)\,d\sigma$ are positive
+    and have common mass $u(0)$ by the mean-value property. Their cluster
+    measure is therefore positive. The converse is positivity and
+    harmonicity of the Poisson integral, already formalized; existence is open.
+  \end{proof}
+\end{theorem}
+
+\section{Chapter I: subharmonic functions and harmonic majorants}
+
+\begin{theorem}[Harmonic mean-value characterization]
+  \label{thm:harmonic_mean_value}
+  \lean{HarmonicOnNhd.ballAverage_eq, HarmonicOnNhd_of_ballAverage_eq}
+  \leanok
+  A continuous real function on an open subset of $\mathbb C$ is harmonic
+  if and only if its average on every sufficiently small ball about each
+  point equals its value at that point. A harmonic function has this property
+  on every ball whose closure is contained in the domain.
+  \begin{proof}
+    \proves{thm:harmonic_mean_value}
+    \notready
+    The forward mean-value property and its local converse are both stated
+    in Lean; their proofs remain open.
+  \end{proof}
+\end{theorem}
+
+\begin{theorem}[Garnett I.6.3: harmonic comparison characterization]
+  \label{thm:I_6_3}
   \notready
-  If $\mu$ and $\nu$ are finite signed measures on $\partial\D$ with
-  $P[\mu]=P[\nu]$ on $\D$, then $\mu=\nu$. The proof is the standard weak-star
-  argument: $P[\mu](r\,\cdot)\,d\theta/2\pi\to\mu$ when tested against
-  continuous functions on the circle. This is what licenses speaking of
-  \emph{the} representing measure in Theorem~\ref{thm:II_5_3}, and it is used
-  again for the uniqueness of the singular factors
-  (Theorem~\ref{thm:singular_measure_determines_factors}) and in Garnett's
-  Theorem II.5.4.
+  \bookref{Garnett}{I.6.3}{Printed pages 34--35, PDF pages 46--47}
+  An upper semicontinuous $v:\Omega\to[-\infty,\infty)$ is subharmonic if
+  and only if, for every bounded open $W$ compactly contained in $\Omega$
+  and every harmonic $u$ on $W$, the boundary condition
+  $\limsup_{W\ni z\to\zeta}(v(z)-u(z))\le0$ implies $v\le u$ on $W$.
+  \begin{proof}
+    \proves{thm:I_6_3}
+    \uses{thm:harmonic_mean_value, thm:poisson_extension}
+    \notready
+    Apply the maximum principle to $v-u$. Conversely, approximate the
+    upper semicontinuous boundary data from above by continuous functions,
+    solve the Dirichlet problems, and pass to the circular mean inequality;
+    integrating in the radius gives the ball mean inequality.
+    The active Lean definition uses comparison on balls; the equivalence
+    with the book's mean-value definition remains to be formalized.
+  \end{proof}
+\end{theorem}
+
+\begin{theorem}[Logarithm of modulus is subharmonic]
+  \label{thm:log_abs_subharmonic}
+  \lean{logNormBot_comp_analytic_subharmonicOn_scalar,
+    logNormBot_comp_analytic_subharmonicOn_banach, SubharmonicOn.sup,
+    posLog_norm_comp_analytic_subharmonicOn_banach}
+  \leanok
+  If $f$ is analytic on an open subset of $\mathbb{C}$, then
+  $z\mapsto \log \lVert f(z)\rVert$, interpreted as $-\infty$ at zeros, is
+  subharmonic there. This has been formalized both for complex-valued
+  functions and, more generally, for functions taking values in a complex
+  Banach space. Since the maximum of two subharmonic functions is
+  subharmonic, so is $\log^+\lVert f\rVert=\max(\log\lVert f\rVert,0)$.
+  \begin{proof}
+    \proves{thm:log_abs_subharmonic}
+    \uses{thm:I_6_3}
+    \leanok
+    The Lean proofs are complete in the declarations linked above.
+  \end{proof}
+\end{theorem}
+
+\begin{corollary}[Garnett I.6.4: integrability on interior circles]
+  \label{cor:I_6_4}
+  \notready
+  \bookref{Garnett}{I.6.4}{Printed page 35, PDF page 47}
+  If $v$ is subharmonic on a connected open set $\Omega$ and
+  $v\not\equiv-\infty$, then its restriction to every circle bounding a
+  closed disc in $\Omega$ is integrable and has finite mean.
+  \begin{proof}
+    \proves{cor:I_6_4}
+    \uses{thm:I_6_3, thm:poisson_extension}
+    \notready
+    Continuous boundary majorants and the positive Poisson kernel show that
+    a circle mean of $-\infty$ would force $v=-\infty$ throughout its disc.
+    The set where $v$ is locally $-\infty$ is then open and closed, contrary
+    to connectedness and the hypothesis. Upper semicontinuity bounds the
+    positive part on the circle.
+  \end{proof}
+\end{corollary}
+
+\begin{theorem}[Garnett I.6.5: Poisson modification]
+  \label{thm:I_6_5}
+  \uses{def:poisson_integral}
+  \lean{Subharmonic.poissonModification,
+    Subharmonic.subharmonicOn_poissonModification,
+    Subharmonic.harmonicOnNhdWithBot_poissonModification,
+    Subharmonic.le_poissonModification, Subharmonic.poissonModification_mono}
+  \leanok
+  \bookref{Garnett}{I.6.5}{Printed pages 35--36, PDF pages 47--48}
+  For subharmonic $v\not\equiv-\infty$ on $\D$ and $0<r<1$, replace $v$ on $|z|<r$
+  by the Poisson integral of its values on $|z|=r$, leaving it unchanged
+  outside. The resulting $v_r$ is subharmonic on $\D$, finite and harmonic
+  on $|z|<r$, dominates $v$, and increases with $r$.
+  \begin{proof}
+    \proves{thm:I_6_5}
+    \uses{thm:I_6_3, cor:I_6_4, thm:poisson_extension, thm:harmonic_poisson_integral}
+    \notready
+    Circle integrability gives a finite harmonic extension. Approximate the
+    boundary data from above and use harmonic comparison to obtain $v\le v_r$.
+    The approximate-identity estimate gives upper semicontinuity across
+    $|z|=r$, and the mean inequality gives subharmonicity there. Comparing
+    successive modifications gives monotonicity. These four properties
+    are stated in Lean but their proofs remain open.
+  \end{proof}
+\end{theorem}
+
+\begin{lemma}[Harnack's inequality on a disc]
+  \label{lem:harnack_inequality}
+  \lean{InnerProductSpace.harnack_inequality, InnerProductSpace.harnack_le,
+    InnerProductSpace.le_harnack, poissonKernel_le_of_mem_ball,
+    le_poissonKernel_of_mem_ball}
+  \leanok
+  Let $u$ be harmonic on a neighbourhood of $\overline{\D}(c,R)$ and nonnegative
+  on $\partial\D(c,R)$. Then for $w$ with $\rho=|w-c|<R$,
+  \[
+    \frac{R-\rho}{R+\rho}\,u(c)\ \le\ u(w)\ \le\ \frac{R+\rho}{R-\rho}\,u(c).
+  \]
+  The two-sided kernel estimate
+  $\frac{R-\rho}{R+\rho}\le P_w(\zeta)\le\frac{R+\rho}{R-\rho}$ underlying it is
+  recorded separately, since it is used on its own.
+  \begin{proof}
+    \proves{lem:harnack_inequality}
+    \uses{thm:poisson_reproducing}
+    \leanok
+    The kernel bounds come from mathlib's estimates on the real part of the
+    Herglotz--Riesz kernel. Insert them into the Poisson integral formula
+    $u(w)=\int P_w u\,d\sigma$, using $u\ge0$ on the circle to preserve the
+    inequalities, and identify $\int u\,d\sigma$ with $u(c)$ by the mean value
+    property.
+  \end{proof}
+\end{lemma}
+
+\begin{theorem}[Harnack's convergence theorem]
+  \label{thm:harnack_convergence}
+  \notready
+  \bookref{Garnett}{I.6.7, proof}{Invoked on printed page 37, PDF page 49}
+  Let $u_n$ be an increasing sequence of real harmonic functions on a
+  connected domain. If $\sup_n u_n(z_0)<\infty$ at one interior point,
+  then $u_n$ converges locally uniformly to a finite harmonic function.
+  \begin{proof}
+    \proves{thm:harnack_convergence}
+    \uses{lem:harnack_inequality, thm:harmonic_mean_value}
+    \notready
+    Apply Harnack's inequality to the nonnegative differences $u_m-u_n$;
+    convergence at one point gives uniform Cauchy estimates on compact
+    subsets by a chain of discs. Pass the mean-value identity to the local
+    uniform limit. For Poisson modifications, apply this on each smaller
+    disc to a cofinal sequence of radii.
+  \end{proof}
+\end{theorem}
+
+\begin{theorem}[Harmonic majorants of subharmonic functions, Garnett I.6.7]
+  \label{thm:I_6_7}
+  \lean{Subharmonic.hasHarmonicMajorant_iff_radialMean_bddAbove,
+    Subharmonic.exists_isLeastHarmonicMajorant_tendsto_poissonModification}
+  \leanok
+  \mainline
+  \bookref{Garnett}{I.6.7}{Chapter I, Section 6, printed pages 36--37, PDF pages 48--49}
+  Let $v$ be subharmonic on $\mathbb{D}$. Then $v$ has a harmonic majorant on
+  $\mathbb{D}$ if and only if
+  \[
+    \sup_{0<r<1}\frac{1}{2\pi}
+      \int_0^{2\pi}v(r e^{i\theta})\,d\theta
+    = \sup_{0<r<1} v_r(0) < \infty,
+  \]
+  where $v_r$ is the Poisson extension to $|z|<r$ of the boundary values of
+  $v$ on $|z|=r$. When this condition holds and $v\not\equiv-\infty$, the
+  least harmonic majorant $u$ of $v$ is given by
+  \[
+    u(z)=\lim_{r\to 1}
+      \frac{1}{2\pi}\int_0^{2\pi}
+        P_{z/r}(\theta)v(r e^{i\theta})\,d\theta
+      =\lim_{r\to 1}v_r(z).
+  \]
+  \begin{proof}
+    \proves{thm:I_6_7}
+    \uses{thm:I_6_5, thm:harnack_convergence, thm:I_6_3}
+    \notready
+    The modifications $v_r$ increase and are harmonic on expanding discs.
+    If their values at zero are bounded, Harnack's convergence theorem
+    gives a finite harmonic limit $u\ge v$. Every harmonic majorant $U$
+    dominates every $v_r$ by comparison, hence dominates $u$; this proves
+    leastness. Conversely $v_r\le U$ bounds their values at zero.
+    The case $v\equiv-\infty$ has harmonic majorants but no least one and
+    is excluded from the second assertion.
+  \end{proof}
 \end{theorem}
 
 \section{Chapter II, Section 2: Blaschke products}
 
 \begin{definition}[Multiplicity and the Blaschke sum]
   \label{def:blaschke_sum}
-  \lean{Multiplicity, blaschkeSum}
+  \lean{blaschkeSum}
   \leanok
   For $m:\mathbb C\to\mathbb N\cup\{\infty\}$, define
   \[
@@ -617,19 +855,46 @@ and are not verbatim reproductions of the source.
 
 \begin{definition}[Blaschke condition for a multiplicity function]
   \label{def:blaschke_condition}
-  \lean{BlaschkeCondition}
+  \lean{BlaschkeCondition, BlaschkeCondition.ne_top}
   \leanok
   \uses{def:blaschke_sum}
   A multiplicity function $m$ satisfies Blaschke's condition on $\mathbb D$
-  if $\mathcal B(m)<\infty$.
+  if $\mathcal B(m)<\infty$. In that case $m(a)<\infty$ for every $a\in\mathbb D$.
+\end{definition}
+
+\begin{definition}[Lean Blaschke factors]
+  \label{def:blaschke_factor}
+  \lean{BlaschkeFactor, normedBlaschkeFactor}
+  \leanok
+  For $R>0$ and $|a|<R$, the elementary Blaschke factor is
+  \[
+    b_{R,a}(z)=\frac{R(z-a)}{R^2-\overline a z}.
+  \]
+  Its normalized form is $b_{R,0}$ when $a=0$, and
+  $-\overline a\,b_{R,a}/|a|$ otherwise.
+\end{definition}
+
+\begin{definition}[Blaschke product of a multiplicity function]
+  \label{def:blaschke_product}
+  \lean{blaschkeProductFactor, BlaschkeProduct}
+  \leanok
+  \uses{def:blaschke_factor, def:blaschke_sum}
+  For $m:\mathbb C\to\mathbb N\cup\{\infty\}$, with $b_a$ the normalized factor
+  $b_{1,a}$,
+  \[
+    B_m(z)=z^{m(0)}\prod_{a\in\D\setminus\{0\}}b_a(z)^{m(a)},
+  \]
+  the product taken unconditionally, i.e.\ as the limit along finite subsets of $\D$.
+  An analytic function uses $m=\operatorname{ord}(f)$ and a finite or infinite
+  family $(a_i)$ uses $m(a)=\#\{i:a_i=a\}$. Points outside $\D$ are ignored.
 \end{definition}
 
 \begin{theorem}[Garnett II.2.1: the Blaschke condition]
   \label{thm:II_2_1}
+  \uses{def:blaschke_condition}
   \lean{blaschkeCondition_of_hasHarmonicMajorant,
     blaschkeSum_le_of_isLeastHarmonicMajorant}
   \leanok
-  \uses{thm:I_6_7, thm:log_abs_subharmonic, def:blaschke_condition}
   \mainline
   \bookref{Garnett}{II.2.1}{Chapter II, Section 2, PDF pages 63--64}
   If $f$ is a nonzero analytic function on $\mathbb D$ and $\log|f|$
@@ -641,6 +906,7 @@ and are not verbatim reproductions of the source.
   \]
   \begin{proof}
     \proves{thm:II_2_1}
+    \uses{thm:I_6_7, thm:log_abs_subharmonic}
     \leanok
     Jensen's formula and the harmonic mean-value property bound the
     logarithmic zero sums. Let the radius tend to one and use
@@ -653,6 +919,7 @@ and are not verbatim reproductions of the source.
 
 \begin{theorem}[Garnett II.2.2: convergence and boundary size of Blaschke products]
   \label{thm:II_2_2}
+  \uses{def:blaschke_product, def:blaschke_condition, def:boundary_function}
   \lean{tendstoLocallyUniformlyOn_blaschkeProductFactor,
     tendstoLocallyUniformlyOn_blaschkeProduct,
     analyticOnNhd_blaschkeProduct, norm_blaschkeProduct_le_one,
@@ -660,7 +927,6 @@ and are not verbatim reproductions of the source.
     analyticOrderAt_blaschkeProduct, blaschkeProduct_eq_zero_iff,
     memHpDisc_blaschkeProduct, ae_hasNontangentialLimit_blaschkeProduct}
   \leanok
-  \uses{def:blaschke_product, def:blaschke_condition, def:boundary_function}
   \mainline
   \bookref{Garnett}{II.2.2}{Chapter II, Section 2, PDF page 64}
   If $m$ satisfies the Blaschke condition, then the finite partial products
@@ -674,8 +940,8 @@ and are not verbatim reproductions of the source.
   nontangential limit and has modulus one.
   \begin{proof}
     \proves{thm:II_2_2}
-    \notready
     \uses{cor:II_3_2(p=∞)}
+    \notready
     The passage from the product omitting origin zeros to the full product
     $B(z)=z^mP(z)$ is formalized: multiplication by $z^m$, whose modulus
     is at most one on $\D$, preserves locally uniform convergence.
@@ -707,7 +973,6 @@ and are not verbatim reproductions of the source.
   \lean{tendsto_withBotRadialMean_logNormBot_blaschkeProduct,
     tendsto_withBotRadialMean_logNormBot_iff_isLeastHarmonicMajorant_zero}
   \leanok
-  \uses{thm:I_6_7, thm:II_2_2}
   \mainline
   \bookref{Garnett}{II.2.4}{Chapter II, Section 2, PDF page 66}
   Let $f$ be analytic on $\mathbb D$ with $|f|\le1$. Consider:
@@ -725,6 +990,7 @@ and are not verbatim reproductions of the source.
   $\mathbb R\cup\{-\infty\}$, with $\log0=-\infty$.
   \begin{proof}
     \proves{thm:II_2_4}
+    \uses{thm:I_6_7, thm:II_2_2, thm:log_abs_subharmonic}
     \notready
     For $(a)\Rightarrow(b)$, remove a finite initial Blaschke product so that
     the remaining product has modulus at the origin arbitrarily close to one;
@@ -737,91 +1003,105 @@ and are not verbatim reproductions of the source.
   \end{proof}
 \end{theorem}
 
-\begin{definition}[Lean Blaschke factors]
-  \label{def:blaschke_factor}
-  \lean{BlaschkeFactor, normedBlaschkeFactor}
+\section{Chapter II, Section 3: bounded analytic boundary values}
+
+\begin{corollary}[II.3.1, $p=\infty$: boundary values on the disc]
+  \label{cor:II_3_1(p=∞)}
+  \uses{def:nt_limit}
+  \lean{AnalyticOnNhd.ae_nontangentiallyConvergentAt_of_bounded,
+    HardySpace.MemHpDisc.ae_nontangentiallyConvergentAt}
   \leanok
-  For $R>0$ and $|a|<R$, the elementary Blaschke factor is
-  \[
-    b_{R,a}(z)=\frac{R(z-a)}{R^2-\overline a z}.
-  \]
-  Its normalized form is $b_{R,0}$ when $a=0$, and
-  $-\overline a\,b_{R,a}/|a|$ otherwise.
-\end{definition}
-
-\begin{definition}[Blaschke product of a multiplicity function]
-  \label{def:blaschke_product}
-  \lean{blaschkeProductFactor, BlaschkeProduct}
-  \leanok
-  \uses{def:blaschke_factor, def:blaschke_sum}
-  For $m:\mathbb C\to\mathbb N\cup\{\infty\}$, with $b_a$ the normalized factor
-  $b_{1,a}$,
-  \[
-    B_m(z)=z^{m(0)}\prod_{a\in\D\setminus\{0\}}b_a(z)^{m(a)},
-  \]
-  the product taken unconditionally, i.e.\ as the limit along finite subsets of $\D$.
-  An analytic function uses $m=\operatorname{ord}(f)$ and a finite or infinite
-  family $(a_i)$ uses $m(a)=\#\{i:a_i=a\}$. Points outside $\D$ are ignored.
-\end{definition}
-
-\section{Chapter II, Section 4: boundary uniqueness and outer functions}
-
-\begin{corollary}[Garnett II.4.2: boundary uniqueness]
-  \label{cor:II_4_2}
-  \notready
-  \uses{thm:II_5_3, def:boundary_function}
-  \mainline
-  \bookref{Garnett}{II.4.2}{Chapter II, Section 4, PDF page 75}
-  Let $f\in N$, and suppose the boundary function $f^*$ vanishes on a subset
-  of $\partial\D$ of positive Lebesgue measure. Then $f\equiv0$. Since
-  $H^p\subseteq N$ for every $p>0$, this contains Garnett's statement for
-  $H^p(\D)$, $0<p\le\infty$.
+  This is the $p=\infty$ endpoint analogue of the boundary-limit conclusion of
+  Garnett II.3.1 on the disc (Chapter II, Section 3, PDF page 67); the numbered
+  theorem itself is stated for $0<p<\infty$.
+  Every bounded analytic function on $\D$, in particular every $f\in H^\infty(\D)$,
+  has a finite nontangential limit at almost every boundary point.
   \begin{proof}
-    \notready
-    Contrapositive. If $f\not\equiv0$ then part (2) of
-    Theorem~\ref{thm:II_5_3} gives $\log|f^*|\in L^1(d\theta/2\pi)$, so
-    $\log|f^*|>-\infty$ and hence $f^*\ne0$ almost everywhere. The passage
-    from $H^p$ to $N$ is the inclusion \texttt{hpDisc\_le\_nevanlinnaDisc},
-    already formalized.
-
-    Garnett argues the other way round, deducing this from Theorem II.4.1,
-    whose proof dominates $\log^+|f(re^{i\theta})|$ by $(1/p)|f^*|^p$ with
-    $f^*$ the nontangential maximal function of Theorem II.3.1. Reversing the
-    implication keeps the present development free of the maximal function and
-    of the Hardy--Littlewood theory behind it, at the cost of making this
-    corollary depend on Theorem~\ref{thm:II_5_3}. There is no circularity:
-    Theorem~\ref{thm:II_5_3} obtains the nonvanishing of the boundary values
-    of $e^{-(u_j+iv_j)}$ from a second application of
-    Theorem~\ref{thm:I_5_3}, not from this corollary. What is lost is
-    Garnett's sharper inequality~II.4.1 itself,
-    $\log|f(z_0)|\le\int\log|f^*|P_{z_0}\,d\theta/2\pi$ for $f\in H^p$, which
-    is not needed for Theorem~\ref{thm:nevanlinna_canonical_factorization}; it
-    would be needed for the $N^+$ refinements, and there the maximal function
-    would have to be developed anyway.
+    \proves{cor:II_3_1(p=∞)}
+    \uses{thm:I_3_5(a), thm:I_5_3_ac}
+    \leanok
+    The real and imaginary parts of $f$ are bounded harmonic, hence Poisson
+    integrals of $L^\infty$ boundary data by Theorem~\ref{thm:I_3_5(a)} with
+    $p=\infty$. These densities lie in $L^1$, so Theorem~\ref{thm:I_5_3_ac}
+    gives their nontangential limits almost everywhere. Intersect the two
+    full-measure sets and combine the real and imaginary limits.
+    The $H^\infty$ case uses the equality of the Hardy norm with the pointwise supremum.
+    Both Lean proofs are complete; I.3.5(a) remains an unproved prerequisite.
   \end{proof}
 \end{corollary}
 
-\begin{theorem}[Garnett II.4.4: construction from logarithmic data]
-  \label{thm:II_4_4}
+\begin{corollary}[Garnett II.3.2, $p=\infty$: Poisson representation on the disc]
+  \label{cor:II_3_2(p=∞)}
+  \uses{def:poisson_integral, def:boundary_function}
   \notready
-  \uses{def:outer_factor}
+  \bookref{Garnett}{II.3.2 ($p=\infty$)}{Chapter II, Section 3,
+    printed page 56, PDF page 68; disc form}
+  Let $\sigma$ be normalized arclength on $\partial\D$ and let
+  $U\in L^\infty(\sigma;\mathbb C)$. Then $U$ is the a.e. nontangential
+  boundary value of an $H^\infty(\D)$ function if and only if
+  $P[U\,d\sigma]$ is analytic on $\D$. Every such function equals
+  $P[U\,d\sigma]$ on $\D$. In particular, for $f\in H^\infty(\D)$,
+  \[
+    f(z)=P[f^*\,d\sigma](z),\qquad
+    |f(0)|\le\int_{\partial\D}|f^*|\,d\sigma.
+  \]
+  \begin{proof}
+    \proves{cor:II_3_2(p=∞)}
+    \uses{thm:I_3_5(a), thm:I_5_3_ac, eq:I_3_5}
+    \notready
+    Apply Theorem~\ref{thm:I_3_5(a)} to the real and imaginary parts of
+    a bounded analytic function. Theorem~\ref{thm:I_5_3_ac} identifies the
+    resulting densities with its boundary values. Conversely, positivity
+    and unit mass of the Poisson kernel give the $L^\infty$ bound, and
+    Theorem~\ref{thm:I_5_3_ac} gives the prescribed boundary values.
+    At the origin the kernel is one, giving the displayed inequality.
+  \end{proof}
+\end{corollary}
+
+\section{Chapter II, Section 4: logarithmic integrability and outer functions}
+
+\begin{theorem}[Garnett II.4.1: logarithmic inequality, $H^\infty$ disc case]
+  \label{thm:II_4_1}
+  \uses{def:boundary_function, def:poisson_integral}
+  \notready
   \mainline
-  \bookref{Garnett}{II.4.4}{Chapter II, Section 4, PDF page 75}
-  Given a nonnegative boundary function $\varphi$ with
-  $\log\varphi\in L^1(\partial\mathbb{D})$, there is an outer analytic
-  function $F$ on $\mathbb{D}$ whose a.e. boundary modulus is $\varphi$.
-  Equivalently, $F$ is obtained by exponentiating the analytic function whose
-  real part is the Poisson integral of $\log\varphi$.
+  \bookref{Garnett}{II.4.1 ($p=\infty$)}{Printed page 62, PDF page 74}
+  If $f\in H^\infty(\D)$ is not identically zero, then
+  $\log|f^*|\in L^1(\sigma)$, with $\log0=-\infty$, and
+  \[
+    \log|f(z)|\le P[\log|f^*|\,d\sigma](z)\qquad(z\in\D).
+  \]
+  \begin{proof}
+    \proves{thm:II_4_1}
+    \uses{thm:I_6_7, thm:log_abs_subharmonic, cor:II_3_1(p=∞)}
+    \notready
+    Follow Garnett's proof: apply I.6.7 to $\log|f|$, use dominated
+    convergence for the positive logarithmic parts and Fatou's lemma for
+    the negative parts, then remove a possible zero at the origin.
+    In the bounded case a constant dominates the positive parts.
+    This is the case used below; the full $0<p<\infty$ theorem additionally
+    uses the integrable maximal function of II.3.1 and is not asserted here.
+  \end{proof}
 \end{theorem}
 
-\begin{theorem}[Outer uniqueness]
-  \label{thm:outer_uniqueness}
+\begin{corollary}[Garnett II.4.2: boundary uniqueness, $H^\infty$ disc case]
+  \label{cor:II_4_2}
+  \uses{def:boundary_function}
   \notready
-  \uses{def:outer_factor, cor:II_4_2, def:boundary_function}
-  If two outer functions have the same boundary modulus almost everywhere,
-  then their quotient is a unimodular constant. Equivalently, the boundary
-  modulus determines the outer factor up to the expected constant.
-\end{theorem}
+  \mainline
+  \bookref{Garnett}{II.4.2 ($p=\infty$)}{Printed page 62, PDF page 74}
+  If $f\in H^\infty(\D)$ and its boundary value vanishes on a set of
+  positive arclength measure, then $f\equiv0$. Equivalently, every nonzero
+  bounded analytic function has nonzero boundary values almost everywhere.
+  \begin{proof}
+    \proves{cor:II_4_2}
+    \uses{thm:II_4_1}
+    \notready
+    For nonzero $f$, II.4.1 makes the extended boundary logarithm integrable,
+    whereas it is $-\infty$ wherever $f^*=0$. Thus that set has measure zero.
+    This result precedes and is used by II.5.3; it is not derived from it.
+  \end{proof}
+\end{corollary}
 
 \begin{definition}[Outer functions on the disc]
   \label{def:outer_factor}
@@ -841,241 +1121,153 @@ and are not verbatim reproductions of the source.
 
 \begin{theorem}[Basic properties of outer functions]
   \label{thm:outer_function_properties}
+  \uses{def:outer_factor, def:poisson_integral}
   \lean{outerFunction_ne_zero, analyticOn_outerFunction, norm_outerFunction,
     log_norm_outerFunction, isOuterFunction_outerFunction,
     IsOuterFunction.analyticOn, IsOuterFunction.ne_zero,
     IsOuterFunction.exists_log_norm_eq}
   \leanok
-  \uses{def:outer_factor, def:poisson_integral}
   \bookref{Garnett}{II.4, II.5}{Printed pages 64 and 70, PDF pages 76 and 82}
   For real $k\in L^1(\sigma)$, $O_k$ is analytic and zero-free on $\D$, and
   $\log|O_k|=P[k\,d\sigma]$ on $\D$. Hence every outer function $F$ is
-  analytic and zero-free on $\D$, and $\log|F|=P[k\,d\sigma]$ for some real
+  analytic and zero-free on $\D$, $\log|F|=P[k\,d\sigma]$ for some real
   $k\in L^1(\sigma)$.
   \begin{proof}
     \proves{thm:outer_function_properties}
+    \uses{lem:poisson_integral_linear}
     \notready
     The integral $\int\frac{\zeta+z}{\zeta-z}\,k(\zeta)\,d\sigma(\zeta)$ is
     analytic in $z\in\D$, and its real part is $P[k\,d\sigma](z)$ because the
     real part of the Herglotz--Riesz kernel is the Poisson kernel.
     Exponentiating gives the claims for $O_k$; multiplying by $|C|=1$ gives
-    those for $F$.
+    those for $F$. No Nevanlinna boundary theorem is used here.
   \end{proof}
 \end{theorem}
 
-\section{Chapter II, Section 5: Nevanlinna class}
-
-\begin{theorem}[Garnett II, (5.1): harmonic-majorant definition of $N$]
-  \label{eq:II_5_1}
-  \lean{Nevanlinna.memNevanlinnaDisc_iff_hasHarmonicMajorant}
-  \leanok
-  \uses{thm:I_6_7, thm:log_abs_subharmonic}
-  \bookref{Garnett}{II, (5.1)}{Chapter II, Section 5, printed page 66, PDF page 78}
-  Let $f$ be analytic on $\D$. Then
-  \[
-    f\in N \quad\Longleftrightarrow\quad
-    \log^+|f| \text{ has a harmonic majorant on }\D.
-  \]
+\begin{theorem}[Garnett II.4.4: prescribed bounded boundary modulus, disc form]
+  \label{thm:II_4_4}
+  \uses{def:outer_factor, def:boundary_function}
+  \notready
+  \mainline
+  \bookref{Garnett}{II.4.4 ($p=\infty$)}{Printed page 63, PDF page 75}
+  Let $h\ge0$ be essentially bounded and not zero almost everywhere on
+  $\partial\D$. There is a nonzero $f\in H^\infty(\D)$ with $|f^*|=h$
+  almost everywhere if and only if $\log h\in L^1(\sigma)$, where
+  $\log0=-\infty$. When this holds, the normalized outer function
+  $O_{\log h}$ has the required modulus and satisfies
+  $|O_{\log h}(z)|\le\|h\|_\infty$.
   \begin{proof}
-    \proves{eq:II_5_1}
-    \leanok
-    Apply Theorem~\ref{thm:I_6_7} to the subharmonic function
-    $\log^+|f|=\max(\log|f|,0)$. For the converse, a harmonic majorant
-    $U\ge\log^+|f|\ge0$ bounds every radial $\log^+$ mean by $U(0)$, by the
-    mean-value property.
+    \proves{thm:II_4_4}
+    \uses{thm:II_4_1, thm:outer_function_properties, cor:II_3_1(p=∞), thm:I_5_3_ac,
+      thm:poisson_reproducing}
+    \notready
+    Necessity is II.4.1. For sufficiency use Garnett's construction
+    $\exp(u+iv)$, where $u=P[\log h\,d\sigma]$ and $v$ is its normalized
+    harmonic conjugate. The bound $u\le\log\|h\|_\infty$ gives boundedness.
+    Bounded-analytic Fatou gives complex boundary limits, and Poisson Fatou
+    identifies their moduli with $h$. The finite-$p$ refinement in the book
+    is not needed for the factorization roadmap.
   \end{proof}
 \end{theorem}
+
+\begin{theorem}[Boundary modulus of an outer function]
+  \label{thm:outer_boundary_modulus}
+  \uses{def:outer_factor, def:boundary_function}
+  \lean{ae_nontangentiallyConvergentAt_outerFunction,
+    ae_norm_boundaryValue_outerFunction}
+  \leanok
+  \bookref{Garnett}{II.4, outer boundary modulus}{Printed page 64, PDF page 76}
+  For real $k\in L^1(\sigma)$, $O_k$ has finite nontangential limits
+  almost everywhere and $|O_k^*|=e^k$ almost everywhere.
+  \begin{proof}
+    \proves{thm:outer_boundary_modulus}
+    \uses{thm:II_4_4}
+    \notready
+    The book's outer construction permits arbitrary integrable logarithmic
+    data. To justify finite complex boundary limits without II.5.3, write
+    $k=k^+-k^-$ and $O_k=O_{-k^-}/O_{-k^+}$. Apply the bounded construction
+    II.4.4 to $e^{-k^-}$ and $e^{-k^+}$; their boundary moduli are positive
+    almost everywhere. Taking the quotient gives modulus $e^k$.
+    This supplies the disc-form detail behind the boundary assertion after
+    the outer definition, independently of Nevanlinna boundary theory.
+  \end{proof}
+\end{theorem}
+
+\begin{theorem}[Outer uniqueness]
+  \label{thm:outer_uniqueness}
+  \uses{def:outer_factor, def:boundary_function}
+  \lean{IsOuterFunction.exists_eq_const_mul_of_ae_norm_boundaryValue_eq}
+  \leanok
+  \mainline
+  \bookref{Garnett}{II.4, outer uniqueness}{Printed page 64, PDF page 76}
+  If two outer functions $F_1,F_2$ satisfy $|F_1^*|=|F_2^*|$ almost
+  everywhere on $\partial\D$, then $F_1=cF_2$ on $\D$ for a constant $|c|=1$.
+  \begin{proof}
+    \proves{thm:outer_uniqueness}
+    \uses{thm:outer_boundary_modulus, thm:outer_function_properties}
+    \notready
+    Write $F_j=C_jO_{k_j}$. By Theorem~\ref{thm:outer_boundary_modulus},
+    $e^{k_1}=|F_1^*|=|F_2^*|=e^{k_2}$ almost everywhere, so $k_1=k_2$
+    almost everywhere and $\log|F_1|=P[k_1\,d\sigma]=\log|F_2|$ on $\D$. The
+    quotient $F_1/F_2$ is analytic with modulus one, hence a unimodular
+    constant by the maximum modulus principle.
+  \end{proof}
+\end{theorem}
+
+\section{Chapter II, Section 5: Nevanlinna boundary measures}
+
+\begin{definition}[Nevanlinna class]
+  \label{def:Nevanlinna_class}
+  \lean{Nevanlinna.MemNevanlinnaDisc,
+    Nevanlinna.memNevanlinnaDisc_iff_hasHarmonicMajorant}
+  \leanok
+  \bookref{Garnett}{II, (5.1)}{Chapter II, Section 5, printed page 66, PDF page 78}
+  The Nevanlinna class $N$ consists of analytic functions $f$ on $\D$ such that
+  \[
+    \sup_{0<r<1}\int_{\partial\D}\log^+|f(r\zeta)|\,d\sigma(\zeta)<\infty,
+  \]
+  where $\sigma$ is normalized arclength. In Lean, functions are extended by
+  zero outside $\D$.
+
+  \emph{Equivalent definition (Garnett (5.1)).} An analytic function $f$ belongs
+  to $N$ if and only if $\log^+|f|$ has a harmonic majorant on $\D$.
+  \begin{proof}
+    \proves{def:Nevanlinna_class}
+    \uses{thm:I_6_7, thm:log_abs_subharmonic}
+    \leanok
+    For the equivalence, apply Theorem~\ref{thm:I_6_7} to the subharmonic
+    function $\log^+|f|=\max(\log|f|,0)$. Conversely, a harmonic majorant
+    $U\ge\log^+|f|\ge0$ bounds every radial $\log^+$ mean by $U(0)$, by the
+    mean-value property. These dependencies concern the equivalence; the
+    radial-integral definition itself needs neither result.
+  \end{proof}
+\end{definition}
 
 \begin{theorem}[Garnett II.5.1: harmonic-majorant characterization of $N$]
   \label{thm:II_5_1}
   \lean{Nevanlinna.memNevanlinnaDisc_iff_exists_signedMeasure_isLeastHarmonicMajorant}
   \leanok
-  \uses{eq:II_5_1, thm:log_abs_subharmonic, thm:I_6_7,
-    thm:I_3_5(c), lem:poisson_integral_jordan}
   \mainline
   \bookref{Garnett}{II.5.1}{Chapter II, Section 5, PDF page 78}
   Let $f$ be analytic on $\mathbb{D}$, $f\not\equiv0$. Then $f\in N$ if and
   only if the least harmonic majorant of $\log|f|$ is $P[\mu]$ for a finite
-  signed measure $\mu$ on $\partial\mathbb{D}$.
+  signed measure $\mu$ on $\partial\mathbb{D}$. Equivalently, $\log|f|$
+  admits a majorant $P[\nu]$ for some finite signed boundary measure $\nu$.
   \begin{proof}
     \proves{thm:II_5_1}
+    \uses{def:Nevanlinna_class, thm:log_abs_subharmonic, thm:I_6_7, thm:I_3_5(c),
+      lem:poisson_integral_linear}
     \leanok
     If $f\in N$, take a nonnegative harmonic majorant $U$ of $\log^+|f|$
     and let $u\le U$ be the least harmonic majorant of $\log|f|$, which
     exists since $f\not\equiv0$. Apply Theorem~\ref{thm:I_3_5(c)} to $U$ and
     $U-u$ and subtract their representing measures to obtain $u=P[\mu]$.
     Conversely, the Jordan identity
-    (Lemma~\ref{lem:poisson_integral_jordan}) gives
+    (Lemma~\ref{lem:poisson_integral_linear}) gives, even if $P[\mu]$
+    is only a majorant rather than the least one,
     $\log^+|f|\le P[\mu^+]$, a nonnegative harmonic majorant; hence $f\in N$
-    by Theorem~\ref{eq:II_5_1}.
+    by the equivalent definition in Definition~\ref{def:Nevanlinna_class}.
   \end{proof}
-\end{theorem}
-
-\begin{theorem}[Logarithm of modulus is subharmonic]
-  \label{thm:log_abs_subharmonic}
-  \lean{logNormBot_comp_analytic_subharmonicOn_scalar,
-    logNormBot_comp_analytic_subharmonicOn_banach, SubharmonicOn.sup,
-    posLog_norm_comp_analytic_subharmonicOn_banach}
-  \leanok
-  If $f$ is analytic on an open subset of $\mathbb{C}$, then
-  $z\mapsto \log \lVert f(z)\rVert$, interpreted as $-\infty$ at zeros, is
-  subharmonic there. This has been formalized both for complex-valued
-  functions and, more generally, for functions taking values in a complex
-  Banach space. Since the maximum of two subharmonic functions is
-  subharmonic, so is $\log^+\lVert f\rVert=\max(\log\lVert f\rVert,0)$.
-  \begin{proof}
-    \proves{thm:log_abs_subharmonic}
-    \leanok
-    The Lean proofs are complete in the declarations linked above.
-  \end{proof}
-\end{theorem}
-
-\begin{lemma}[Garnett I.(3.5): Poisson integrals contract $L^p$, disc form]
-  \label{eq:I_3_5}
-  \lean{eLpNorm_poissonIntegral_radial_le, hardyNorm_poissonIntegral_le}
-  \leanok
-  \uses{def:poisson_integral, lem:poisson_integral_withDensity,
-    thm:poisson_reproducing}
-  \bookref{Garnett}{I.(3.5)}{Chapter I, Section 3, printed pages 14--15,
-    PDF pages 26--27}
-  Let $1\le p\le\infty$, let $\sigma$ be normalized arclength on $\partial\D$,
-  and let $U\in L^p(\sigma)$. Then for $0<r<1$,
-  \[
-    \|P[U\,d\sigma](r\,\cdot)\|_{L^p(\sigma)}\le\|U\|_{L^p(\sigma)},
-  \]
-  hence $\sup_{0<r<1}\|P[U\,d\sigma](r\,\cdot)\|_{L^p(\sigma)}
-  \le\|U\|_{L^p(\sigma)}$.
-  \begin{proof}
-    \proves{eq:I_3_5}
-    \leanok
-    For $p=\infty$ use $P_z\ge0$ and $\int P_z\,d\sigma=1$. For
-    $1\le p<\infty$, Jensen's inequality for the probability measure
-    $P_z\,d\sigma$ gives $|P[U\,d\sigma](z)|^p\le\int P_z|U|^p\,d\sigma$.
-    Integrate over $z=r\eta$, exchange the integrals, and use
-    $P_{r\eta}(\zeta)=P_{r\zeta}(\eta)$ for $|\eta|=|\zeta|=1$ together with
-    total mass one. Garnett uses Minkowski's integral inequality instead,
-    which mathlib lacks.
-  \end{proof}
-\end{lemma}
-
-\begin{theorem}[$L^p$ dual representation]
-  \label{thm:lp_duality}
-  \lean{MeasureTheory.Lp.exists_eq_integral_mul,
-    MeasureTheory.Lp.exists_eq_integral_mul_of_isFiniteMeasure,
-    MeasureTheory.Lp.eq_of_forall_integral_mul_eq,
-    MeasureTheory.Lp.lpPairing_mul_injective,
-    ContinuousLinearMap.norm_lpPairing_le,
-    MeasureTheory.Lp.norm_lpPairing_mul_apply_le}
-  \leanok
-  \uses{}
-  \bookref{Rudin, Real and Complex Analysis}{6.16}{Real-valued case;
-    the exponents $p$ and $q$ are interchanged relative to Rudin's notation}
-  Let $\mu$ be a $\sigma$-finite measure and let $p,q$ be conjugate exponents with
-  $1\le q<\infty$. For every bounded real linear functional
-  $\Lambda$ on $L^q(\mu;\mathbb R)$, there exists a unique $U\in L^p(\mu;\mathbb R)$ such that
-  \[
-    \|U\|_p=\|\Lambda\|,
-    \qquad \Lambda(f)=\int Uf\,d\mu\quad(f\in L^q(\mu;\mathbb R)).
-  \]
-  \begin{proof}
-    \proves{thm:lp_duality}
-    \notready
-    The pairing operator-norm bounds and uniqueness are proved. Existence remains unproved.
-  \end{proof}
-\end{theorem}
-
-\begin{theorem}[Garnett I.3.5(a): bounded radial $L^p$ norms, disc form]
-  \label{thm:I_3_5(a)}
-  \lean{harmonicOnNhd_hardyNorm_lt_top_iff_exists_memLp_eq_poissonIntegral,
-    ContinuousOn.memLp_circleMeasure, poissonKernel_zero_mul,
-    integral_poissonKernel_mul_radial_eq}
-  \leanok
-  \uses{def:poisson_integral, lem:poisson_integral_withDensity,
-    thm:harmonic_poisson_integral, thm:poisson_reproducing, eq:I_3_5}
-  \bookref{Garnett}{I.3.5(a)}{Chapter I, Section 3, printed pages 17--19,
-    PDF pages 29--31}
-  Let $1<p\le\infty$, and let $\sigma$ be normalized arclength on $\partial\D$.
-  A function $u:\mathbb C\to\mathbb R$ is harmonic on $\D$ and satisfies
-  \[
-    \sup_{0<r<1}\|u(r\,\cdot)\|_{L^p(\sigma)}<\infty
-  \]
-  if and only if there exists $U\in L^p(\sigma)$ such that
-  $u=P[U\,d\sigma]$ on $\D$.
-  \begin{proof}
-    \proves{thm:I_3_5(a)}
-    \leanok
-    \uses{thm:lp_duality}
-    On the unit disc put $u_t(\zeta)=u(t\zeta)$. The reproducing formula
-    gives $u(tz)=\int P_z u_t\,d\sigma$. The uniformly bounded family
-    $u_t\in L^p=(L^q)^*$, where $1/p+1/q=1$, has a weak-star cluster
-    point $U$ as $t\to1$. Testing against the fixed kernel $P_z\in L^q$
-    gives $u=P[U\,d\sigma]$. Conversely, the Poisson operators are
-    contractions on $L^p$ (Lemma~\ref{eq:I_3_5}).
-    The Lean proof is complete relative to the finite-measure dual representation
-    theorem in Theorem~\ref{thm:lp_duality}, whose existence proof remains open.
-  \end{proof}
-\end{theorem}
-
-\begin{theorem}[Garnett I.3.5(c): positive harmonic functions as Poisson integrals, disc form]
-  \label{thm:I_3_5(c)}
-  \lean{harmonicOnNhd_nonneg_iff_exists_eq_poissonIntegral,
-    harmonicOnNhd_poissonIntegral_toSignedMeasure, poissonIntegral_toSignedMeasure_nonneg}
-  \leanok
-  \uses{def:poisson_integral, lem:poisson_integral_toSignedMeasure,
-    lem:poisson_integral_withDensity, thm:harmonic_poisson_integral,
-    thm:poisson_reproducing}
-  \mainline
-  \bookref{Garnett}{I.3.5(c)}{Chapter I, Section 3, printed pages 17--19,
-    PDF pages approximately 29--31}
-  The argument used here is the disc version given inside Garnett's proof.
-  If $u$ is a positive harmonic function on $\mathbb{D}$, then there is a
-  finite positive measure $\mu$ on $\partial\mathbb{D}$ such that
-  $u=P[\mu]$. Conversely, the Poisson integral of any finite positive boundary
-  measure is positive and harmonic.
-
-  Formalization status: the Lean statements are in place, the boundary measure
-  being modelled as a finite measure on $\mathbb{C}$ carried by the circle. The
-  converse direction is proved; the analyticity of the Herglotz--Riesz
-  transform of a boundary measure, which is the engine of that direction, is
-  available as \texttt{analyticOnNhd\_integral\_herglotzRieszKernel}. The existence
-  direction, whose proof needs weak-$*$ compactness of the approximating
-  measures $u(r\,\cdot)\,d\sigma$, is still open.
-
-  Finiteness of $\mu$ is not an extra hypothesis. In the forward direction the
-  total mass is $u(c)$ by the mean value property, and in the converse the
-  two-sided kernel bound makes integrability of $P_w$ against $\mu$ equivalent
-  to $\mu(\partial\D)<\infty$. On the half plane the corresponding statement
-  does admit non-finite $\mu$, at the price of the weight
-  $\int (1+t^2)^{-1}d\mu(t)<\infty$ and an extra linear term.
-\end{theorem}
-
-\begin{theorem}[Garnett I.3.5(b): bounded radial $L^1$ means, disc form]
-  \label{thm:I_3_5(b)}
-  \lean{exists_eq_poissonIntegral_of_hardyNorm_lt_top,
-    harmonicOnNhd_hardyNorm_lt_top_iff_exists_eq_poissonIntegral}
-  \leanok
-  \uses{def:poisson_integral, lem:poisson_integral_jordan}
-  \bookref{Garnett}{I.3.5(b)}{Chapter I, Section 3, printed pages 17--19,
-    PDF pages approximately 29--31}
-  As with (c), the statement formalized here is the disc version Garnett gives
-  inside his proof. A harmonic function $u$ on $\D$ satisfies
-  \[
-    \sup_{0<r<1}\int |u(r\zeta)|\,d\sigma(\zeta)<\infty
-  \]
-  if and only if $u=P[\nu]$ for a finite \emph{signed} measure $\nu$ carried by
-  $\partial\D$, where $\sigma$ is normalized arclength on $\partial\D$.
-
-  This shares its proof engine with (c): weak-$*$ compactness of the
-  approximating measures. The sketch hides two limits, not one. With
-  $d\nu_r=u(r\zeta)\,d\sigma$ the reproducing formula gives
-  $u(w)=\int P_{w/r}\,d\nu_r$, so one must split
-  \[
-    \int P_{w/r_j}d\nu_{r_j}-\int P_w\,d\nu
-    =\int (P_{w/r_j}-P_w)\,d\nu_{r_j}
-      +\Bigl(\int P_w\,d\nu_{r_j}-\int P_w\,d\nu\Bigr),
-  \]
-  handling the first term by uniform convergence of the kernels together with a
-  uniform total variation bound, and only the second by weak-$*$ convergence.
 \end{theorem}
 
 \begin{lemma}[Garnett II.5.2: remove the zeros of a Nevanlinna function]
@@ -1083,7 +1275,6 @@ and are not verbatim reproductions of the source.
   \lean{Nevanlinna.MemNevanlinnaDisc.blaschkeCondition,
     Nevanlinna.MemNevanlinnaDisc.exists_eq_blaschkeProduct_mul}
   \leanok
-  \uses{thm:II_5_1, thm:II_2_1, thm:II_2_2, thm:II_2_4}
   \mainline
   \bookref{Garnett}{II.5.2}{Chapter II, Section 5, PDF page 78}
   Let $f\in N$ be nonzero and let $B$ be the Blaschke product formed from the
@@ -1094,8 +1285,8 @@ and are not verbatim reproductions of the source.
   $\mathbb{D}$.
   \begin{proof}
     \proves{lem:II_5_2}
+    \uses{thm:II_5_1, thm:II_2_1, thm:II_2_2, thm:II_2_4, def:Nevanlinna_class, thm:I_6_7}
     \notready
-    \uses{eq:II_5_1, thm:I_6_7}
     By (5.1), $\log|f|\le\log^+|f|\le U$ for a harmonic $U$, so
     Theorem~\ref{thm:II_2_1} gives the Blaschke condition, and
     Theorem~\ref{thm:I_6_7} gives the least harmonic majorant $u\le U$ of
@@ -1109,76 +1300,14 @@ and are not verbatim reproductions of the source.
   \end{proof}
 \end{lemma}
 
-\begin{corollary}[II.3.1, $p=\infty$: boundary values on the disc]
-  \label{cor:II_3_1(p=∞)}
-  \lean{AnalyticOnNhd.ae_nontangentiallyConvergentAt_of_bounded,
-    HardySpace.MemHpDisc.ae_nontangentiallyConvergentAt}
-  \leanok
-  \uses{thm:I_3_5(a), thm:I_5_3_ac, def:nt_limit}
-  This is the $p=\infty$ endpoint analogue of the boundary-limit conclusion of
-  Garnett II.3.1 on the disc (Chapter II, Section 3, PDF page 67); the numbered
-  theorem itself is stated for $0<p<\infty$.
-  Every bounded analytic function on $\D$, in particular every $f\in H^\infty(\D)$,
-  has a finite nontangential limit at almost every boundary point.
-  \begin{proof}
-    \proves{cor:II_3_1(p=∞)}
-    \leanok
-    The real and imaginary parts of $f$ are bounded harmonic, hence Poisson
-    integrals of $L^\infty$ boundary data by Theorem~\ref{thm:I_3_5(a)} with
-    $p=\infty$. These densities lie in $L^1$, so Theorem~\ref{thm:I_5_3_ac}
-    gives their nontangential limits almost everywhere. Intersect the two
-    full-measure sets and combine the real and imaginary limits.
-    The $H^\infty$ case uses the equality of the Hardy norm with the pointwise supremum.
-    Both Lean proofs are complete; I.3.5(a) remains an unproved prerequisite.
-  \end{proof}
-\end{corollary}
-
-% The boundary L-infinity norm estimate is deferred; it is not part of this completed node.
-
-\begin{corollary}[Garnett II.3.2, $p=\infty$: Poisson representation on the disc]
-  \label{cor:II_3_2(p=∞)}
-  \notready
-  \uses{def:poisson_integral, def:boundary_function, thm:I_3_5(a),
-    thm:I_5_3_ac, eq:I_3_5}
-  \bookref{Garnett}{II.3.2 ($p=\infty$)}{Chapter II, Section 3,
-    printed page 56, PDF page 68; disc form}
-  Let $\sigma$ be normalized arclength on $\partial\D$ and let
-  $U\in L^\infty(\sigma;\mathbb C)$. Then $U$ is the a.e. nontangential
-  boundary value of an $H^\infty(\D)$ function if and only if
-  $P[U\,d\sigma]$ is analytic on $\D$. Every such function equals
-  $P[U\,d\sigma]$ on $\D$. In particular, for $f\in H^\infty(\D)$,
-  \[
-    f(z)=P[f^*\,d\sigma](z),\qquad
-    |f(0)|\le\int_{\partial\D}|f^*|\,d\sigma.
-  \]
-  \begin{proof}
-    \proves{cor:II_3_2(p=∞)}
-    \notready
-    Apply Theorem~\ref{thm:I_3_5(a)} to the real and imaginary parts of
-    a bounded analytic function. Theorem~\ref{thm:I_5_3_ac} identifies the
-    resulting densities with its boundary values. Conversely, positivity
-    and unit mass of the Poisson kernel give the $L^\infty$ bound, and
-    Theorem~\ref{thm:I_5_3_ac} gives the prescribed boundary values.
-    At the origin the kernel is one, giving the displayed inequality.
-  \end{proof}
-\end{corollary}
-
-This records the part of Garnett II.3.2 needed for the boundary-modulus step
-in Theorem~\ref{thm:II_2_2}; the endpoint boundary-existence result alone does
-not state the Poisson representation. The full book corollary covers
-$1\le p\le\infty$. Its remaining cases are deferred; in particular,
-Garnett's $p=1$ argument uses the $L^1$ boundary convergence in II.3.1.
-
 \begin{theorem}[Garnett II.5.3: boundary values and the least-majorant measure]
   \label{thm:II_5_3}
+  \uses{def:nt_limit, def:boundary_function}
   \lean{Nevanlinna.MemNevanlinnaDisc.ae_nontangentiallyConvergentAt,
     Nevanlinna.MemNevanlinnaDisc.ae_boundaryValue_ne_zero,
     Nevanlinna.MemNevanlinnaDisc.integrable_log_norm_boundaryValue,
     Nevanlinna.MemNevanlinnaDisc.exists_mutuallySingular_isLeastHarmonicMajorant}
   \leanok
-  \uses{thm:II_5_1, lem:II_5_2, thm:II_2_2, thm:I_5_3, cor:II_3_1(p=∞),
-    thm:poisson_measure_unique, def:nt_limit, def:boundary_function,
-    lem:poisson_integral_jordan}
   \mainline
   \bookref{Garnett}{II.5.3}{Chapter II, Section 5, PDF page 79}
   Let $f\in N$, $f\not\equiv0$. Then:
@@ -1202,6 +1331,8 @@ Garnett's $p=1$ argument uses the $L^1$ boundary convergence in II.3.1.
   $\mu_s\le0$.
   \begin{proof}
     \proves{thm:II_5_3}
+    \uses{thm:II_5_1, lem:II_5_2, thm:II_2_2, thm:I_5_3, cor:II_3_1(p=∞),
+      thm:poisson_measure_unique, lem:poisson_integral_linear, cor:II_4_2}
     \notready
     Let $B$ be the Blaschke product over the zeros of $f$ and $g=f/B$. By
     Theorem~\ref{thm:II_5_1} and Lemma~\ref{lem:II_5_2}, $g$ is zero-free and
@@ -1226,26 +1357,22 @@ Garnett's $p=1$ argument uses the $L^1$ boundary convergence in II.3.1.
     \]
     Each $e^{-(u_j+iv_j)}$ has modulus $e^{-u_j}\le1$, hence lies in
     $H^\infty$ and has nontangential limits almost everywhere by
-    Corollary~\ref{cor:II_3_1(p=∞)}. Those limits are nonzero almost everywhere:
-    $\log|e^{-(u_j+iv_j)}|=-P[\mu_j]$ has a finite nontangential limit almost
-    everywhere by Theorem~\ref{thm:I_5_3} again, so the boundary modulus is
-    $e^{-k_j}>0$ almost everywhere. Hence $g$, and then $f=Bg$, have
-    nontangential limits almost everywhere.
-
-    Garnett obtains the nonvanishing from the boundary uniqueness theorem
-    (Corollary~\ref{cor:II_4_2}) instead. Using
-    Theorem~\ref{thm:I_5_3} as above keeps II.5.3 independent of the $H^p$
-    boundary uniqueness theory, which is why \texttt{cor:II\_4\_2} is not among
-    the dependencies above; it is still needed for the outer factor.
+    Corollary~\ref{cor:II_3_1(p=∞)}. Each exponential is nonzero on the disc, so II.4.2
+    makes its boundary limit nonzero almost everywhere. In particular the
+    denominator has a nonzero boundary limit, and the displayed quotient
+    gives the finite boundary limits of $g$, and then of $f=Bg$.
+    Combining those limits with the finite limit of $\log|g|$ identifies
+    $k=\log|f^*|$ and proves (5.2) and (5.3).
   \end{proof}
 \end{theorem}
 
-\section{Singular factors}
+\section{Chapter II, Section 5: singular factors}
 
 \begin{theorem}[Jordan decomposition of singular measures]
   \label{thm:jordan_decomposition_singular_measure}
   \lean{MeasureTheory.SignedMeasure.totalVariation_apply_eq_zero_iff,
-    MeasureTheory.SignedMeasure.mutuallySingular_toENNRealVectorMeasure_iff}
+    MeasureTheory.SignedMeasure.mutuallySingular_toENNRealVectorMeasure_iff,
+    MeasureTheory.JordanDecomposition.toSignedMeasure_injective}
   \leanok
   \bookref{Garnett}{II, (5.7)}{Printed page 70, PDF page 82}
   Let $\nu$ be a finite real signed measure with Jordan decomposition
@@ -1253,12 +1380,15 @@ Garnett's $p=1$ argument uses the $L^1$ boundary convergence in II.3.1.
   and $\nu\perp\sigma$ if and only if $\nu^+\perp\sigma$ and $\nu^-\perp\sigma$.
   In particular, if $\nu$ is carried by $\partial\mathbb{D}$ and singular with
   respect to Lebesgue measure, then $\nu^+$ and $\nu^-$ are finite positive
-  measures with the same two properties.
+  measures with the same two properties. This decomposition is unique
+  among differences of mutually singular positive measures (Jordan uniqueness).
   \begin{proof}
     \proves{thm:jordan_decomposition_singular_measure}
     \leanok
     The total variation is $|\nu|=\nu^++\nu^-$, and a sum of positive measures
     vanishes on $S$, or is singular to $\sigma$, exactly when both summands do.
+    Uniqueness is the injectivity of the signed measure associated with a
+    Jordan decomposition, supplied by mathlib.
   \end{proof}
 \end{theorem}
 
@@ -1279,42 +1409,52 @@ Garnett's $p=1$ argument uses the $L^1$ boundary convergence in II.3.1.
 
 \begin{theorem}[Garnett II, (5.9): modulus of $S_\mu$]
   \label{eq:II_5_9}
-  \lean{singularFunction_ne_zero, analyticOn_singularFunction,
-    norm_singularFunction, log_norm_singularFunction, singularFunction_zero}
-  \leanok
   \uses{def:singular_function_formula, def:poisson_integral}
+  \lean{singularFunction_ne_zero, analyticOn_singularFunction,
+    norm_singularFunction, log_norm_singularFunction, singularFunction_zero,
+    IsSingularFunction.analyticOn, IsSingularFunction.ne_zero,
+    IsSingularFunction.norm_le_one, IsSingularFunction.zero_pos,
+    IsSingularFunction.memHpDisc_indicator}
+  \leanok
   \bookref{Garnett}{II, (5.9)}{Printed page 70, PDF page 82}
   For a finite positive measure $\mu$ carried by $\partial\D$, $S_\mu$ is
   analytic and zero-free on $\D$,
   \[
     \log|S_\mu(z)|=-P[\mu](z)\quad(z\in\D),
   \]
-  and $S_\mu(0)=e^{-\mu(\partial\D)}$.
+  and $S_\mu(0)=e^{-\mu(\partial\D)}$. In particular $|S_\mu|\le1$ on $\D$.
+  Every singular function is therefore analytic, zero-free and bounded by one
+  on $\D$, has positive value at zero, and belongs to $H^\infty$ after extension
+  by zero.
   \begin{proof}
     \proves{eq:II_5_9}
+    \uses{lem:poisson_integral_linear}
     \leanok
     The Herglotz--Riesz transform of $\mu$ is analytic on $\D$, and its real
     part is $P[\mu]$ because the real part of the Herglotz--Riesz kernel is the
     Poisson kernel. At $z=0$ the kernel equals $1$ on $\partial\D$.
+    Positivity of the Poisson kernel gives $P[\mu]\ge0$, hence $|S_\mu|\le1$.
+    The representation defining a singular function transfers these properties
+    to $S$; bounded analyticity gives membership in $H^\infty$. No boundary-limit
+    theorem or converse characterization is used in these consequences.
   \end{proof}
 \end{theorem}
 
 \begin{theorem}[Characterization of singular functions]
   \label{thm:singular_function_characterization}
-  \lean{IsSingularFunction.analyticOn, IsSingularFunction.ne_zero,
-    IsSingularFunction.norm_le_one,
-    IsSingularFunction.ae_hasNontangentialLimit_norm_eq_one,
-    IsSingularFunction.zero_pos, isSingularFunction_iff}
-  \leanok
   \uses{def:singular_function_formula, def:nt_limit}
+  \lean{IsSingularFunction.ae_hasNontangentialLimit_norm_eq_one,
+    isSingularFunction_iff}
+  \leanok
   \bookref{Garnett}{II.5}{Printed page 70, PDF page 82}
   A function $S$ is singular if and only if it is analytic on $\D$,
   has no zeros there, satisfies $|S|\le1$, has nontangential limits of
-  modulus one $\sigma$-almost everywhere, and $S(0)$ is positive real.
+  modulus one $\sigma$-almost everywhere, and $S(0)$ is positive real. In
+  particular every singular function belongs to $H^\infty$.
   \begin{proof}
     \proves{thm:singular_function_characterization}
+    \uses{eq:II_5_9, lem:I_5_4, cor:II_3_1(p=∞), thm:I_3_5(c), thm:I_5_3}
     \notready
-    \uses{eq:II_5_9, lem:I_5_4, cor:II_3_2(p=∞), thm:I_3_5(c), thm:I_5_3}
     The exponential integral is analytic and satisfies
     $\log|S_\mu|=-P[\mu]$. Positivity, the singular Poisson boundary theorem,
     and bounded-analytic Fatou give the four properties.
@@ -1325,24 +1465,57 @@ Garnett's $p=1$ argument uses the $L^1$ boundary convergence in II.3.1.
   \end{proof}
 \end{theorem}
 
-\begin{definition}[Singular factors]
-  \label{def:singular_factors}
-  \notready
-  \uses{thm:jordan_decomposition_singular_measure,
-    def:singular_function_formula, thm:singular_function_characterization}
-  If the singular part of the representing measure is
-  $\nu_s=\nu_s^+-\nu_s^-$, then the canonical factorization uses the two
-  singular functions $S_1=S_{\nu_s^-}$ and $S_2=S_{\nu_s^+}$ in $S_1/S_2$.
-\end{definition}
+\section{Nevanlinna closure and outer membership}
 
-\section{Final factorization and uniqueness}
+\begin{theorem}[Algebraic structure of $N$]
+  \label{thm:nevanlinna_algebra}
+  \lean{Nevanlinna.MemNevanlinnaDisc.zero, Nevanlinna.MemNevanlinnaDisc.add,
+    Nevanlinna.MemNevanlinnaDisc.smul, Nevanlinna.MemNevanlinnaDisc.mul,
+    Nevanlinna.NevanlinnaDisc, Nevanlinna.MemNevanlinnaDisc.inv,
+    Nevanlinna.MemNevanlinnaDisc.div, Nevanlinna.memNevanlinnaDisc_of_memHpDisc,
+    Nevanlinna.hpDisc_le_nevanlinnaDisc}
+  \leanok
+  \bookref{Garnett}{II.5}{Chapter II, Section 5, printed page 66, PDF page 78}
+  $N$ is closed under sums, scalar multiples, and products. If $f\in N$ has no
+  zeros in $\D$, then $1/f\in N$; hence $f/g\in N$ whenever $f,g\in N$ and $g$
+  has no zeros in $\D$. Moreover $H^p\subseteq N$ for every $p>0$.
+  \begin{proof}
+    \proves{thm:nevanlinna_algebra}
+    \uses{def:Nevanlinna_class}
+    \leanok
+    Sums, scalar multiples, and products follow from
+    $\log^+|ab|\le\log^+|a|+\log^+|b|$ and
+    $\log^+|a+b|\le\log^+|a|+\log^+|b|+\log2$. If $U$ is a harmonic majorant
+    of $\log^+|f|$ and $f$ has no zeros, then $U-\log|f|$ is a harmonic
+    majorant of $\log^+|1/f|=\log^+|f|-\log|f|$, so $1/f\in N$ by (5.1).
+    Finally $H^p\subseteq N$ because $\log^+x\le x^p/p$.
+  \end{proof}
+\end{theorem}
+
+\begin{theorem}[Outer functions belong to the Nevanlinna class]
+  \label{thm:outer_mem_nevanlinna}
+  \uses{def:outer_factor}
+  \lean{IsOuterFunction.memNevanlinnaDisc_indicator}
+  \leanok
+  Every outer function on $\D$ belongs to $N$ after extension by zero.
+  \begin{proof}
+    \proves{thm:outer_mem_nevanlinna}
+    \uses{thm:outer_function_properties, def:Nevanlinna_class, thm:harmonic_poisson_integral,
+      lem:poisson_integral_linear}
+    \leanok
+    If $\log|F|=P[k\,d\sigma]$, positivity of the Poisson kernel gives
+    $\log^+|F|\le P[k^+\,d\sigma]$, a nonnegative harmonic majorant.
+  \end{proof}
+\end{theorem}
+
+\section{Garnett II.5.5: canonical factorization}
 
 \begin{definition}[Canonical factorization]
   \label{def:canonical_factorization}
   \lean{Nevanlinna.IsCanonicalFactorization}
   \leanok
   \uses{def:blaschke_condition, def:blaschke_product, def:outer_factor,
-    def:singular_function_formula}
+      def:singular_function_formula}
   \bookref{Garnett}{II, (5.10)}{Printed page 71, PDF page 83}
   Let $|C|=1$, let $F$ be outer, and let $\mu_1,\mu_2$ be finite positive
   measures carried by $\partial\D$, each singular to normalized arclength,
@@ -1354,66 +1527,13 @@ Garnett's $p=1$ argument uses the $L^1$ boundary convergence in II.3.1.
   \]
 \end{definition}
 
-\begin{theorem}[Zeros determine the Blaschke factor]
-  \label{thm:zeros_determine_blaschke}
-  \notready
-  The multiset of zeros in $\mathbb{D}$ determines the associated Blaschke
-  product up to the chosen unimodular normalization. With a fixed convention
-  for elementary factors, the product is uniquely determined.
-\end{theorem}
-
-\begin{theorem}[Boundary modulus determines the outer factor]
-  \label{thm:boundary_modulus_determines_outer}
-  \notready
-  \uses{thm:outer_uniqueness}
-  If two outer functions have the same a.e. boundary modulus, then they differ
-  by multiplication by a constant of modulus one.
-\end{theorem}
-
-\begin{theorem}[Singular measure determines singular factors]
-  \label{thm:singular_measure_determines_factors}
-  \notready
-  \uses{def:singular_factors}
-  The positive and negative singular parts of the representing measure
-  determine $S_1$ and $S_2$. Conversely, equality of the corresponding
-  singular functions forces equality of the singular measures, modulo the
-  normalization convention.
-\end{theorem}
-
-\begin{theorem}[Garnett II.5.5: uniqueness of canonical factorization]
-  \label{thm:nevanlinna_factorization_uniqueness}
-  \lean{Nevanlinna.IsCanonicalFactorization.unique}
-  \leanok
-  \mainline
-  \uses{def:canonical_factorization}
-  \bookref{Garnett}{II.5.5}{Chapter II, Section 5, PDF page 83}
-  If $(C,F,\mu_1,\mu_2)$ and $(C',F',\nu_1,\nu_2)$ are canonical
-  factorizations of the same $f$, then $\mu_1=\nu_1$, $\mu_2=\nu_2$, and
-  $CF=C'F'$ on $\D$.
-  \begin{proof}
-    \proves{thm:nevanlinna_factorization_uniqueness}
-    \notready
-    \uses{thm:zeros_determine_blaschke,
-      thm:boundary_modulus_determines_outer,
-      thm:singular_measure_determines_factors}
-    Both factorizations use the Blaschke product of the zeros of $f$, which
-    cancels. Since $|B|=|S_{\mu_j}|=|S_{\nu_j}|=1$ almost everywhere on
-    $\partial\D$, the outer parts have the same boundary modulus, so their
-    absolutely continuous log-data agree. Comparing $\log|f/B|$ then gives
-    $\mu_2-\mu_1=\nu_2-\nu_1$. Both sides are Jordan decompositions by
-    mutual singularity, hence $\mu_j=\nu_j$, and dividing out the singular
-    factors gives $CF=C'F'$.
-  \end{proof}
-\end{theorem}
-
 \begin{theorem}[Garnett II.5.5: existence of canonical factorization in $N$]
   \label{thm:nevanlinna_canonical_factorization}
   \lean{Nevanlinna.MemNevanlinnaDisc.exists_isCanonicalFactorization}
   \leanok
-  \uses{def:canonical_factorization, thm:II_5_1, lem:II_5_2, thm:II_5_3,
-    def:outer_factor, def:singular_factors}
+  \uses{def:canonical_factorization, def:outer_factor, def:singular_function_formula}
   \mainline
-  \bookref{Garnett}{II.5.5}{Chapter II, Section 5, PDF page 83}
+  \bookref{Garnett}{II.5.5 (existence)}{Chapter II, Section 5, PDF page 83}
   If $f\in N$ and $f\not\equiv0$, then $f$ has a canonical factorization
   $f=C\,B\,F\,S_{\mu_1}/S_{\mu_2}$ on $\D$.
 \end{theorem}
@@ -1421,8 +1541,8 @@ Garnett's $p=1$ argument uses the $L^1$ boundary convergence in II.3.1.
 \begin{proof}
   \proves{thm:nevanlinna_canonical_factorization}
   \leanok
-  \uses{thm:outer_function_properties, eq:II_5_9, lem:poisson_integral_linear,
-    lem:poisson_kernel_integrable, thm:jordan_decomposition_singular_measure}
+  \uses{thm:II_5_1, lem:II_5_2, thm:II_5_3, thm:outer_function_properties, eq:II_5_9,
+      lem:poisson_integral_linear, thm:jordan_decomposition_singular_measure}
   By Lemma~\ref{lem:II_5_2}, $f=Bg$ with $g\in N$ zero-free and $\log|g|$ the
   least harmonic majorant of $\log|f|$. By (5.2) and (5.3), that majorant is
   $P[k\,d\sigma+\mu_s]$ with $k=\log|f^*|\in L^1(\sigma)$ and
@@ -1439,21 +1559,77 @@ Garnett's $p=1$ argument uses the $L^1$ boundary convergence in II.3.1.
   the disc.
 \end{proof}
 
-\begin{theorem}[Garnett II.5.5: converse]
-  \label{thm:II_5_5_converse}
-  \notready
+\begin{theorem}[Garnett II.5.5: uniqueness of canonical factorization]
+  \label{thm:nevanlinna_factorization_uniqueness}
+  \uses{def:canonical_factorization}
+  \lean{Nevanlinna.IsCanonicalFactorization.unique}
+  \leanok
   \mainline
-  \uses{thm:II_5_1, thm:II_2_2, def:outer_factor, def:singular_function_formula}
-  \bookref{Garnett}{II.5.5}{Chapter II, Section 5, PDF page 83}
-  If $|C|=1$, $B$ is a convergent Blaschke product, $F$ is outer, and
-  $S_1,S_2$ are singular functions, then $CBFS_1/S_2\in N$.
+  \bookref{Garnett}{II.5.5 (uniqueness)}{Printed page 71, PDF page 83}
+  Let $f\in N$ be nonzero. If $(C,F,\mu_1,\mu_2)$ and
+  $(C',F',\nu_1,\nu_2)$ are canonical factorizations of $f$, then
+  $\mu_1=\nu_1$, $\mu_2=\nu_2$, and $CF=C'F'$ on $\D$.
   \begin{proof}
-    \proves{thm:II_5_5_converse}
-    \notready
-    \uses{thm:outer_function_properties, eq:II_5_9, lem:poisson_integral_linear,
-      lem:poisson_kernel_integrable}
-    Since $|B|\le1$, the harmonic function
-    $\log|F|+\log|S_1|-\log|S_2|$ majorizes $\log|CBFS_1/S_2|$.
-    Its finite signed-measure Poisson representation yields membership in $N$.
+    \proves{thm:nevanlinna_factorization_uniqueness}
+    \uses{thm:II_2_2, thm:II_5_3, thm:outer_uniqueness, thm:outer_boundary_modulus,
+      thm:singular_function_characterization, lem:II_5_2, thm:outer_function_properties,
+      eq:II_5_9, lem:poisson_integral_linear, thm:poisson_measure_unique,
+      thm:jordan_decomposition_singular_measure}
+    \leanok
+    Follow Garnett. The zeros of $f$ determine $B$. Since
+    $|B^*|=|S_1^*|=|S_2^*|=1$ almost everywhere, both outer factors have
+    boundary modulus $|f^*|$. Outer uniqueness determines $F$ up to phase;
+    in particular $\log|F|=P[\log|f^*|\,d\sigma]$.
+
+    By II.5.2, $u=\log|f/B|$ is the least harmonic majorant of $\log|f|$.
+    Formula (5.9) gives
+    \[
+      u-\log|F|=P[\mu_2-\mu_1]=P[\nu_2-\nu_1].
+    \]
+    Poisson uniqueness identifies the signed measures, and their mutually
+    singular Jordan decompositions identify each positive measure.
+    Cancel the common nonzero singular factors and cancel $B$ away from
+    its isolated zeros, then extend by continuity, to obtain $CF=C'F'$.
+
+    \emph{Implementation status.} The linked Lean theorem currently has a
+    proof using the measure representing $\log|CFS_1/S_2|$ and Lebesgue
+    decomposition, without outer boundary uniqueness or II.5.2. That proof
+    is preserved, but the book proof displayed here has not yet been
+    implemented and is not marked complete.
+  \end{proof}
+\end{theorem}
+
+\begin{theorem}[Garnett II.5.5: converse]
+  \label{thm:nevanlinna_factorization_converse}
+  \uses{def:blaschke_product, def:blaschke_condition, def:outer_factor,
+      def:singular_function_formula}
+  \lean{Nevanlinna.memNevanlinnaDisc_indicator_mul_blaschkeProduct}
+  \leanok
+  \mainline
+  \bookref{Garnett}{II.5.5 (converse)}{Printed page 71, PDF page 83}
+  If $B$ is the Blaschke product of a multiplicity satisfying the Blaschke
+  condition, $F$ is outer, $S_1,S_2$ are singular, and $C\in\mathbb C$, then
+  $CBFS_1/S_2\in N$. The implemented algebraic proof permits arbitrary $C$;
+  the book assumes $|C|=1$.
+  \begin{proof}
+    \proves{thm:nevanlinna_factorization_converse}
+    \uses{thm:II_2_2, eq:II_5_9, thm:outer_mem_nevanlinna, thm:nevanlinna_algebra}
+    \leanok
+    The convergence, analyticity and boundedness parts of II.2.2 give
+    $B\in H^\infty\subseteq N$. Its multiplicity and boundary-modulus assertions
+    are not used here. The elementary consequences of (5.9) give
+    $S_1,S_2\in H^\infty\subseteq N$ and $S_2\ne0$ on $\D$, without using the
+    full singular-function characterization. Also $F\in N$ by
+    Theorem~\ref{thm:outer_mem_nevanlinna}.
+
+    Closure of $N$ under reciprocals of zero-free functions gives $1/S_2\in N$.
+    Multiplication and scalar multiplication then give $CBFS_1/S_2\in N$.
+    In Lean each factor is extended by zero outside $\D$; the indicator of
+    the product and quotient equals the corresponding product of indicators.
+
+    This is the existing Lean proof. It differs from Garnett's direct signed
+    Poisson-majorant argument: the equivalent definition in Definition~\ref{def:Nevanlinna_class} is used upstream for
+    outer membership and reciprocal closure, but Theorem~\ref{thm:II_5_1}
+    and its signed-measure representation are not invoked.
   \end{proof}
 \end{theorem}

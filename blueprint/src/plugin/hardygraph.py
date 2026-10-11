@@ -304,9 +304,15 @@ class HardyGraph:
         shapes = self.document.userdata['dep_graph'].get(
             'shapes', {'definition': 'box'})
         dot = graph.to_dot(shapes).tred()
+        equation_labels = {
+            n.id: n.userdata['bookref']['ref'] for n in members
+            if n.id.startswith('eq:') and n.userdata.get('bookref')
+        }
 
         for node in dot.nodes():
             node_id = str(node)
+            if node_id in equation_labels:
+                node.attr['label'] = equation_labels[node_id]
             role = roles.get(node_id, ROLE_MAIN)
             node.attr['class'] = 'hg-' + role
             if role in GHOST_COLORS:
@@ -337,7 +343,8 @@ def ProcessOptions(options, document):
             def complete(node):
                 status = node.userdata
                 if item_kind(node) == 'definition':
-                    return bool(status.get('leanok'))
+                    return bool(status.get('leanok') and (
+                        status.get('proved_by') is None or status.get('proved')))
                 return bool(status.get('proved') or status.get('mathlibok'))
 
             for node in graph.nodes:

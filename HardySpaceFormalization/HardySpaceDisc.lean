@@ -339,5 +339,29 @@ theorem HpDisc_mono {p q : ℝ≥0∞} (hp : p ≠ 0) (hpq : p ≤ q) :
   exact ⟨hf_an,
     hardyNorm_lt_top_of_hardyNorm_lt_top_of_exponent_le hf_an hp hpq hf_norm, hf_zero⟩
 
+/-- **`H^∞` is the space of bounded analytic functions.** A function belongs to `H^∞` on the
+disc if and only if it is analytic and bounded on the disc and vanishes outside it. -/
+theorem memHpDisc_top_iff {f : ℂ → E} :
+    MemHpDisc ∞ f ↔ AnalyticOn ℂ f unitDisc ∧ (∃ M : ℝ, ∀ z ∈ unitDisc, ‖f z‖ ≤ M) ∧
+      ∀ z ∉ unitDisc, f z = 0 := by
+  refine and_congr_right fun hf => and_congr_left fun _ => ?_
+  rw [hardyNorm_top_eq_Sup_norm hf.continuousOn]
+  constructor
+  · intro h
+    refine ⟨(⨆ z : unitDisc, ‖f z.1‖ₑ).toReal, fun z hz => ?_⟩
+    rw [← toReal_enorm]
+    exact ENNReal.toReal_mono h.ne (le_iSup (fun z : unitDisc => ‖f z.1‖ₑ) ⟨z, hz⟩)
+  · rintro ⟨M, hM⟩
+    refine lt_of_le_of_lt (iSup_le fun z => ?_) (ENNReal.ofReal_lt_top (r := M))
+    rw [← ofReal_norm]
+    exact ENNReal.ofReal_le_ofReal (hM z.1 z.2)
+
+/-- A bounded analytic function on the disc, extended by zero, belongs to `H^∞`. -/
+theorem memHpDisc_top_indicator_of_norm_le {f : ℂ → E} (hf : AnalyticOn ℂ f unitDisc) {M : ℝ}
+    (hM : ∀ z ∈ unitDisc, ‖f z‖ ≤ M) : MemHpDisc ∞ (unitDisc.indicator f) :=
+  memHpDisc_top_iff.mpr ⟨hf.congr fun z hz => indicator_of_mem hz f,
+    ⟨M, fun z hz => by rw [indicator_of_mem hz]; exact hM z hz⟩,
+    fun z hz => indicator_of_notMem hz f⟩
+
 end HardySpace
 end

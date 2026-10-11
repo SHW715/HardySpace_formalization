@@ -9,7 +9,7 @@ Garnett II.5, formulas (5.8) and (5.9) and the four properties on printed page 7
 -/
 
 open MeasureTheory Complex
-open scoped PoissonIntegral
+open scoped PoissonIntegral ENNReal
 
 /-- The **singular-function formula** associated to a measure `μ`. Its singular-function
 properties assume that `μ` is finite, carried by the unit circle, and singular to arclength. -/
@@ -95,6 +95,12 @@ theorem IsSingularFunction.norm_le_one {S : ℂ → ℂ} (hS : IsSingularFunctio
   obtain ⟨μ, hfin, hμ, -, hS⟩ := hS
   rw [hS z hz, norm_singularFunction hμ hz, Real.exp_le_one_iff, neg_nonpos]
   exact poissonIntegral_toSignedMeasure_nonneg hμ hz
+
+/-- **Garnett II.5.** A singular function, extended by zero outside the disc, belongs to `H^∞`,
+since it is analytic with modulus at most one. -/
+theorem IsSingularFunction.memHpDisc_indicator {S : ℂ → ℂ} (hS : IsSingularFunction S) :
+    HardySpace.MemHpDisc ∞ (unitDisc.indicator S) :=
+  HardySpace.memHpDisc_top_indicator_of_norm_le hS.analyticOn fun _ hz => hS.norm_le_one hz
 
 /-- **Garnett II.5, property (iii).** A singular function has nontangential limits of
 modulus one almost everywhere on the unit circle. -/

@@ -546,6 +546,19 @@ theorem poissonIntegral_continuousOn_closedBall_eq_boundary
     ∧ (∀ y ∈ sphere c R, h y = u y) := by
   sorry
 
+/-!
+### Uniqueness of the boundary measure
+
+Garnett I.3, after Theorem 3.1: a measure is determined by its Poisson integral.
+-/
+
+/-- **A boundary measure is determined by its Poisson integral.** Two finite signed measures
+carried by the circle `sphere c R` whose Poisson integrals agree on the open disc are equal. -/
+theorem eq_of_eqOn_poissonIntegral (hR : 0 < R) {μ ν : SignedMeasure ℂ}
+    (hμ : μ.totalVariation (sphere c R)ᶜ = 0) (hν : ν.totalVariation (sphere c R)ᶜ = 0)
+    (h : EqOn P[c; μ] P[c; ν] (ball c R)) : μ = ν := by
+  sorry
+
 
 
 -- The rest is given in the help of Claude

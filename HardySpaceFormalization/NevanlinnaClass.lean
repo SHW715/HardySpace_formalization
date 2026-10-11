@@ -357,6 +357,30 @@ theorem MemNevanlinnaDisc.mul {f g : ℂ → F} [NormedAlgebra ℂ F]
   exact lt_of_le_of_lt (nevanlinnaCharacteristic_mul_le g hf_an.continuousOn)
     (ENNReal.add_lt_top.mpr ⟨hf_char, hg_char⟩)
 
+/-- The Nevanlinna class is closed under taking reciprocals of functions without zeros in the
+disc. Outside the disc `f = 0`, so `f⁻¹ = 0` there as well. -/
+theorem MemNevanlinnaDisc.inv {f : ℂ → ℂ} (hf : MemNevanlinnaDisc f)
+    (hne : ∀ z ∈ unitDisc, f z ≠ 0) : MemNevanlinnaDisc f⁻¹ := by
+  have hf_out : ∀ z ∉ unitDisc, f z = 0 := hf.2.2
+  obtain ⟨U, hU, hUle⟩ := (memNevanlinnaDisc_iff_hasHarmonicMajorant hf.1 hf_out).mp hf
+  -- `log⁺ |1/f| = log⁺ |f| - log |f| ≤ U - log |f|`, harmonic since `f` has no zeros.
+  have hlog : InnerProductSpace.HarmonicOnNhd (fun z => Real.log ‖f z‖) unitDisc := fun z hz =>
+    ((isOpen_ball.analyticOn_iff_analyticOnNhd.mp hf.1) z hz).harmonicAt_log_norm (hne z hz)
+  refine (memNevanlinnaDisc_iff_hasHarmonicMajorant (hf.1.inv hne)
+    fun z hz => by simp [hf_out z hz]).mpr ⟨fun z => U z - Real.log ‖f z‖, hU.sub hlog,
+      fun z hz => ?_⟩
+  have hle : log⁺ ‖f z‖ ≤ U z := WithBot.coe_le_coe.mp (hUle z hz)
+  have hkey := Real.posLog_sub_posLog_inv (x := ‖f z‖)
+  show ((log⁺ ‖(f z)⁻¹‖ : ℝ) : WithBot ℝ) ≤ ((U z - Real.log ‖f z‖ : ℝ) : WithBot ℝ)
+  rw [norm_inv]
+  exact WithBot.coe_le_coe.mpr (by linarith)
+
+/-- The Nevanlinna class is closed under division by functions without zeros in the disc. -/
+theorem MemNevanlinnaDisc.div {f g : ℂ → ℂ} (hf : MemNevanlinnaDisc f)
+    (hg : MemNevanlinnaDisc g) (hne : ∀ z ∈ unitDisc, g z ≠ 0) : MemNevanlinnaDisc (f / g) := by
+  rw [div_eq_mul_inv]
+  exact hf.mul (hg.inv hne)
+
 -- # Here's the definition of `NevanlinnaDisc` for Nevanlinna class over unitDisc
 
 variable [NormedAlgebra ℂ F]

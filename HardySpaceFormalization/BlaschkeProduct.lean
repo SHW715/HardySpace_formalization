@@ -15,10 +15,6 @@ open Complex ComplexConjugate
 open scoped Real Topology ENNReal
 open Set Metric Subharmonic MeromorphicOn Filter
 
--- # useless definition
-/-- The multiplicity function, which counts the number of occurrences of a point in a family,
-with value `∞` for infinitely many. -/
-def Multiplicity {ι : Type*} (a : ι → ℂ) (z : ℂ) : ℕ∞ := (a ⁻¹' {z}).encard
 
 /-- The Blaschke sum of a multiplicity function on the unit disc.
 For an analytic function use `m := analyticOrderAt f`; for a family `a : ι → ℂ`
@@ -30,18 +26,19 @@ Blaschke sum is finite. For a family of points, membership in the unit disc is a
 assumption. -/
 def BlaschkeCondition (m : ℂ → ℕ∞) : Prop := blaschkeSum m < ∞
 
-/-- A sequence counted with multiplicities satisfy the Blaschke condition has only finitely many
-zero terms. -/
-theorem zeroIndexSet_finite {z : ℕ → ℂ} (hz : BlaschkeCondition (Multiplicity z)) :
-    (z ⁻¹'{0}).Finite := by
-  have hterm : (Multiplicity z 0 : ℝ≥0∞) ≤ blaschkeSum (Multiplicity z) := by
-    simpa [blaschkeSum] using ENNReal.le_tsum
-      (f := fun w : ball (0 : ℂ) 1 => Multiplicity z w * (1 - ‖w.1‖ₑ))
-      ⟨0, by simp⟩
-  apply Set.encard_ne_top_iff.mp
+
+/-- Under the Blaschke condition the multiplicity is finite at every point of the unit disc. -/
+theorem BlaschkeCondition.ne_top {m : ℂ → ℕ∞} (hm : BlaschkeCondition m) {w : ℂ}
+    (hw : w ∈ ball 0 1) : m w ≠ ⊤ := by
   intro h
-  have hfinite := hterm.trans_lt hz
-  simp [Multiplicity, h] at hfinite
+  have hterm : (m w : ℝ≥0∞) * (1 - ‖w‖ₑ) ≤ blaschkeSum m :=
+    ENNReal.le_tsum (f := fun a : ball (0 : ℂ) 1 => (m a : ℝ≥0∞) * (1 - ‖a.1‖ₑ)) ⟨w, hw⟩
+  have hw1 : ‖w‖ₑ < 1 := by
+    rw [← ofReal_norm]
+    exact ENNReal.ofReal_lt_one.mpr (mem_ball_zero_iff.mp hw)
+  rw [h, ENat.toENNReal_top, ENNReal.top_mul (tsub_pos_of_lt hw1).ne'] at hterm
+  exact lt_irrefl _ (hterm.trans_lt hm)
+
 
 
 /-- The unnormalized Blaschke factor associated to the disk of radius `R`. -/
