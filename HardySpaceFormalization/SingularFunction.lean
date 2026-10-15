@@ -20,9 +20,7 @@ noncomputable def singularFunction (μ : Measure ℂ) (z : ℂ) : ℂ :=
 exponential integral of a finite positive singular boundary measure. The normalization
 at the origin is fixed by the formula; values outside the disc are unrestricted. -/
 def IsSingularFunction (S : ℂ → ℂ) : Prop :=
-  ∃ μ : Measure ℂ, IsFiniteMeasure μ ∧
-    μ (Metric.sphere 0 1)ᶜ = 0 ∧
-    μ ⟂ₘ circleMeasure 0 1 ∧
+  ∃ μ : Measure ℂ, IsFiniteMeasure μ ∧ μ (Metric.sphere 0 1)ᶜ = 0 ∧ μ ⟂ₘ circleMeasure 0 1 ∧
     ∀ z ∈ unitDisc, S z = singularFunction μ z
 
 /-! ### The singular-function formula -/

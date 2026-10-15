@@ -1,0 +1,592 @@
+% !TEX root = ../main.tex
+% Chapter 1: Background.
+% Included from main.tex via \input{chapters/Chapter1}.
+
+\chapter{Background}
+\label{sec:background}
+Before we talk about the main object in this thesis, we need to first introduce some analysis
+backgrounds.
+\section{Poisson integral}
+Let $\mathbb{D}:=\{z\in\C: |z|<1\}$ and $\mathbb{T}=\partial \mathbb{D}$. 
+When given a continuous function $f$ on $\mathbb{T}$, the famous \textbf{Dirichlet
+problem}, which is to find the solution for the following equations:
+\begin{equation*}
+  \begin{cases}
+  \Delta u=0, & z\in \mathbb{D}\\
+  u=f, & z\in \mathbb{T}.
+  \end{cases}
+\end{equation*}
+is asking for a harmonic extension $u$ over $\mathbb{D}$ with the boundary data $f$ on $\mathbb{T}$.
+To give a solution for this problem, we'd like to introduce the notion called \textbf{Poisson integral}.
+This section is based on \cite{garnett2006bounded}, I.3.
+\begin{definition}
+Let $c\in\mathbb{C}$. The \textbf{Herglotz--Riesz kernel centered at $c$} is the function
+\begin{equation*}
+  K(c;z,w) := \frac{(w-c)+(z-c)}{(w-c)-(z-c)} = \frac{w+z-2c}{w-z},
+  \qquad z,w\in\mathbb{C},\ w\neq z.
+\end{equation*}
+The \textbf{Poisson kernel centered at $c$} is defined as
+\begin{equation*}
+  P(c;z,w) := \text{Re}\; K(c;z,w)= \frac{|w-c|^2-|z-c|^2}{|w-z|^2},
+  \qquad z,w\in\mathbb{C},\ w\neq z.
+\end{equation*}
+and we denote $K(z,w):= K(0;z,w)$, $P(z,w):= P(0;z,w)$, and $K_z(\theta):= K(z,e^{i\theta})$,
+ $P_z(\theta):= P(z,e^{i\theta})$. 
+\end{definition}
+
+\begin{definition}
+Given a function $f(\theta)\in L^1(\mathbb{T})$, we define the \textbf{Poisson integral} of $f$ 
+to be the function
+\begin{equation*}
+  P[f](z):=\frac{1}{2\pi}\int P_z(\theta) f(\theta)d\theta.
+\end{equation*}
+In general, given a finite (signed) measure $\mu$ on $\mathbb{T}$, we define the \textbf{Poisson integral} of $\mu$
+to be the function
+\begin{equation*}
+  P[\mu](z):=\int P_z(\theta) d\mu (\theta).
+\end{equation*}
+The first definition is a special case of the second one if we set 
+$d\mu(\theta)=\frac{1}{2\pi} f(\theta)d\theta$.
+\end{definition}
+
+\begin{theorem}[Poisson integral formula]\label{Poisson integral formula}
+Let $u$ be a continuous function on the closed unit disc $\overline{\mathbb{D}}$. If $u$ is
+harmonic on $\mathbb{D}$, then
+\begin{equation*}
+  u(z)=\frac{1}{2\pi}\int_0^{2\pi} P_z(\theta)\, u(e^{i\theta})\, d\theta
+  \qquad \text{for all } z\in\mathbb{D}.
+\end{equation*}
+\end{theorem}
+\begin{proof}
+Recall that if $u$ is harmonic on $\mathbb{D}$, then it has the 
+\textbf{mean value property}: 
+\begin{equation*}
+  u(0)=\frac{1}{2\pi}\int_0^{2\pi} u(e^{i\theta})d\theta
+\end{equation*}
+Now given $z_0=re^{i\theta_0}$, consider the M\"{o}bius transformation 
+$\tau(z)=(z-z_0)/(1-\bar{z}_0 z)$, and write $\tau(e^{i\theta})=e^{i\varphi}$.
+Then we can compute that $d\varphi/d\theta=P_{z_0}(\theta)$, therefore
+\begin{equation*}
+  u(z_0)=u(\tau^{-1}(0))=\frac{1}{2\pi}\int_0^{2\pi} (u\circ\tau^{-1})(e^{i\varphi})
+  d\varphi=\frac{1}{2\pi}\int_0^{2\pi} u(e^{i\theta})P_{z_0}(\theta)d\theta.
+\end{equation*}
+\end{proof}
+Moreover, we have part of the converse of above theorem:
+\begin{theorem}\label{Poisson integral of L^1 is harmonic}
+Given a function $f(\theta)\in L^1(\mathbb{T})$, its Poisson integral $P[f]$
+is harmonic on $\mathbb{D}$.
+\end{theorem}
+\begin{proof}[Sketch of Proof]
+Recall that a function $u(z)$ is said to be harmonic if 
+\begin{equation*}
+  \Delta u=\frac{\partial^2 u}{\partial x^2}+\frac{\partial^2 u}{\partial y^2}=0.
+\end{equation*}
+As Herglotz--Riesz kernel $K_z(\theta)$ is analytic over $\mathbb{D}$, 
+the Poisson kernel $P_z(\theta)=\text{Re} K_z(\theta)$ is harmonic over 
+$\mathbb{D}$, thus for $z\in \mathbb{D}$,
+\begin{equation*}
+  \Delta P[f](z)=\frac{1}{2\pi}\int \cancel{\Delta P_z(\theta)} f(\theta)d\theta=0.
+\end{equation*}
+\end{proof}
+More generally, the same holds for Poisson integrals of measures:
+\begin{theorem}
+Given a finite measure $\mu$ on $\mathbb{T}$, its Poisson integral $P[\mu]$
+is harmonic on $\mathbb{D}$.
+\end{theorem}
+\begin{proof}[Sketch of Proof]
+Similar as in the previous proof, for $z\in\mathbb{D}$,
+\begin{equation*}
+  \Delta P[\mu](z)=\int \cancel{\Delta P_z(\theta)}\, d\mu(\theta)=0.
+\end{equation*}
+\end{proof}
+The full converse theorem of Poisson integral formula states that the Poisson integral indeed
+gives a continuous solution for Dirichlet problem, which will be later proved in Corollary 
+\ref{Dirichlet problem on the disc}. Before that, we'd like to introduce more properties of 
+Poisson integral.
+
+
+
+Here are some properties for Poisson kernel:
+\begin{lemma}\label{Properties of Poisson kernel}
+Let $z\in\mathbb{D}$. Then
+\begin{itemize}
+  \item[(a)] $P_z(\theta)>0$ for all $\theta$, and
+  $\displaystyle\frac{1}{2\pi}\int_0^{2\pi} P_z(\theta)\, d\theta=1$;
+  \item[(b)] for any $\theta_0\in\mathbb{R}$ and $0<\delta<\pi$,
+  \begin{equation*}
+    \sup_{\delta\leq|\theta-\theta_0|\leq\pi}P_z(\theta)\rightarrow 0
+    \quad\text{and}\quad
+    \frac{1}{2\pi}\int_{\delta\leq|\theta-\theta_0|\leq\pi}P_z(\theta)\, d\theta\rightarrow 0
+    \qquad (z\rightarrow e^{i\theta_0}).
+  \end{equation*}
+\end{itemize}
+\end{lemma}
+
+Here's an important estimate for Poisson integral of $L^p$ function:
+\begin{theorem}
+Let $1\leq p\leq\infty$ and let $f$ be a function in $L^p(\mathbb{T})$, and
+$\|f\|_p^p:=\frac{1}{2\pi}\int_0^{2\pi}|f(\theta)|^p\, d\theta$ for $p<\infty$. Then for every
+$0<r<1$,
+\begin{equation*}
+  \|P[f](re^{i\cdot})\|_p\leq\|f\|_p,
+\end{equation*}
+and hence $\sup_{0<r<1}\|P[f](re^{i\cdot})\|_p\leq\|f\|_p$.
+\end{theorem}
+\begin{proof}[Sketch of Proof]
+If $p=\infty$, then $|P[f](z)|\leq\frac{1}{2\pi}\int P_z(\theta)|f(\theta)|\, d\theta
+\leq\|f\|_\infty$.
+
+If $1\leq p<\infty$, for $z\in\mathbb{D}$, part (a) of the lemma \ref{Properties of Poisson kernel} says that $P_z(\theta)\frac{d\theta}{2\pi}$ is a
+probability measure on $\mathbb{T}$. Jensen's inequality for this probability measure gives
+\begin{equation*}
+  |P[f](z)|^p\leq\frac{1}{2\pi}\int_0^{2\pi} P_z(\theta)|f(\theta)|^p\, d\theta.
+\end{equation*}
+Set $z=re^{i\varphi}$. Note the symmetry of Poisson kernel:
+\begin{equation*}
+  P_{re^{i\varphi}}(\theta)=\frac{1-r^2}{1-2r\cos(\theta-\varphi)+r^2}=P_{re^{i\theta}}(\varphi),
+\end{equation*}
+Thus:
+\begin{equation*}
+  \frac{1}{2\pi}\int_0^{2\pi}|P[f](re^{i\varphi})|^p\, d\varphi
+  \leq\frac{1}{2\pi}\int_0^{2\pi}|f(\theta)|^p
+  \left(\frac{1}{2\pi}\int_0^{2\pi}P_{re^{i\theta}}(\varphi)\, d\varphi\right) d\theta
+  =\|f\|_p^p. \qedhere
+\end{equation*}
+\end{proof}
+
+The following theorem shows that the Poisson kernel acts like the identity as $r\rightarrow 1$:
+\begin{theorem}\label{Poisson approximate identity}
+Let $C(\mathbb{T})$ be the space of all continuous functions over $\mathbb{T}$. Then
+\begin{itemize}
+  \item[(a)] If $f\in C(\mathbb{T})$, then $P[f](re^{i\theta})$ converges uniformly to $f(e^{i\theta})$
+  as $r\rightarrow 1$.
+  \item[(b)] If $\mu$ is a finite measure on $\mathbb{T}$, then the measures
+  $P[\mu](re^{i\theta})\, d\theta/(2\pi)$ converge weak-star to $\mu$ as $r\rightarrow 1$, i.e.
+  \begin{equation*}
+    \frac{1}{2\pi}\int_0^{2\pi} g(\theta)P[\mu](re^{i\theta})\, d\theta\rightarrow\int g\, d\mu
+    \qquad (r\rightarrow 1)
+  \end{equation*}
+  for every $g\in C(\mathbb{T})$.
+\end{itemize}
+\end{theorem}
+\begin{proof}[Sketch of Proof]
+(a) Fix $\varphi$. By part (a) of the lemma \ref{Properties of Poisson kernel},
+\begin{equation*}
+  |P[f](re^{i\varphi})-f(e^{i\varphi})|
+  \leq\frac{1}{2\pi}\int_{|\theta-\varphi|<\delta}P_{re^{i\varphi}}(\theta)|f(e^{i\theta})-f(e^{i\varphi})|\, d\theta
+  +\frac{1}{2\pi}\int_{\delta\leq|\theta-\varphi|\leq\pi}P_{re^{i\varphi}}(\theta)|f(e^{i\theta})-f(e^{i\varphi})|\, d\theta.
+\end{equation*}
+As $\mathbb{T}$ is compact, $f$ is uniformly continuous on $\mathbb{T}$.
+Given $\varepsilon>0$, by uniform continuity of $f$, we can pick $\delta>0$ s.t.
+$|f(e^{i\theta})-f(e^{i\varphi})|<\varepsilon$ for all $\varphi$ and all $|\theta-\varphi|<\delta$,
+then we have
+\begin{equation*}
+  \frac{1}{2\pi}\int_{|\theta-\varphi|<\delta}P_{re^{i\varphi}}(\theta)|f(e^{i\theta})-f(e^{i\varphi})|\, d\theta
+  \leq \varepsilon\cdot\frac{1}{2\pi}\int P_{re^{i\varphi}}(\theta)d\theta=\varepsilon.
+\end{equation*}
+For this $\delta$, the
+second term is at most $2\|f\|_\infty\cdot\frac{1}{2\pi}\int_{\delta\leq|\theta-\varphi|\leq\pi}
+P_{re^{i\varphi}}(\theta)\, d\theta$. Since $P_{re^{i\varphi}}(\theta)=P_r(\theta-\varphi)$, this integral
+does not depend on $\varphi$, and it tends to $0$ as $r\rightarrow 1$ by part (b) of the
+lemma \ref{Properties of Poisson kernel}. Hence the convergence is uniform in $\varphi$.
+
+(b) Let $g\in C(\mathbb{T})$. For fixed $r$, the Poisson kernel is bounded, so by Fubini's theorem and
+the symmetry $P_{re^{i\theta}}(\varphi)=P_{re^{i\varphi}}(\theta)$,
+\begin{equation*}
+  \frac{1}{2\pi}\int_0^{2\pi} g(\theta)P[\mu](re^{i\theta})\, d\theta
+  =\int\left(\frac{1}{2\pi}\int_0^{2\pi}P_{re^{i\varphi}}(\theta)g(\theta)\, d\theta\right) d\mu(\varphi)
+  =\int P[g](re^{i\varphi})\, d\mu(\varphi).
+\end{equation*}
+By (a), $P[g](re^{i\varphi})\rightarrow g(e^{i\varphi})$ uniformly, and $\mu$ is finite, so the
+right-hand side tends to $\int g\, d\mu$.
+\end{proof}
+
+As a consequence, the Poisson integral solves the Dirichlet problem on the disc (which is 
+the converse result of the Poisson integral formula
+ \ref{Poisson integral formula}):
+\begin{corollary}[Dirichlet problem on the disc]\label{Dirichlet problem on the disc}
+Let $f$ be a continuous function on $\mathbb{T}$. Define
+\begin{equation*}
+  u(z):=
+  \begin{cases}
+    P[f](z), & z\in\mathbb{D},\\
+    f(z), & z\in\mathbb{T}.
+  \end{cases}
+\end{equation*}
+Then $u$ is continuous on $\overline{\mathbb{D}}$ and harmonic on $\mathbb{D}$, i.e. 
+a continuous solution on $\overline{\mathbb{D}}$ for the Dirichlet
+problem:
+\begin{equation*}
+  \begin{cases}
+  \Delta u=0, & z\in \mathbb{D}\\
+  u=f, & z\in \mathbb{T}.
+  \end{cases}
+\end{equation*}
+\end{corollary}
+\begin{proof}
+$u$ is harmonic on $\mathbb{D}$ by Theorem \ref{Poisson integral of L^1 is harmonic}. For
+continuity at $e^{i\theta_0}\in\mathbb{T}$, let $z=re^{i\varphi}\in\mathbb{D}$; then
+\begin{equation*}
+  |u(z)-f(e^{i\theta_0})|\leq|P[f](re^{i\varphi})-f(e^{i\varphi})|+|f(e^{i\varphi})-f(e^{i\theta_0})|,
+\end{equation*}
+which tends to $0$ as $z\rightarrow e^{i\theta_0}$ by part (a) of
+Theorem \ref{Poisson approximate identity} and the continuity of $f$.
+\end{proof}
+
+Moreover, a measure on $\mathbb{T}$ is determined by its Poisson integral:
+\begin{corollary}
+Let $\mu$ and $\nu$ be finite measures on $\mathbb{T}$. If $P[\mu]=P[\nu]$ on $\mathbb{D}$,
+then $\mu=\nu$.
+\end{corollary}
+\begin{proof}
+Let $\lambda:=\mu-\nu$. By linearity, $P[\lambda]=0$ on $\mathbb{D}$. For every $g\in C(\mathbb{T})$,
+part (b) of Theorem \ref{Poisson approximate identity} gives
+\begin{equation*}
+  \int g\, d\lambda=\lim_{r\rightarrow 1}\frac{1}{2\pi}\int_0^{2\pi} g(\theta)P[\lambda](re^{i\theta})\, d\theta=0.
+\end{equation*}
+By the uniqueness part of the Riesz representation theorem, $\lambda=0$, thus $\mu=\nu$.
+\end{proof}
+
+Finally, Poisson integrals of $L^p$ functions and of measures are characterized by the growth
+of their radial means:
+\begin{theorem}\label{Characterization of Poisson integrals}
+Let $u$ be a harmonic function on $\mathbb{D}$.
+\begin{itemize}
+  \item[(a)] If $1<p\leq\infty$, then $u=P[f]$ for some $f\in L^p(\mathbb{T})$ if and only if
+  \begin{equation*}
+    \sup_{0<r<1}\|u(re^{i\cdot})\|_p<\infty.
+  \end{equation*}
+  \item[(b)] $u=P[\mu]$ for some finite measure $\mu$ on $\mathbb{T}$ if and only if
+  \begin{equation*}
+    \sup_{0<r<1}\|u(re^{i\cdot})\|_1<\infty.
+  \end{equation*}
+  \item[(c)] (Herglotz) $u\geq 0$ on $\mathbb{D}$ if and only if $u=P[\mu]$ for some finite
+  positive measure $\mu$ on $\mathbb{T}$.
+\end{itemize}
+\end{theorem}
+
+\begin{proof}
+(\textcolor{red}{missing})
+\end{proof}
+
+\section{Nontangential limit}
+When we are discussing functions over $\mathbb{D}$, it will be good to have the proper
+notion of `limit function' over the boundary $\mathbb{T}=\partial \mathbb{D}$.
+This section is mainly based on \cite{rudin1974real}, 11.21 - 11.24.
+\begin{definition}
+Fix $\alpha>1$. For $\zeta\in\mathbb{T}$, we consider the \textbf{Stolz region}:
+\begin{equation*}
+  \Gamma_\alpha(\zeta):=\left\{z\in\mathbb{D}: |\zeta-z|<\alpha(1-|z|)\right\}.
+\end{equation*}
+A function $u:\mathbb{D}\to\mathbb{C}$ is said to have \textbf{nontangential limit} $\lambda\in\mathbb{C}$
+at $\zeta\in\mathbb{T}$ if, for every $\alpha>1$,
+\begin{equation*}
+  \lim_{\substack{z\to\zeta\\ z\in\Gamma_\alpha(\zeta)}}u(z)=L.
+\end{equation*}
+When this limit exists, we write $u^*(\zeta)=\lambda$ and call it the \textbf{(nontangential) boundary value} of $u$ at $\zeta$.
+This give rise to a function $u^*:\mathbb{T}\rightarrow\mathbb{C}$, for which we call the \textbf{(nontangential) boundary function}
+of $u$.
+\end{definition}
+
+
+Before we discuss the main results related with nontangential limit, we first 
+introduce a notion called \textbf{Lebesgue point}:
+\begin{definition}[Lebesgue point]
+Consider $(\mathbb{T},d\sigma)$, where $d\sigma := d\theta/(2\pi)$.
+If $f\in L^1(\mathbb{T})$, a point $\zeta=e^{i\theta_0}\in\mathbb{T}$
+is called a \textbf{Lebesgue point} of $f$ if
+\begin{equation*}
+  \lim_{h\downarrow 0}
+  \frac{1}{2h}
+  \int_{\theta_0-h}^{\theta_0+h}
+  \left|f(e^{i\theta})-f(e^{i\theta_0})\right|\,d\theta=0.
+\end{equation*}
+\end{definition}
+
+\begin{remark}
+If $f$ is continuous at $\xi$, then $\xi$ is a Lebesgue point of $f$. So one can
+think of Lebesgue points of a function are those points where in average sense, the
+function does not oscillate too much.
+\end{remark}
+
+\begin{theorem}[Lebesgue differentiation theorem]
+\label{thm:lebesgue_differentiation}
+Let $f\in L^1(\mathbb{T})$. Then almost every point of $\mathbb{T}$
+ is a Lebesgue point of $f$.
+\end{theorem}
+
+The following result tells us that nontangential limit of
+the Poisson integral of a function gives back the function value itself
+at all lebesgue points of that function:
+\begin{theorem}
+\label{thm:poisson_nontangential_lebesgue_point}
+Let $f\in L^1(\mathbb{T})$ be real-valued. If $\zeta\in\mathbb{T}$ is a
+Lebesgue point of $f$, then the Poisson integral $P[f]$ has nontangential
+limit $f(\zeta)$ at $\zeta$. That is, for every $\alpha>1$,
+\begin{equation*}
+  \lim_{\substack{z\to\zeta\\ z\in\Gamma_\alpha(\zeta)}}P[f](z)=f(\zeta).
+\end{equation*}
+\end{theorem}
+
+Then using Lebesgue differentiation theorem \ref{thm:lebesgue_differentiation},
+we get an a.e. recovery of boundary data:
+\begin{corollary}[Almost everywhere recovery of boundary data]
+\label{cor:poisson_nontangential_ae}
+Let $f\in L^1(\mathbb{T})$ be real-valued. Then $P[f]$ has nontangential
+limits almost everywhere on $\mathbb{T}$, and
+\begin{equation*}
+  (P[f])^*(\zeta)=f(\zeta)
+  \qquad\text{for almost every }\zeta\in\mathbb{T}.
+\end{equation*}
+\end{corollary}
+
+\begin{theorem}
+\label{thm:singular_poisson_nontangential_zero}
+Let $\nu$ be a finite measure on $\mathbb{T}$ s.t. $\nu\bot d\sigma$, i.e. singular
+with respect to $d\sigma = d\theta/(2\pi)$. Then its Poisson integral $P[\nu]$ has
+nontangential limit 0 at almost every point of $\mathbb{T}$. For every $\alpha>1$,
+\begin{equation*}
+  \lim_{\substack{z\to\zeta\\ z\in\Gamma_\alpha(\zeta)}}P[\nu](z)=0
+  \qquad\text{for a.e. }\zeta\in\mathbb{T}.
+\end{equation*}
+\end{theorem}
+
+\begin{theorem}[Fatou's theorem for finite measures]
+\label{thm:fatou_signed_measure}
+Let $\mu$ be a finite measure on $\mathbb{T}$ with Lebesgue
+decomposition
+\begin{equation*}
+  d\mu=f\,\frac{d\theta}{2\pi}+d\mu_s,
+  \qquad f\in L^1(\mathbb{T}),
+  \qquad \mu_s\perp\frac{d\theta}{2\pi}.
+\end{equation*}
+Then $P[\mu]$ has nontangential limits a.e. on $\mathbb{T}$, and for every $\alpha>1$,
+\begin{equation*}
+  \lim_{\substack{z\to\zeta\\ z\in\Gamma_\alpha(\zeta)}}P[\mu](z)=f(\zeta)
+  \qquad\text{for a.e. }\zeta\in\mathbb{T}.
+\end{equation*}
+\end{theorem}
+\begin{proof}
+By linearity, $P[\mu]=P[f]+P[\mu_s]$. Apply
+Corollary~\ref{cor:poisson_nontangential_ae} and
+Theorem~\ref{thm:singular_poisson_nontangential_zero} will get the desired result.
+\end{proof}
+
+
+
+
+
+\section{Subharmonic function}
+\label{subsec:subharmonic}
+To investigate the main objects in this thesis,
+which are Hardy spaces and Nevanlinna class, it will be good to know the properties of 
+function like $|f|^p$, $\log |f|$ and $\log^+ |f|$
+for analytic function $f$. These functions belong to an important class of functions called 
+\textbf{subharmonic functions}. This section is based on \cite{garnett2006bounded}, I.6.
+\begin{definition}
+Let $\Omega$ be an open set in the plane. A \textbf{subharmonic function} on $\Omega$ is a function
+$v : \Omega \to [-\infty, \infty)$ such that
+\begin{itemize}
+  \item[(a)] $v$ is \emph{upper semicontinous}, i.e. $v(z_0)\geq \lim_{z\rightarrow z_0}v(z)$ 
+  for all $z_0\in\Omega$;
+  \item[(b)] for each $z_0 \in \Omega$ there is $r(z_0) > 0$ such that the disc 
+$B(z_0, r(z_0)) = \{z : |z - z_0| < r(z_0)\}$ is contained in $\Omega$ and 
+such that for every $r < r(z_0)$,
+\begin{equation}\label{MVP of subharmonic functions}
+  v(z_0) \leq \frac{1}{\pi r^2} \iint_{B(z_0,r)} v(z)\, dx\, dy.
+\end{equation}
+We often call (\ref{MVP of subharmonic functions}) the `\textbf{submean value property}'.
+\end{itemize}
+\end{definition}
+\begin{remark}
+Note that the integral in \ref{MVP of subharmonic functions} either
+converges or diverges to $-\infty$, due to the upper-semicontinuity by the following
+lemma:
+\begin{lemma}\label{boundedness of uppersemicont fct}
+Let $X$ be a topological space.
+If $v:X\rightarrow [-\infty,\infty)$ is upper-semicontinuous, then $v$ is bounded
+above on each compact subset $K\subset X$.
+\end{lemma}
+\end{remark}
+
+Here are some examples of subharmonic functions:
+\begin{example}
+Every harmonic function is subharmonic, due to the \textbf{mean value property} of harmonic function:
+\begin{theorem}
+Let $\Omega$ be an open set in the plane and let $u$ be a harmonic function on $\Omega$. Then for
+every $z_0\in\Omega$ and every $r>0$ such that the closed disc $\overline{B(z_0,r)}$ is contained
+in $\Omega$,
+\begin{equation*}
+  u(z_0) = \frac{1}{2\pi}\int_0^{2\pi} u(z_0+re^{i\theta})\, d\theta
+  = \frac{1}{\pi r^2} \iint_{B(z_0,r)} u(z)\, dx\, dy.
+\end{equation*}
+\end{theorem}
+\end{example}
+\begin{example}\label{log |f| is subharmonic}
+Let $f(z)$ be an analytic function on a domain $\Omega\subset \mathbb{C}$, then 
+$v(z)=\log |f(z)|$ is subharmonic on $\Omega$: 
+\begin{itemize}
+  \item $v$ is upper semicontinuous;
+  \item For $z_0$ s.t. $f(z_0)=0$, condition \ref{MVP of subharmonic functions} trivially
+  satisfied;
+  \item For $z_0$ s.t. $f(z_0)\neq 0$, we can write $v(z)=\text{Re}(\log f(z))$ on some neighborhood
+  of $z_0$, which is harmonic on this neighborhood.
+\end{itemize}
+\end{example}
+\begin{example}
+Let $f(z)$ be an analytic function on a domain $\Omega\subset \mathbb{C}$, then 
+$|f(z)|^p$ is subharmonic on $\Omega$ as 
+\begin{equation*}
+  |f(z)|^p=\exp(p \log |f(z)|)
+\end{equation*}
+So the condition \ref{MVP of subharmonic functions} can be proved by the fact that
+$\log |f(z)|$ is subharmonic and Jensen's inequality as $\exp$ is convex. More generally, we
+have the following lemma:
+\begin{lemma}
+Given a subharmonic funciton $v$ on $\Omega$ and an increasing convex function $\varphi$ on
+$[-\infty, \infty)$ which is continuous at $-\infty$, then $\varphi\circ v$ is subharmonic on
+$\Omega$.
+\end{lemma}
+With this lemma, we can see that
+\begin{equation*}
+    \log^+ |f(z)|=\max(\log |f(z)|,0)
+\end{equation*}
+is also a subharmonic function.
+\end{example}
+
+There is an equivalent characterization of subharmonicity:
+\begin{theorem}[Harmonic comparison characterization]\label{Harmonic comparison characterization}
+Let $u:\Omega\rightarrow [-\infty,\infty)$ be an upper semicontinuous function. Then $u$ is 
+subharmonic on $\Omega$ if and only if the following condition holds: If $v$ is a continuous function
+on $\overline{B(z_0,r)}\subset \Omega$ that is harmonic on $B(z_0,r)$ s.t. for all 
+$\xi\in \partial B(z_0,r)$, we have $u(\xi)\leq v(\xi)$, then 
+\begin{equation*}
+  u(z)\leq v(z),\quad z\in B(z_0,r).
+\end{equation*}
+\end{theorem}
+\begin{proof}
+(\textcolor{red}{missing})
+\end{proof}
+
+\begin{corollary}
+If $\Omega$ is a connected open set and $v$ is a subharmonic function on $\Omega$ s.t. $v\not\equiv -\infty$,
+then given any closed disc $\overline{B(z_0,r)}\subset \Omega$, 
+\begin{equation*}
+    \frac{1}{2\pi}\int v(z_0+r e^{i\theta})d\theta \neq -\infty.
+\end{equation*}
+\end{corollary}
+\begin{proof}[Sketch of Proof]
+First recall a lemma:
+\begin{lemma}
+Let $X$ be a metric space, $v$ be an upper-semicontinuous function. Then we can always find
+a sequence $u_n$ of continuous function that decreasing to $v$ on $X$.
+\end{lemma}
+Now we pick $u_n$ to be a sequence of continuous functions decreasing to $v$ on 
+$\partial B(z_0,r)$. Let $U_n(z)=P[u_n](z)$, i.e. the harmonic extension of $u_n$ to $B(z_0,r)$.
+Assume for the sake of contradiction that we can find some $\overline{B(z_0,r)}\subset\Omega$ s.t.
+\begin{equation*}
+  \frac{1}{2\pi}\int v(z_0+r e^{i\theta})d\theta = -\infty.
+\end{equation*}
+Recall Lemma \ref{boundedness of uppersemicont fct}, $v$ is bounded above by some
+constant $M\geq 0$. Write $v=v^+-v^-$ with $v^+=\max(v,0)$ and $v^-=\max(-v,0)$, so that
+$0\leq v^+\leq M$ and $0\leq v^-\leq\infty$ on $\partial B(z_0,r)$. Since
+\begin{equation*}
+  \frac{1}{2\pi}\int v^+(z_0+re^{i\theta})\, d\theta\leq M<\infty,
+\end{equation*}
+the assumption is equivalent to
+\begin{equation*}
+  \frac{1}{2\pi}\int v^-(z_0+re^{i\theta})\, d\theta=\infty.
+\end{equation*}
+Now fix $z$ with $|z|<1$. Since $1-|z|\leq |e^{i\theta}-z|\leq 1+|z|$, we have
+\begin{equation*}
+  0<\frac{1-|z|}{1+|z|}\leq P_z(\theta)=\frac{1-|z|^2}{|e^{i\theta}-z|^2}\leq\frac{1+|z|}{1-|z|}
+  \quad\text{for all }\theta.
+\end{equation*}
+Therefore
+\begin{align*}
+  \frac{1}{2\pi}\int P_z(\theta)\, v^+(z_0+re^{i\theta})\, d\theta
+  &\leq \frac{1+|z|}{1-|z|}\, M<\infty,\\
+  \frac{1}{2\pi}\int P_z(\theta)\, v^-(z_0+re^{i\theta})\, d\theta
+  &\geq \frac{1-|z|}{1+|z|}\cdot\frac{1}{2\pi}\int v^-(z_0+re^{i\theta})\, d\theta=\infty.
+\end{align*}
+Therefore,
+\begin{equation*}
+  \frac{1}{2\pi}\int P_z(\theta)\, v(z_0+re^{i\theta})\, d\theta = -\infty,\quad |z|<1.
+\end{equation*}
+As
+\begin{equation*}
+  U_n(z)=\frac{1}{2\pi}\int P_z(\theta)\, u_n(z_0+re^{i\theta})\, d\theta 
+\end{equation*}
+and $u_n\downarrow v$, so $U_n(z)\rightarrow -\infty$ for each $z\in B(z_0,r)$. By Harmonic
+comparison \ref{Harmonic comparison characterization}, we know that $U_n \geq v$ over $B(z_0,r)$,
+so $v=-\infty$ on $B(z_0,r)$. With above result, we can actually extend this local property globally
+using standard topological argument as follow: consider 
+\begin{equation*}
+  A:=\{z\in \Omega: v(z)\equiv -\infty\text{ on a neighborhood of }z\}
+\end{equation*}
+then one can show that it is open and closed. As $z_0\in A$, it is nonempty, thus $v\equiv -\infty$
+over $\Omega$, which gives a contradiction.
+
+\end{proof}
+
+To investigate further properties of subharmonic functions, we'd like to first define
+an auxiliary function called \textbf{Poisson modification}:
+\begin{definition}[Poisson modification]\label{Poisson modification}
+Let $v:\mathbb{D}\rightarrow[-\infty,\infty)$ be an upper semicontinuous function and let
+$0<r<1$. The \textbf{Poisson modification} of $v$ on $B(0,r)$ is the function
+\begin{equation*}
+  v_r(z):=
+  \begin{cases}
+    v(z), & r\leq|z|<1,\\[4pt]
+    \displaystyle\frac{1}{2\pi}\int P_{z/r}(\theta)\, v(re^{i\theta})\, d\theta, & |z|<r.
+  \end{cases}
+\end{equation*}
+\end{definition}
+By Lemma \ref{boundedness of uppersemicont fct}, $v$ is bounded above on $\partial B(0,r)$, so
+the integral is well-defined with values in $[-\infty,\infty)$.
+
+\begin{theorem}\label{Properties of Poisson modification}
+Let $v$ be a subharmonic function on $\mathbb{D}$ s.t. $v\not\equiv-\infty$, and let $0<r<1$.
+Then
+\begin{itemize}
+  \item[(a)] $v_r$ is finite and harmonic on $B(0,r)$;
+  \item[(b)] $v_r$ is subharmonic on $\mathbb{D}$;
+  \item[(c)] $v(z)\leq v_r(z)$ for all $z\in\mathbb{D}$;
+  \item[(d)] $v_r(z)$ is an increasing function of $r$.
+\end{itemize}
+\end{theorem}
+\begin{proof}
+(\textcolor{red}{missing})
+\end{proof}
+If we take $z=0$ in Theorem \ref{Properties of Poisson modification}(d), we get:
+\begin{corollary}
+If $v(z)$ is a subharmonic function on $\mathbb{D}$, then
+\begin{equation*}
+  m(r)=v_r(0)=\frac{1}{2\pi}\int v(r e^{i\theta})d\theta
+\end{equation*}
+is an increasing function of $r\in(0,1)$.
+\end{corollary}
+
+\begin{definition}[Harmonic majorant]\label{Harmonic majorant}
+Let $v$ be a subharmonic function on an open set $\Omega$. A \textbf{harmonic majorant} of $v$
+is a harmonic function $U$ on $\Omega$ s.t. $v(z)\leq U(z)$ for all $z\in\Omega$. A harmonic
+majorant $u$ of $v$ is called the \textbf{least harmonic majorant} of $v$ if $u(z)\leq U(z)$,
+$z\in\Omega$, for every harmonic majorant $U$ of $v$.
+\end{definition}
+
+\begin{theorem}\label{Harmonic majorant criterion}
+Let $v$ be a subharmonic function on $\mathbb{D}$ s.t. $v\not\equiv-\infty$. Then $v$ has a
+harmonic majorant if and only if
+\begin{equation*}
+  \sup_{0<r<1}\frac{1}{2\pi}\int v(re^{i\theta})\, d\theta=\sup_{0<r<1}v_r(0)<\infty.
+\end{equation*}
+In this case, the least harmonic majorant of $v$ is
+\begin{equation*}
+  u(z)=\lim_{r\rightarrow 1}\frac{1}{2\pi}\int P_{z/r}(\theta)\, v(re^{i\theta})\, d\theta
+  =\lim_{r\rightarrow 1}v_r(z),\quad z\in\mathbb{D}.
+\end{equation*}
+\end{theorem}
+
+\begin{proof}
+\textcolor{red}{missing}
+\end{proof}

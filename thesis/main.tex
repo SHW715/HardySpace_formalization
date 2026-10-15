@@ -1,0 +1,170 @@
+\documentclass[11pt, a4paper, UKenglish]{scrreprt}
+
+\usepackage[UKenglish]{babel}
+\usepackage{MA_Titlepage}
+\usepackage{amsmath,bm}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{ wasysym }
+\usepackage{braket}
+\usepackage{enumitem}
+\usepackage{thmtools}
+\usepackage{tikz-cd}
+\usepackage{tikz}
+\usetikzlibrary{decorations.markings} 
+\usepackage{cancel}
+\usepackage[hypertexnames=false]{hyperref}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+}
+\usetikzlibrary{decorations.pathreplacing}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{exercise}{Exercise}[subsection]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{remark}{Remark}[section]
+\newtheorem{example}{Example}[section]
+\renewcommand{\baselinestretch}{1.15}
+\newcommand{\cd}{\cdot}
+\newcommand{\contradiction}{\rightarrow\!\leftarrow}
+\newcommand\pa[2]{\dfrac{\partial #1}{\partial #2}}
+\newcommand\de[2]{\frac{d #1}{d #2}}
+\newcommand{\m}{\mathfrak{m}}
+\newcommand{\p}{\mathfrak{p}}
+\newcommand{\Os}{\mathcal{O}}
+\newcommand{\grMod}{\text{grMod}}
+
+\DeclareMathOperator{\GL}{GL}
+\DeclareMathOperator{\PGL}{PGL}
+\DeclareMathOperator{\Mod}{Mod}
+\DeclareMathOperator{\Ob}{Ob}
+\DeclareMathOperator{\Map}{Map}
+\DeclareMathOperator{\Hom}{Hom}
+\DeclareMathOperator{\im}{Im}
+\DeclareMathOperator{\coker}{Coker}
+\DeclareMathOperator{\rank}{Rank}
+\DeclareMathOperator{\ord}{ord}
+\DeclareMathOperator{\irr}{irr}
+\DeclareMathOperator{\degree}{^{\circ}}
+\DeclareMathOperator{\Aut}{Aut}
+\DeclareMathOperator{\deck}{Deck}
+\DeclareMathOperator{\Sin}{Sin}
+\DeclareMathOperator{\Top}{Top}
+\DeclareMathOperator{\Ab}{Ab}
+\DeclareMathOperator{\pt}{pt}
+\DeclareMathOperator{\Ext}{Ext}
+\DeclareMathOperator{\Tor}{Tor}
+\DeclareMathOperator{\cw}{CW}
+\DeclareMathOperator{\Ouv}{Ouv}
+\DeclareMathOperator{\Mor}{Mor}
+\DeclareMathOperator{\Spec}{Spec}
+\DeclareMathOperator{\mSpec}{mSpec}
+\DeclareMathOperator{\PI}{PI}
+\DeclareMathOperator{\PreSh}{PreSh}
+\DeclareMathOperator{\Sh}{Sh}
+\DeclareMathOperator{\id}{id}
+\DeclareMathOperator{\AffSch}{AffSch}
+\DeclareMathOperator{\Sch}{Sch}
+\DeclareMathOperator{\LocalRingedSpace}{LocRingSp}
+\DeclareMathOperator{\supp}{supp}
+\DeclareMathOperator{\RingedSpace}{RingSp}
+\DeclareMathOperator{\Rings}{Rings}
+\DeclareMathOperator{\Coh}{Coh}
+\DeclareMathOperator{\QCoh}{QCoh}
+\DeclareMathOperator{\Proj}{Proj}
+\DeclareMathOperator{\Pic}{Pic}
+\DeclareMathOperator{\codim}{codim}
+\DeclareMathOperator{\height}{ht}
+\DeclareMathOperator{\Div}{Div}
+\DeclareMathOperator{\Cl}{Cl}
+\DeclareMathOperator{\CaCl}{CaCl}
+\DeclareMathOperator{\Gal}{Gal}
+\DeclareMathOperator{\trdeg}{trdeg}
+\DeclareMathOperator{\Poi}{Poi}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Var}{Var}
+\newcommand{\A}{\mathbb{A}}
+\newcommand{\D}{\mathbb{D}}
+\newcommand{\HH}{\mathbb{H}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\F}{\mathfrak{F}}
+\newcommand{\K}{\mathcal{K}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\G}{\mathfrak{G}}
+\newcommand{\W}{\mathcal{W}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\nlhd}{%
+  \mathrel{\ooalign{$\lneq$\cr\raise.22ex\hbox{$\lhd$}\cr}}}
+\makeatletter
+\newcommand*{\relrelbarsep}{.386ex}
+\newcommand*{\relrelbar}{%
+  \mathrel{%
+    \mathpalette\@relrelbar\relrelbarsep
+  }%
+}
+\newcommand{\B}{\mathfrak{B}}
+
+\newcommand{\1}{\mathbf{1}}
+
+
+\newcommand*{\@relrelbar}[2]{%
+  \raise#2\hbox to 0pt{$\m@th#1\relbar$\hss}%
+  \lower#2\hbox{$\m@th#1\relbar$}%
+}
+\providecommand*{\rightrightarrowsfill@}{%
+  \arrowfill@\relrelbar\relrelbar\rightrightarrows
+}
+\providecommand*{\leftleftarrowsfill@}{%
+  \arrowfill@\leftleftarrows\relrelbar\relrelbar
+}
+\providecommand*{\xrightrightarrows}[2][]{%
+  \ext@arrow 0359\rightrightarrowsfill@{#1}{#2}%
+}
+\providecommand*{\xleftleftarrows}[2][]{%
+  \ext@arrow 3095\leftleftarrowsfill@{#1}{#2}%
+}
+\makeatother
+\usepackage{geometry}
+
+\geometry{a4paper,scale=0.8}
+
+% Replace the example values below with the thesis metadata.
+\authornew{Shuhan Wang}
+\geburtsdatum{15th July 2001}
+\geburtsort{Hangzhou, China}
+% Replace \today with the actual submission date when ready.
+\date{\today}
+
+\betreuer{Advisor: Prof. Dr. Floris van Doorn}
+\zweitgutachter{Second Examiner: Prof. Dr. X Y}
+\institut{Mathematisches Institut}
+\title{Formalization on Hardy space and Nevanlinna Class}
+\ausarbeitungstyp{Master's Thesis  Mathematics}
+
+\begin{document}
+
+\maketitle
+
+
+\input{chapters/Abstract}
+\clearpage
+
+\tableofcontents{}
+\clearpage
+
+\input{chapters/Chapter1}
+\input{chapters/Chapter2.tex}
+\input{chapters/Chapter3}
+\input{chapters/Chapter4.tex}
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}

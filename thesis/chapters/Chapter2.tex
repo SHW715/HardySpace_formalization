@@ -1,0 +1,287 @@
+% !TEX root = ../main.tex
+% Chapter 2: Hardy spaces and Nevanlinna class.
+% Included from main.tex via \input{chapters/Chapter2}.
+
+\chapter{Hardy spaces and Nevanlinna class}
+\label{sec:hardy_nevanlinna}
+This chapter gives an introduction on the mathematical backgrounds of
+the main objects of this thesis: Hardy spaces and 
+Nevanlinna class, and discuss the ultimate goal to formalize in
+this project: canonical factorization theorem of Nevanlinna functions. This chapter is
+mainly based on \cite{garnett2006bounded}, II.1 - II.5.
+
+\section{Hardy spaces}
+One of the main objects of this thesis is the \textbf{Hardy space}, which is a subspace of the space 
+$\mathcal{O}(U)$ of analytic functions
+on a `certain domain' $U\subset \mathbb{C}$ which are defined by 
+`certain growth conditions'. Roughly speaking,
+`certain growth conditions' means that the boundary growth is controlled in 
+an averaged $L^p$ sense. We usually consider
+$U$ to be the unit disc $\D:=\{z\in\C: |z|<1\}$ or the upper half plane 
+$\HH:=\{z\in\C: \im z>0\}$.
+
+\begin{definition}
+Let $0<p<\infty$. We define the \textbf{Hardy space over the unit disc $\D$} as:
+\begin{equation*}
+  H^p(\D):=\left\{ f\in \mathcal{O}(\D):\| f\|_{H^p}^p := \sup_{0<r<1}\frac{1}{2\pi}\int |f(re^{i\theta})|^p d
+  \theta <\infty\right\}
+\end{equation*}
+If $p=\infty$, we define $H^\infty(\D)$ to be the space of bounded analytic functions on $\D$, i.e.
+\begin{equation*}
+  H^\infty(\D):=\{f\in \mathcal{O}(\D): \|f\|_{H^\infty}:=\sup_{z\in \D}|f(z)|<\infty\}
+\end{equation*}
+\end{definition}
+
+\begin{definition}
+Let $0<p<\infty$. We define the \textbf{Hardy space over the upper half plane $\HH$} as:
+\begin{equation*}
+  H^p(dt):=\left\{f\in \mathcal{O}(\HH): \|f\|_{H^p}^p:=\sup_{y>0}\int |f(x+iy)|^p dx <\infty\right\}
+\end{equation*}
+If $p=\infty$, we define $H^\infty(dt)$ to be the space of bounded analytic functions on $\HH$, i.e.
+\begin{equation*}
+  H^\infty(dt):=\{f\in \mathcal{O}(\HH): \|f\|_{H^\infty}:=\sup_{z\in \HH}|f(z)|<\infty\}
+\end{equation*}
+\end{definition}
+These two definitions are closely related and many results holds true on $H^p(\D)$ will be also holds
+true on $H^p(dt)$. In this thesis, we only focus on the formalization for $H^p(\D)$.
+
+\begin{remark}
+One can extend the definition of Hardy space over general (bounded) domain in $\mathbb{C}$ as follow:
+\begin{definition}
+Let $0<p<\infty$ and $U\subset \mathbb{C}$ be a (bounded) domain. We say an analytic function $f\in \mathcal{O}(U)$
+over $U$ is a $H^p$ function if the function $|f|^p$ has a harmonic majorant, and we define $\|f\|^p_{H^p}$
+to be the value of the least harmonic majorant at $z=0$. For $p=\infty$, $f\in \mathcal{O}(U)$ is
+$H^\infty$ if it is a bounded analytic function over $U$ and $\|f\|_{H^\infty}:=\sup_{z\in U}|f(z)|$.
+\end{definition}
+Theorem \ref{Harmonic majorant criterion} shows that this is an equivalent definition with above definitions over $\D$.
+\end{remark}
+
+
+The Hardy space $H^p(\D)$ is a normed space for $p\geq 1$ with the
+norm $\|\cdot\|_{H^p}$. Moreover, it is a metric space for all $0<p\leq \infty$,
+with the metric $d(f,g)=\|f-g\|_{H^p}^p$ for $0<p<1$ and the metric induced by
+the norm for $p\geq 1$. Moreover, we have:
+\begin{theorem}
+For $0<p\leq \infty$, $H^p$ is a complete metric space.
+\end{theorem}
+Similar as $L^p$ space, there is monotonicity for $H^p$ space as well:
+\begin{theorem}
+For $0<p\leq q\leq \infty$, we have $H^q\leq H^p$ as subspace.
+\end{theorem}
+
+
+\section{Blaschke product}
+\begin{definition}
+Given a sequence $\{z_n\}$ on $\mathbb{D}$, we say that this sequence satisfies
+\textbf{Blaschke's condition} if $\sum (1-|z_n|)<\infty$. Given an analytic function $f$ on 
+$\mathbb{D}$, we call this function $f$ satisfies \textbf{Blaschke's condition} if its
+zeros $\{z_n\}$ satisfies Blaschke's condition.
+\end{definition}
+
+\begin{theorem}\label{Blaschke condition from harmonic majorant}
+Let $f\not\equiv 0$ be an analytic function on $\mathbb{D}$ with zeros $\{z_n\}$. If
+$\log|f|$ has a harmonic majorant, then $f$ satisfies Blaschke's condition:
+\begin{equation*}
+  \sum(1-|z_n|)<\infty.
+\end{equation*}
+If moreover $f(0)\neq 0$ and $u$ is the least harmonic majorant of $\log|f|$, then
+\begin{equation*}
+  \sum(1-|z_n|)\leq u(0)-\log|f(0)|.
+\end{equation*}
+\end{theorem}
+
+\begin{theorem}\label{Blaschke product}
+Let $\{z_n\}$ be a sequence in $\mathbb{D}$ satisfying Blaschke's condition, and let $m$ be the
+number of $z_n$ equal to $0$. Then the \textbf{Blaschke product}
+\begin{equation}\label{eq:Blaschke product}
+  B(z)=z^m\prod_{|z_n|\neq 0}\left(-\frac{\overline{z_n}}{|z_n|}\right)
+  \frac{z-z_n}{1-\overline{z_n}z}
+\end{equation}
+converges on $\mathbb{D}$. The function $B$ is in $H^\infty(\mathbb{D})$ with $|B(z)|\leq 1$,
+and the zeros of $B$ are precisely the points $z_n$, each zero having multiplicity equal to
+the number of times it occurs in $\{z_n\}$. Moreover,
+\begin{equation*}
+  |B(e^{i\theta})|=1
+\end{equation*}
+for almost every $\theta$, where $B(e^{i\theta})=\lim_{r\rightarrow 1}B(re^{i\theta})$ is the
+radial limit of $B$.
+\end{theorem}
+
+Here's a characterization of Blaschke products in terms of harmonic majorants:
+\begin{theorem}\label{characterization of Blaschke products}
+Let $f\in H^\infty(\mathbb{D})$ with $\|f\|_{H^\infty}\leq 1$. The followings are equivalent:
+\begin{itemize}
+  \item[(a)] $f(z)=\lambda B(z)$ where $\lambda$ is constant with $|\lambda|=1$ and $B$ is a 
+  Blaschke product;
+  \item[(b)] $\lim_{r\rightarrow 1}\int \log |f(re^{i\theta})|d\theta/(2\pi)=0$;
+  \item[(c)] The least harmonic majorant of $\log |f|$ is 0.
+\end{itemize}
+\end{theorem}
+
+\section{Boundary functions of Hardy functions}
+Every $H^p$ function has a boundary function in $L^p(\mathbb{T})$, and for $p\geq 1$ it can be
+recovered from its boundary function via Poisson integral.
+\begin{theorem}\label{thm:Hp_boundary_function}
+Let $0<p\leq\infty$ and $f\in H^p(\D)$. Then $f$ has a nontangential limit $f^*(\zeta)$ at
+almost every $\zeta\in\mathbb{T}$, and $f^*\in L^p(\mathbb{T}, \frac{d\theta}{2\pi})$ with
+\begin{equation*}
+  \|f^*\|_{L^p}=\|f\|_{H^p}.
+\end{equation*}
+Moreover:
+\begin{itemize}
+  \item[(a)] if $0<p<\infty$, then
+  \begin{equation*}
+    \lim_{r\rightarrow 1}\|f(re^{i\cdot})-f^*\|_{L^p}=0;
+  \end{equation*}
+  \item[(b)] if $1\leq p\leq\infty$, then $f=P[f^*]$.
+\end{itemize}
+\end{theorem}
+
+
+
+
+\section{Nevanlinna class} 
+\begin{definition}
+An analytic function $f(z)$ on $\D$ is in the \textbf{Nevanlinna class} $N$ if 
+\begin{equation*}
+  \sup_r \int \log^+|f(r e^{i\theta})|\frac{d\theta}{2\pi}<\infty
+\end{equation*}
+\end{definition}
+As $\log^+|f(z)|\leq (1/p)|f(z)|^p$, so $H^p\subset N$ for all $0<p\leq \infty$, i.e. Nevanlinna
+class encompasses all Hardy spaces $H^p$. 
+
+By Theorem \ref{Harmonic majorant criterion}, we can formulate the definition
+in an equivalent definition:
+\begin{definition}
+An analytic function $f(z)$ on $\D$ is in the \textbf{Nevanlinna class} $N$ if 
+the subharmonic function $\log^+|f(z)|$ has a harmonic majorant.
+\end{definition}
+
+\begin{remark}
+Compared to $H^p(\D) \subset \mathcal{O}(\D)$, 
+which is just a subspace of $\mathcal{O}(\D)$ for $p<\infty$, $N\subset \mathcal{O}(\D)$ is 
+also a subalgebra of $\mathcal{O}(\D)$: if $f,g\in N$, then $fg\in N$ as
+\begin{equation*}
+  \log^+|fg|\leq \log^+|f|+\log^+|g|.
+\end{equation*}
+The closure of multiplication will sort of provide a more natural place for us to 
+describe `factorization problem'.
+\end{remark}
+
+\begin{theorem}\label{characterization of Nevanlinna using log |f|}
+Let $f(z)$ be an analytic function on $\mathbb{D}$ s.t. $f\not\equiv 0$. 
+Then $f\in N$ if and only if $\log|f(z)|$ has least harmonic majorant
+the Poisson integral of some finite measure on $\mathbb{T}$.
+\end{theorem}
+\begin{proof}
+
+\end{proof}
+
+
+\begin{lemma}\label{least harmonic majorant of log|f| for Nevanlinna f}
+Let $f\in N$ and $f\not\equiv 0$. Let $B$ be the Blaschke product formed from zeros of $f$. Then:
+\begin{itemize}
+  \item $B$ converges;
+  \item $g=f/B\in N$;
+  \item $\log |g|$ is the least harmonic majorant of $\log |f|$.
+\end{itemize}
+\end{lemma}
+\begin{proof}[Sketch of proof]
+As $f\in N$, $\log |f|$ has a harmonic majorant, thus by Theorem \ref{Blaschke condition from harmonic majorant},
+$f$ satisfies Blaschke's condition, thus $B$ converges. Now let $u$ be the least harmonic majorant
+of $\log |f|$. Recall in Example \ref{log |f| is subharmonic}, $g$ as a zero-free analytic function
+over $\mathbb{D}$, $\log |g|$ is harmonic on $\mathbb{D}$. As $|B(z)|\leq 1$, we have 
+$\log |f(z)|\leq \log |g(z)|$, thus 
+\begin{equation*}
+  u(z)\leq \log|g(z)|.
+\end{equation*}
+On the other hand, 
+\begin{equation*}
+  \log |B(z)|=\log |f(z)|-\log|g(z)|\leq u(z)-\log |g(z)|
+\end{equation*}
+Recall Theorem \ref{characterization of Blaschke products}, the least harmonic majorant of $\log|B|$
+is 0, thus 
+\begin{equation*}
+  0\leq u(z)-\log|g(z)|
+\end{equation*}
+which implies $u(z)=\log |g(z)|$. It's easy to check that $g\in N$ by definition.
+\end{proof}
+
+
+\begin{theorem}\label{nontangential limit of Nevanlinna}
+Let $f\in N$ and $f\not\equiv 0$. Then $f$ has a nontangential limit $f^*(\zeta)$ at almost
+every $\zeta\in\mathbb{T}$, and $\log|f^*|\in L^1(\mathbb{T})$.
+
+Moreover, the least harmonic majorant of $\log|f|$ is $P[\mu]$, where
+\begin{equation*}
+  d\mu=\log|f^*|\,\frac{d\theta}{2\pi}+d\mu_s,
+  \qquad \mu_s\perp\frac{d\theta}{2\pi}.
+\end{equation*}
+\end{theorem}
+
+\subsection{Canonical factorization theorem of Nevanlinna funcitons}
+Now we'd like to discuss the \textit{factorization problem} of Nevanlinna functions.
+Given $f\in N$ with $f\not\equiv 0$, consider $B$: Blaschke product formed by
+its zeros and $g=f/B$. By Lemma \ref{least harmonic majorant of log|f| for Nevanlinna f},
+we know that $\log|g|$ is the least harmonic majorant of $\log |f|$. Recall 
+Theorem \ref{characterization of Nevanlinna using log |f|}, we can write 
+$\log |g|=P[\mu]$ for some finite measure $\mu$. By Theorem \ref{nontangential limit of Nevanlinna},
+we can write:
+\begin{equation*}
+  d\mu=\log|f^*|\,\frac{d\theta}{2\pi}+d\mu_s,
+  \qquad \mu_s\perp\frac{d\theta}{2\pi}.
+\end{equation*}
+Now take Jordan decomposition on singular measure
+ $\mu_s$, we get the unique decomposition:
+ \begin{equation*}
+  \mu_s=-\mu_1+\mu_2
+ \end{equation*}
+ where $\mu_1$ and $\mu_2$ are positive singular measure that are mutually singular to each other. Thus we 
+write:
+\begin{equation*}
+  d\mu=\log|f^*|\,\frac{d\theta}{2\pi}-d\mu_1+d\mu_2.
+\end{equation*}
+
+Now consider the \textbf{outer funciton}
+\begin{equation*}
+  F(z)=\exp\left(\int K_z(\theta)\log |f(e^{i\theta})|\frac{d\theta}{2\pi}\right)
+\end{equation*}
+Here $K_z(\theta)=\frac{e^{i\theta}+z}{e^{i\theta}-z}$ is the Herglotz-Riesz kernel. Moreover, consider
+the \textbf{singular functions}:
+\begin{equation*}
+  S_j(z)=\exp\left(-\int K_z(\theta)d\mu_j(\theta)\right),\quad j=1,2.
+\end{equation*}
+Recall that $\text{Re } K_z(\theta)=P_z(\theta)$, which is the Poisson kernel, and
+$\log |e^w|=\text{Re } w$, so 
+\begin{equation*}
+  \log |F(z)|=P[\log |f|](z),\; \log |S_j(z)|=- P[\mu_j](z),\quad j=1,2.
+\end{equation*}
+Therefore, 
+\begin{align*}
+  \log |g(z)|=P[\mu](z)&=P[\log |f|](z)+P[\mu_1](z)-P[\mu_2](z)\\
+  &= \log |F(z)|+\log |S_1(z)|-\log|S_2(z)|.
+\end{align*}
+Then we have:
+\begin{equation*}
+  \log \left|\frac{g(z) S_2(z)}{F(z)S_1(z)}\right|=0
+\end{equation*}
+which takes $\exp$ on both sides yields:
+\begin{equation*}
+  \left|\frac{f(z)S_2(z)}{B(z)F(z)S_1(z)}\right|=1,\quad \forall z\in \mathbb{D}.
+\end{equation*}
+By maximum modulus principle, 
+\begin{equation*}
+  \frac{f(z)S_2(z)}{B(z)F(z)S_1(z)}=C,\quad C\in\mathbb{C},\; |C|=1.
+\end{equation*}
+This gives most of the \textbf{canonical factorization theorem}:
+\begin{theorem}
+Let $f\in N$, $f\not\equiv 0$. Then
+\begin{equation*}
+  f(z)=CB(z)F(z)S_1(z)/S_2(z),\quad |C|=1.
+\end{equation*}
+where $B$ is Blaschke product formed by zeros of $f$,
+$F$ is an outer function, and $S_1,S_2$ are
+singular functions whose positive singular measures $\mu_1,\mu_2$ are mutually singular.
+Except for the choice of the constant $C$, this factorization is unique.
+Conversely, every function of this form is in $N$.
+\end{theorem}

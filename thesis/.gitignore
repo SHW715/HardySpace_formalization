@@ -1,0 +1,20 @@
+# Local compilation products; keep source files and future figure PDFs tracked.
+/main.pdf
+*.aux
+*.log
+*.toc
+*.lof
+*.lot
+*.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+/build/
+
+# Editor temporary files.
+*.swp
+*~
