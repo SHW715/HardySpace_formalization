@@ -157,14 +157,20 @@ An analytic function $f(z)$ on $\D$ is in the \textbf{Nevanlinna class} $N$ if
 the subharmonic function $\log^+|f(z)|$ has a harmonic majorant.
 \end{definition}
 
-\begin{remark}
-Compared to $H^p(\D) \subset \mathcal{O}(\D)$, 
-which is just a subspace of $\mathcal{O}(\D)$ for $p<\infty$, $N\subset \mathcal{O}(\D)$ is 
+\begin{remark}\label{rem:N_algebra}
+Compared to $H^p(\D) \subset \mathcal{O}(\D)$,
+which is just a subspace of $\mathcal{O}(\D)$ for $p<\infty$, $N\subset \mathcal{O}(\D)$ is
 also a subalgebra of $\mathcal{O}(\D)$: if $f,g\in N$, then $fg\in N$ as
 \begin{equation*}
   \log^+|fg|\leq \log^+|f|+\log^+|g|.
 \end{equation*}
-The closure of multiplication will sort of provide a more natural place for us to 
+Moreover, if $f\in N$ has no zeros in $\D$, then $1/f\in N$. Indeed, let $U$ be a harmonic
+majorant of $\log^+|f|$. Since $f$ has no zeros, $\log|f|$ is harmonic on $\D$, and
+\begin{equation*}
+  \log^+|1/f|=\log^+|f|-\log|f|\leq U-\log|f|,
+\end{equation*}
+so $\log^+|1/f|$ has the harmonic majorant $U-\log|f|$.
+The closure of multiplication and inversion will sort of provide a more natural place for us to 
 describe `factorization problem'.
 \end{remark}
 
@@ -219,6 +225,147 @@ Moreover, the least harmonic majorant of $\log|f|$ is $P[\mu]$, where
 \end{equation*}
 \end{theorem}
 
+\subsection{Outer functions and Singular functions}
+Before we discuss the main topic of this section, which is the factorization problem of
+Nevanlinna functions, we'd like to first introduce two classes of functions: 
+\textbf{outer functions} and \textbf{singular functions}.
+\begin{definition}\label{def:outer_function}
+An analytic function $F$ on $\D$ is an \textbf{outer function} if
+\begin{equation*}
+  F(z)=C\exp\left(\int K_z(\theta)\,l(\theta)\,\frac{d\theta}{2\pi}\right),
+  \qquad z\in\D,
+\end{equation*}
+for some real-valued $l\in L^1(\mathbb{T})$ and some constant $C\in\mathbb{C}$ with $|C|=1$.
+Here $K_z(\theta)=\frac{e^{i\theta}+z}{e^{i\theta}-z}$ is the Herglotz-Riesz kernel.
+\end{definition}
+
+\begin{theorem}\label{thm:outer_function_properties}
+Let $F$ be an outer function on $\mathbb{D}$. Then:
+\begin{itemize}
+  \item[(a)] $F$ is analytic on $\D$ and has no zeros in $\D$;
+  \item[(b)] $\log|F|=P[l]$ on $\D$;
+  \item[(c)] $F\in N$;
+  \item[(d)] $F$ has a nontangential limit $F^*(\zeta)$ at almost every $\zeta\in\mathbb{T}$, and
+  $|F^*|=e^{l}$ almost everywhere on $\mathbb{T}$;
+  \item[(e)] if $F_1,F_2$ are outer functions with $|F_1^*|=|F_2^*|$ almost everywhere on
+  $\mathbb{T}$, then $F_1=cF_2$ for some constant $c\in\mathbb{C}$ with $|c|=1$.
+\end{itemize}
+\end{theorem}
+\begin{proof}
+Write $F=Ce^{G}$ with
+\begin{equation*}
+  G(z)=\int K_z(\theta)\,l(\theta)\,\frac{d\theta}{2\pi}.
+\end{equation*}
+
+(a) For $|z|\leq r<1$ we have $|K_z(\theta)|\leq\frac{1+r}{1-r}$, and $K_z(\theta)$ is analytic
+in $z$. Hence $G$ is analytic on $\D$ and so is
+$F=Ce^{G}$. Since the exponential has no zeros, neither does $F$.
+
+(b) As $|C|=1$, $l$ is real-valued and $\text{Re } K_z(\theta)=P_z(\theta)$, note
+that $\log |e^G|=\text{Re } G$,
+
+\begin{equation*}
+  \log|F(z)|=\text{Re } G(z)=\int P_z(\theta)\,l(\theta)\,\frac{d\theta}{2\pi}=P[l](z).
+\end{equation*}
+
+(c) Write $l^+=\max(l,0)$. By Lemma \ref{Properties of Poisson kernel}(a), $P_z>0$, so
+$\log|F|=P[l]\leq P[l^+]$, and since $P[l^+]\geq 0$, also $\log^+|F|\leq P[l^+]$. Using
+$P_{re^{i\theta}}(\varphi)=P_{re^{i\varphi}}(\theta)$, Fubini's theorem and Lemma
+\ref{Properties of Poisson kernel}(a) again,
+\begin{equation*}
+  \frac{1}{2\pi}\int_0^{2\pi}\log^+|F(re^{i\theta})|\,d\theta
+  \leq\frac{1}{2\pi}\int_0^{2\pi}P[l^+](re^{i\theta})\,d\theta
+  =\frac{1}{2\pi}\int_0^{2\pi}l^+(\varphi)\,d\varphi
+  \leq\|l\|_{L^1}
+\end{equation*}
+for every $0<r<1$. Hence $F\in N$.
+
+(d) By (c) and $F\not\equiv0$, Theorem \ref{nontangential limit of Nevanlinna} shows that $F$ has
+a nontangential limit $F^*$ almost everywhere. By (b) and Corollary
+\ref{cor:poisson_nontangential_ae}, $\log|F|=P[l]$ has nontangential limit $l$ almost
+everywhere. At almost every $\zeta\in\mathbb{T}$ both limits exist, and then
+\begin{equation*}
+  |F^*(\zeta)|=\lim_{\substack{z\to\zeta\\ z\in\Gamma_\alpha(\zeta)}}e^{\log|F(z)|}=e^{l(\zeta)}.
+\end{equation*}
+
+(e) Let $F_j=C_je^{G_j}$, where $G_j$ is defined from $l_j$ as above, $j=1,2$. By (d),
+$e^{l_1}=|F_1^*|=|F_2^*|=e^{l_2}$ almost everywhere, so $l_1=l_2$ almost everywhere. Hence
+$G_1=G_2$ on $\D$, and $F_1=cF_2$ with $c=C_1/C_2$, $|c|=1$.
+\end{proof}
+
+\begin{remark}
+One can construct an outer function as follow: given $h:\mathbb{T}\rightarrow [0,\infty)$
+s.t. $\log h\in L^1(\mathbb{T})$
+(think of it as the modulos of the boundary function of Nevanlinna functions over $\mathbb{D}$, 
+see \ref{nontangential limit of Nevanlinna}), then set $u(z)=P[\log h](z)$ and $v(z)$ to be one of the
+harmonic conjugates of $u(z)$. Then the function $F(z):= e^{u(z)+i v(z)}$ is an outer function,
+and it is determined by $h(\theta)$ except for a unimodular constant factor due to the choice
+of the conjugate $v(z)$. 
+\end{remark}
+
+\begin{definition}
+An analytic function $S$ on $\D$ is a \textbf{singular function} if
+\begin{equation*}
+  S(z)=\exp\left(-\int K_z(\theta)\,d\mu(\theta)\right),
+  \qquad z\in\D,
+\end{equation*}
+for some finite singular positive measure $\mu$ on $\mathbb{T}$.
+\end{definition}
+
+\begin{lemma}\label{lem:log_singular_function}
+For singular function $S(z)=\exp\left(-\int K_z(\theta)\,d\mu(\theta)\right)$
+ on $\mathbb{D}$, we have $\log|S|=-P[\mu]$ on $\mathbb{D}$.
+\end{lemma}
+\begin{proof}
+Given $z\in\D$, as $|K_z(\theta)|\leq\frac{1+|z|}{1-|z|}$ and $\mu$ is finite, 
+$\int K_z(\theta)\,d\mu(\theta)$ converges. As $\log|e^w|=\text{Re } w$, $\mu$ is a positive
+measure and $\text{Re } K_z(\theta)=P_z(\theta)$,
+\begin{equation*}
+  \log|S(z)|=-\text{Re }\int K_z(\theta)\,d\mu(\theta)
+  =-\int P_z(\theta)\,d\mu(\theta)=-P[\mu](z).
+\end{equation*}
+\end{proof}
+
+\begin{lemma}\label{lem:singular_function_in_N}
+If $S$ is a singular function on $\mathbb{D}$, then $S\in N$.
+\end{lemma}
+\begin{proof}
+By Lemma \ref{lem:log_singular_function} and Lemma \ref{Properties of Poisson kernel}(a),
+$\log|S|=-P[\mu]\leq 0$ on $\D$, as $\mu\geq 0$ and $P_z>0$. Hence $\log^+|S|=0$ on $\D$,
+so $S\in N$.
+\end{proof}
+
+\begin{theorem}\label{equivalent characterization of singular function}
+Let $S$ be an analytic function on $\D$. Then $S$ is a singular function if and only if $S$ has the
+following properties:
+\begin{itemize}
+  \item[(a)] $S$ has no zeros in $\D$;
+  \item[(b)] $|S(z)|\leq 1$ for all $z\in\D$;
+  \item[(c)] $S$ has a nontangential limit $S^*(\zeta)$ at almost every $\zeta\in\mathbb{T}$, and
+  $|S^*|=1$ almost everywhere on $\mathbb{T}$;
+  \item[(d)] $S(0)>0$.
+\end{itemize}
+\end{theorem}
+
+\begin{proof}[Proof of one direction]
+($\Rightarrow$) Let $S(z)=\exp\left(-\int K_z(\theta)\,d\mu(\theta)\right)$ with $\mu\geq 0$
+finite and singular.
+(a) holds as exponential has no zeros.
+(b) was shown in the proof of Lemma \ref{lem:singular_function_in_N}.
+(c) By Lemma \ref{lem:singular_function_in_N} and Theorem \ref{nontangential limit of Nevanlinna},
+$S$ has a nontangential limit $S^*$ almost everywhere. By Lemma \ref{lem:log_singular_function}
+and Theorem \ref{thm:singular_poisson_nontangential_zero}, $\log|S|=-P[\mu]$ has nontangential
+limit $0$ almost everywhere. So at a.e. $\zeta\in\mathbb{T}$,
+\begin{equation*}
+  |S^*(\zeta)|=\lim_{\substack{z\to\zeta\\ z\in\Gamma_\alpha(\zeta)}}e^{-P[\mu](z)}=1.
+\end{equation*}
+(d) holds because $K_0(\theta)=1$ gives $S(0)=e^{-\mu(\mathbb{T})}>0$.
+
+We will skip the proof of ($\Leftarrow$) as it's not needed in the project.
+\end{proof}
+
+
+
 \subsection{Canonical factorization theorem of Nevanlinna funcitons}
 Now we'd like to discuss the \textit{factorization problem} of Nevanlinna functions.
 Given $f\in N$ with $f\not\equiv 0$, consider $B$: Blaschke product formed by
@@ -242,9 +389,9 @@ write:
   d\mu=\log|f^*|\,\frac{d\theta}{2\pi}-d\mu_1+d\mu_2.
 \end{equation*}
 
-Now consider the \textbf{outer funciton}
+Now consider the \textbf{outer function}
 \begin{equation*}
-  F(z)=\exp\left(\int K_z(\theta)\log |f(e^{i\theta})|\frac{d\theta}{2\pi}\right)
+  \tilde{F}(z)=\exp\left(\int K_z(\theta)\log |f^*(e^{i\theta})|\frac{d\theta}{2\pi}\right)
 \end{equation*}
 Here $K_z(\theta)=\frac{e^{i\theta}+z}{e^{i\theta}-z}$ is the Herglotz-Riesz kernel. Moreover, consider
 the \textbf{singular functions}:
@@ -254,34 +401,61 @@ the \textbf{singular functions}:
 Recall that $\text{Re } K_z(\theta)=P_z(\theta)$, which is the Poisson kernel, and
 $\log |e^w|=\text{Re } w$, so 
 \begin{equation*}
-  \log |F(z)|=P[\log |f|](z),\; \log |S_j(z)|=- P[\mu_j](z),\quad j=1,2.
+  \log |\tilde{F}(z)|=P[\log |f|](z),\; \log |S_j(z)|=- P[\mu_j](z),\quad j=1,2.
 \end{equation*}
 Therefore, 
 \begin{align*}
   \log |g(z)|=P[\mu](z)&=P[\log |f|](z)+P[\mu_1](z)-P[\mu_2](z)\\
-  &= \log |F(z)|+\log |S_1(z)|-\log|S_2(z)|.
+  &= \log |\tilde{F}(z)|+\log |S_1(z)|-\log|S_2(z)|.
 \end{align*}
 Then we have:
 \begin{equation*}
-  \log \left|\frac{g(z) S_2(z)}{F(z)S_1(z)}\right|=0
+  \log \left|\frac{g(z) S_2(z)}{\tilde{F}(z)S_1(z)}\right|=0
 \end{equation*}
 which takes $\exp$ on both sides yields:
 \begin{equation*}
-  \left|\frac{f(z)S_2(z)}{B(z)F(z)S_1(z)}\right|=1,\quad \forall z\in \mathbb{D}.
+  \left|\frac{f(z)S_2(z)}{B(z)\tilde{F}(z)S_1(z)}\right|=1,\quad \forall z\in \mathbb{D}.
 \end{equation*}
 By maximum modulus principle, 
 \begin{equation*}
-  \frac{f(z)S_2(z)}{B(z)F(z)S_1(z)}=C,\quad C\in\mathbb{C},\; |C|=1.
+  \frac{f(z)S_2(z)}{B(z)\tilde{F}(z)S_1(z)}=C,\quad C\in\mathbb{C},\; |C|=1.
 \end{equation*}
+Set $F=C\tilde{F}$. By Definition \ref{def:outer_function}, $F$ is again an outer function, and
+$f=BFS_1/S_2$.
 This gives most of the \textbf{canonical factorization theorem}:
 \begin{theorem}
 Let $f\in N$, $f\not\equiv 0$. Then
 \begin{equation*}
-  f(z)=CB(z)F(z)S_1(z)/S_2(z),\quad |C|=1.
+  f(z)=B(z)F(z)S_1(z)/S_2(z),
 \end{equation*}
 where $B$ is Blaschke product formed by zeros of $f$,
 $F$ is an outer function, and $S_1,S_2$ are
 singular functions whose positive singular measures $\mu_1,\mu_2$ are mutually singular.
-Except for the choice of the constant $C$, this factorization is unique.
+This factorization is unique.
 Conversely, every function of this form is in $N$.
 \end{theorem}
+\begin{proof}
+The existence part is given as above.
+
+For uniqueness, the Blaschke product $B$ is determined by the zeros of $f$. Suppose
+$f=BFS_1/S_2=BF'S_1'/S_2'$, where $S_1,S_2$ come from $\mu_1,\mu_2$ and $S_1',S_2'$ from
+$\nu_1,\nu_2$. Since the zeros of $B\not\equiv 0$ are isolated, $FS_1/S_2=F'S_1'/S_2'$ on $\D$
+minus a discrete set, hence on $\D$ by continuity. By Theorem
+\ref{equivalent characterization of singular function}(c), $|S_1^*|=|S_2^*|=|S_1'^*|=|S_2'^*|=1$
+almost everywhere, so $|F^*|=|F'^*|$ almost everywhere, and by Theorem
+\ref{thm:outer_function_properties}(e), $F=cF'$ for a constant $c$ with $|c|=1$. Thus
+$cS_1/S_2=S_1'/S_2'$, and taking $\log|\cdot|$, Lemma \ref{lem:log_singular_function} gives
+\begin{equation*}
+  P[\mu_2-\mu_1]=P[\nu_2-\nu_1]\quad\text{on }\D.
+\end{equation*}
+Since a finite measure on $\mathbb{T}$ is determined by its Poisson integral,
+$\mu_2-\mu_1=\nu_2-\nu_1$. Both $(\mu_2,\mu_1)$ and $(\nu_2,\nu_1)$ are pairs of mutually
+singular positive measures, so by uniqueness of the Jordan decomposition, $\mu_1=\nu_1$ and
+$\mu_2=\nu_2$. Hence $S_j=S_j'$ for $j=1,2$, so $c=1$ and $F=F'$.
+
+For converse part Since $N$ is closed under multiplication by Remark \ref{rem:N_algebra}, it suffices to show that
+$B,F,S_1,1/S_2\in N$. We have $B\in H^\infty\subset N$ by Theorem \ref{Blaschke product},
+$F\in N$ by Theorem \ref{thm:outer_function_properties}(c), and $S_1\in N$ by Lemma
+\ref{lem:singular_function_in_N}. Likewise $S_2\in N$, and $S_2$ has no zeros in $\D$, so
+$1/S_2\in N$ by Remark \ref{rem:N_algebra}.
+\end{proof}

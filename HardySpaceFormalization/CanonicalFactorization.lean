@@ -15,17 +15,18 @@ open scoped PoissonIntegral
 
 namespace Nevanlinna
 
-/-- `IsCanonicalFactorization f C F μ₁ μ₂` asserts that `f = C * B * F * S₁ / S₂` on the disc
+/-- `IsCanonicalFactorization f F μ₁ μ₂` asserts that `f = B * F * S₁ / S₂` on the disc
 is a canonical factorization in the sense of Garnett II.5.5, formula (5.10). The Blaschke
-product `B` is formed from the zeros of `f`, which satisfy the Blaschke condition; `‖C‖ = 1`;
-`F` is outer; and `Sⱼ = singularFunction μⱼ`, where `μ₁, μ₂` are finite positive measures
-carried by the unit circle, singular to arclength and to each other. Values of `f` outside
-the disc are unrestricted. -/
+product `B` is formed from the zeros of `f`, which satisfy the Blaschke condition; `F` is outer;
+and `Sⱼ = singularFunction μⱼ`, where `μ₁, μ₂` are finite positive measures carried by the unit
+circle, singular to arclength and to each other. Values of `f` outside the disc are unrestricted.
+
+Garnett's unimodular constant `C` in (5.10) is absorbed into `F`: by his definition (II.4),
+an outer function is determined only up to such a constant, and so is `IsOuterFunction`. -/
 @[mk_iff]
-structure IsCanonicalFactorization (f : ℂ → ℂ) (C : ℂ) (F : ℂ → ℂ) (μ₁ μ₂ : Measure ℂ) :
+structure IsCanonicalFactorization (f : ℂ → ℂ) (F : ℂ → ℂ) (μ₁ μ₂ : Measure ℂ) :
     Prop where
   blaschkeCondition : BlaschkeCondition (analyticOrderAt f)
-  norm_C : ‖C‖ = 1
   isOuterFunction : IsOuterFunction F
   isFiniteMeasure₁ : IsFiniteMeasure μ₁
   isFiniteMeasure₂ : IsFiniteMeasure μ₂
@@ -34,14 +35,14 @@ structure IsCanonicalFactorization (f : ℂ → ℂ) (C : ℂ) (F : ℂ → ℂ)
   singular_circleMeasure₁ : μ₁ ⟂ₘ circleMeasure 0 1
   singular_circleMeasure₂ : μ₂ ⟂ₘ circleMeasure 0 1
   mutuallySingular : μ₁ ⟂ₘ μ₂
-  eq_mul_div : ∀ z ∈ unitDisc, f z = C * BlaschkeProduct (analyticOrderAt f) z * F z *
+  eq_mul_div : ∀ z ∈ unitDisc, f z = BlaschkeProduct (analyticOrderAt f) z * F z *
     singularFunction μ₁ z / singularFunction μ₂ z
 
 /-- **Garnett II.5.5 (existence).** A nonzero Nevanlinna function has a canonical
-factorization `f = C * B * F * S₁ / S₂` on the disc. -/
+factorization `f = B * F * S₁ / S₂` on the disc. -/
 theorem MemNevanlinnaDisc.exists_isCanonicalFactorization {f : ℂ → ℂ}
     (hf : MemNevanlinnaDisc f) (hf_ne : ∃ z ∈ unitDisc, f z ≠ 0) :
-    ∃ (C : ℂ) (F : ℂ → ℂ) (μ₁ μ₂ : Measure ℂ), IsCanonicalFactorization f C F μ₁ μ₂ := by
+    ∃ (F : ℂ → ℂ) (μ₁ μ₂ : Measure ℂ), IsCanonicalFactorization f F μ₁ μ₂ := by
   -- Claude without review
   -- II.5.2: `f = B g` with `g` zero-free and `log |g|` the least harmonic majorant of `log |f|`.
   obtain ⟨g, hgN, hg_ne, hfg, hg_lhm⟩ := hf.exists_eq_blaschkeProduct_mul hf_ne
@@ -95,10 +96,9 @@ theorem MemNevanlinnaDisc.exists_isCanonicalFactorization {f : ℂ → ℂ}
     eqOn_of_isPreconnected_of_isMaxOn_norm (convex_ball (0 : ℂ) 1).isPreconnected
       Metric.isOpen_ball hu_an.differentiableOn h0
       (isMaxOn_iff.mpr fun z hz => by simp [hu_norm z hz, hu_norm 0 h0])
-  refine ⟨u 0, outerFunction k, μ₁, μ₂,
+  refine ⟨fun z => u 0 * outerFunction k z, μ₁, μ₂,
     { blaschkeCondition := hf.blaschkeCondition hf_ne
-      norm_C := hu_norm 0 h0
-      isOuterFunction := isOuterFunction_outerFunction hk
+      isOuterFunction := ⟨k, hk, u 0, hu_norm 0 h0, fun _ _ => rfl⟩
       isFiniteMeasure₁ := inferInstance
       isFiniteMeasure₂ := inferInstance
       measure_compl_sphere₁ := hcirc₁
@@ -113,18 +113,17 @@ theorem MemNevanlinnaDisc.exists_isCanonicalFactorization {f : ℂ → ℂ}
   ring
 
 /-- **Garnett II.5.5 (uniqueness).** Two canonical factorizations of the same function have
-the same singular measures, and their outer parts agree up to the unimodular constants:
-`C * F = C' * F'` on the disc. Mutual singularity of `μ₁` and `μ₂` is what makes the singular
-quotient `S₁ / S₂` unique.
+the same singular measures and the same outer factor on the disc. Mutual singularity of `μ₁`
+and `μ₂` is what makes the singular quotient `S₁ / S₂` unique.
 
 Garnett determines `F` by the boundary modulus `|f*|` and `S₁, S₂` by the least harmonic majorant
-of `log |f|`. Here both come from the measure `k dσ + μ₂ - μ₁` representing `log |C F S₁ / S₂|`:
+of `log |f|`. Here both come from the measure `k dσ + μ₂ - μ₁` representing `log |F S₁ / S₂|`:
 it is determined by its Poisson integral, its singular part `μ₂ - μ₁` by the Lebesgue
 decomposition, and `μ₁, μ₂` by the Jordan decomposition. No boundary values are needed. -/
-theorem IsCanonicalFactorization.unique {f : ℂ → ℂ} {C C' : ℂ} {F F' : ℂ → ℂ}
-    {μ₁ μ₂ ν₁ ν₂ : Measure ℂ} (h : IsCanonicalFactorization f C F μ₁ μ₂)
-    (h' : IsCanonicalFactorization f C' F' ν₁ ν₂) :
-    μ₁ = ν₁ ∧ μ₂ = ν₂ ∧ ∀ z ∈ unitDisc, C * F z = C' * F' z := by
+theorem IsCanonicalFactorization.unique {f : ℂ → ℂ} {F F' : ℂ → ℂ}
+    {μ₁ μ₂ ν₁ ν₂ : Measure ℂ} (h : IsCanonicalFactorization f F μ₁ μ₂)
+    (h' : IsCanonicalFactorization f F' ν₁ ν₂) :
+    μ₁ = ν₁ ∧ μ₂ = ν₂ ∧ ∀ z ∈ unitDisc, F z = F' z := by
   haveI := h.isFiniteMeasure₁
   haveI := h.isFiniteMeasure₂
   haveI := h'.isFiniteMeasure₁
@@ -141,45 +140,45 @@ theorem IsCanonicalFactorization.unique {f : ℂ → ℂ} {C C' : ℂ} {F F' : �
     have hord := analyticOrderAt_blaschkeProduct h.blaschkeCondition h0
     rw [analyticOrderAt_eq_top.mpr hB0] at hord
     exact h.blaschkeCondition.ne_top h0 hord.symm
-  have hGan : ∀ (c : ℂ) (G : ℂ → ℂ) (ρ₁ ρ₂ : Measure ℂ) [IsFiniteMeasure ρ₁] [IsFiniteMeasure ρ₂],
+  have hGan : ∀ (G : ℂ → ℂ) (ρ₁ ρ₂ : Measure ℂ) [IsFiniteMeasure ρ₁] [IsFiniteMeasure ρ₂],
       IsOuterFunction G → ρ₁ (Metric.sphere 0 1)ᶜ = 0 → ρ₂ (Metric.sphere 0 1)ᶜ = 0 →
-      AnalyticOnNhd ℂ (fun z => c * G z * singularFunction ρ₁ z / singularFunction ρ₂ z)
+      AnalyticOnNhd ℂ (fun z => G z * singularFunction ρ₁ z / singularFunction ρ₂ z)
         unitDisc := by
-    intro c G ρ₁ ρ₂ _ _ hG hρ₁ hρ₂
+    intro G ρ₁ ρ₂ _ _ hG hρ₁ hρ₂
     exact Metric.isOpen_ball.analyticOn_iff_analyticOnNhd.mp
-      (((analyticOn_const.mul hG.analyticOn).mul (analyticOn_singularFunction hρ₁)).div
+      ((hG.analyticOn.mul (analyticOn_singularFunction hρ₁)).div
         (analyticOn_singularFunction hρ₂) fun z _ => singularFunction_ne_zero ρ₂ z)
-  have hdiff := (hGan C F μ₁ μ₂ h.isOuterFunction h.measure_compl_sphere₁
-    h.measure_compl_sphere₂).sub (hGan C' F' ν₁ ν₂ h'.isOuterFunction h'.measure_compl_sphere₁
+  have hdiff := (hGan F μ₁ μ₂ h.isOuterFunction h.measure_compl_sphere₁
+    h.measure_compl_sphere₂).sub (hGan F' ν₁ ν₂ h'.isOuterFunction h'.measure_compl_sphere₁
     h'.measure_compl_sphere₂)
   have hfreq : ∃ᶠ z in nhdsWithin (0 : ℂ) {0}ᶜ,
-      (C * F z * singularFunction μ₁ z / singularFunction μ₂ z -
-        C' * F' z * singularFunction ν₁ z / singularFunction ν₂ z) = 0 := by
+      (F z * singularFunction μ₁ z / singularFunction μ₂ z -
+        F' z * singularFunction ν₁ z / singularFunction ν₂ z) = 0 := by
     refine Filter.Eventually.frequently ?_
     filter_upwards [hBne, mem_nhdsWithin_of_mem_nhds (Metric.isOpen_ball.mem_nhds h0)]
       with z hBz hz
-    have hBG : B z * (C * F z * singularFunction μ₁ z / singularFunction μ₂ z -
-        C' * F' z * singularFunction ν₁ z / singularFunction ν₂ z) = 0 := by
+    have hBG : B z * (F z * singularFunction μ₁ z / singularFunction μ₂ z -
+        F' z * singularFunction ν₁ z / singularFunction ν₂ z) = 0 := by
       linear_combination (h.eq_mul_div z hz).symm.trans (h'.eq_mul_div z hz)
     exact (mul_eq_zero.mp hBG).resolve_left hBz
-  have hG : ∀ z ∈ unitDisc, C * F z * singularFunction μ₁ z / singularFunction μ₂ z =
-      C' * F' z * singularFunction ν₁ z / singularFunction ν₂ z := fun z hz =>
+  have hG : ∀ z ∈ unitDisc, F z * singularFunction μ₁ z / singularFunction μ₂ z =
+      F' z * singularFunction ν₁ z / singularFunction ν₂ z := fun z hz =>
     sub_eq_zero.mp
       (hdiff.eqOn_zero_of_preconnected_of_frequently_eq_zero (convex_ball (0 : ℂ) 1).isPreconnected
         h0 hfreq hz)
   -- `log |G| = P[k dσ + μ₂ - μ₁]` and `log |G'| = P[k' dσ + ν₂ - ν₁]`, so the two measures agree.
-  have hlogG : ∀ (c : ℂ) (G : ℂ → ℂ) (ρ₁ ρ₂ : Measure ℂ) [IsFiniteMeasure ρ₁]
-      [IsFiniteMeasure ρ₂], ‖c‖ = 1 → IsOuterFunction G → ρ₁ (Metric.sphere 0 1)ᶜ = 0 →
+  have hlogG : ∀ (G : ℂ → ℂ) (ρ₁ ρ₂ : Measure ℂ) [IsFiniteMeasure ρ₁]
+      [IsFiniteMeasure ρ₂], IsOuterFunction G → ρ₁ (Metric.sphere 0 1)ᶜ = 0 →
       ρ₂ (Metric.sphere 0 1)ᶜ = 0 → ∃ l : ℂ → ℝ, ∀ z ∈ unitDisc,
-        Real.log ‖c * G z * singularFunction ρ₁ z / singularFunction ρ₂ z‖ =
+        Real.log ‖G z * singularFunction ρ₁ z / singularFunction ρ₂ z‖ =
           P[0; l ∂ᵥ circleMeasure 0 1 + (ρ₂.toSignedMeasure - ρ₁.toSignedMeasure)] z := by
-    intro c G ρ₁ ρ₂ _ _ hc hG hρ₁ hρ₂
+    intro G ρ₁ ρ₂ _ _ hG hρ₁ hρ₂
     obtain ⟨l, hl, hlogF⟩ := hG.exists_log_norm_eq
     refine ⟨l, fun z hz => ?_⟩
     have hG0 : ‖G z‖ ≠ 0 := norm_ne_zero_iff.mpr (hG.ne_zero hz)
     have hS₁ : ‖singularFunction ρ₁ z‖ ≠ 0 := norm_ne_zero_iff.mpr (singularFunction_ne_zero ρ₁ z)
     have hS₂ : ‖singularFunction ρ₂ z‖ ≠ 0 := norm_ne_zero_iff.mpr (singularFunction_ne_zero ρ₂ z)
-    rw [norm_div, norm_mul, norm_mul, hc, one_mul, Real.log_div (mul_ne_zero hG0 hS₁) hS₂,
+    rw [norm_div, norm_mul, Real.log_div (mul_ne_zero hG0 hS₁) hS₂,
       Real.log_mul hG0 hS₁, hlogF z hz, log_norm_singularFunction hρ₁ hz,
       log_norm_singularFunction hρ₂ hz,
       poissonIntegral_add (integrable_poissonKernel_withDensityᵥ hσ hz hl)
@@ -187,9 +186,9 @@ theorem IsCanonicalFactorization.unique {f : ℂ → ℂ} {C C' : ℂ} {F F' : �
           (integrable_poissonKernel_toSignedMeasure hρ₁ hz)),
       poissonIntegral_toSignedMeasure_sub hρ₂ hρ₁ hz]
     ring
-  obtain ⟨k, hlog⟩ := hlogG C F μ₁ μ₂ h.norm_C h.isOuterFunction h.measure_compl_sphere₁
+  obtain ⟨k, hlog⟩ := hlogG F μ₁ μ₂ h.isOuterFunction h.measure_compl_sphere₁
     h.measure_compl_sphere₂
-  obtain ⟨k', hlog'⟩ := hlogG C' F' ν₁ ν₂ h'.norm_C h'.isOuterFunction h'.measure_compl_sphere₁
+  obtain ⟨k', hlog'⟩ := hlogG F' ν₁ ν₂ h'.isOuterFunction h'.measure_compl_sphere₁
     h'.measure_compl_sphere₂
   have hcarried : ∀ (l : ℂ → ℝ) (ρ₁ ρ₂ : Measure ℂ) [IsFiniteMeasure ρ₁] [IsFiniteMeasure ρ₂],
       ρ₁ (Metric.sphere 0 1)ᶜ = 0 → ρ₂ (Metric.sphere 0 1)ᶜ = 0 →
@@ -226,7 +225,7 @@ theorem IsCanonicalFactorization.unique {f : ℂ → ℂ} {C C' : ℂ} {F F' : �
       ((congrArg (SignedMeasure.singularPart · (circleMeasure 0 1)) heq).trans
         (SignedMeasure.eq_singularPart _ k'
           (hsing jν h'.singular_circleMeasure₂ h'.singular_circleMeasure₁) (add_comm _ _)).symm)
-  -- Jordan uniqueness gives `μⱼ = νⱼ`; dividing out the common singular factors gives `CF = C'F'`.
+  -- Jordan uniqueness gives `μⱼ = νⱼ`; dividing out the common singular factors gives `F = F'`.
   have hjj := JordanDecomposition.toSignedMeasure_injective hj
   have hμ₂ : μ₂ = ν₂ := congrArg JordanDecomposition.posPart hjj
   have hμ₁ : μ₁ = ν₁ := congrArg JordanDecomposition.negPart hjj
