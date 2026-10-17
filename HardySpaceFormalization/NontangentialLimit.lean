@@ -126,7 +126,7 @@ theorem IsAEBoundaryValue.ae_eq_boundaryValue [T2Space X] [Nonempty X] {μ : Mea
     {f g : ℂ → X} (h : IsAEBoundaryValue μ f g) (hne : ∀ᵐ ζ ∂μ, (nontangentially ζ).NeBot) :
     g =ᵐ[μ] boundaryValue f := by
   filter_upwards [h, hne] with ζ hζ hζne
-  haveI := hζne
+  have := hζne
   exact hζ.limUnder_eq.symm
 
 /-- The canonical boundary function inherits measurability from any almost everywhere
@@ -381,9 +381,9 @@ theorem integral_poissonKernel_le_of_measure_closedBall_le
     have hjmem : w ∈ B (Nat.find hex) := Nat.find_spec hex
     rw [hSdef]
     by_cases hj0 : Nat.find hex = 0
-    · simp only [hj0, if_pos]
+    · simp only [hj0, ite_eq_left]
       rw [hj0] at hjmem; exact hjmem
-    · simp only [hj0, if_false]
+    · simp only [hj0, ite_false]
       refine ⟨hjmem, ?_⟩
       exact Nat.find_min hex (Nat.sub_lt (Nat.pos_of_ne_zero hj0) one_pos)
   -- (2) kernel bound on each piece
@@ -401,7 +401,7 @@ theorem integral_poissonKernel_le_of_measure_closedBall_le
     rw [hrw] at hbase
     by_cases hj0 : j = 0
     · subst hj0
-      simp only [hSdef, if_pos rfl, hBdef, pow_zero, one_mul, mem_closedBall, dist_eq_norm] at hw
+      simp only [hSdef, ite_eq_left rfl, hBdef, pow_zero, one_mul, mem_closedBall, dist_eq_norm] at hw
       have hδle : δ ≤ δ + ‖w - ζ‖ := le_add_of_nonneg_right (norm_nonneg _)
       have h1 : A * δ / (δ + ‖w - ζ‖) ^ 2 ≤ A * δ / δ ^ 2 := hlow δ hδ hδle
       have h2 : A * δ / δ ^ 2 = A / δ := by field_simp
@@ -409,7 +409,7 @@ theorem integral_poissonKernel_le_of_measure_closedBall_le
         simp only [pow_zero, one_mul]
         rw [div_le_div_iff₀ hδ hδ]; nlinarith
       linarith [hbase, h1, h2.le, h2.ge, h3]
-    · simp only [hSdef, if_neg hj0, hBdef, Set.mem_sdiff, mem_closedBall, dist_eq_norm,
+    · simp only [hSdef, ite_eq_right hj0, hBdef, Set.mem_sdiff, mem_closedBall, dist_eq_norm,
         not_le] at hw
       obtain ⟨-, hout⟩ := hw
       have hpow : (0:ℝ) < 2 ^ (j - 1) * δ := by positivity
@@ -435,7 +435,7 @@ theorem integral_poissonKernel_le_of_measure_closedBall_le
     have hsub : S j ⊆ B j := by
       rw [hSdef]; by_cases hj0 : j = 0
       · simp [hj0]
-      · simp only [hj0, if_false]; exact sdiff_subset
+      · simp only [hj0, ite_false]; exact sdiff_subset
     have hr : (0:ℝ) < 2 ^ j * δ := by positivity
     calc ν (S j) ≤ ν (B j) := measure_mono hsub
       _ ≤ ENNReal.ofReal c * circleMeasure 0 1 (closedBall ζ (2 ^ j * δ)) := hball _ hr
@@ -448,8 +448,8 @@ theorem integral_poissonKernel_le_of_measure_closedBall_le
     intro j
     rw [hSdef]
     by_cases hj0 : j = 0
-    · simp only [hj0, if_pos, hBdef]; exact measurableSet_closedBall
-    · simp only [hj0, if_false, hBdef]
+    · simp only [hj0, ite_eq_left, hBdef]; exact measurableSet_closedBall
+    · simp only [hj0, ite_false, hBdef]
       exact measurableSet_closedBall.diff measurableSet_closedBall
   -- (5) per-piece lintegral bound
   have hpiece : ∀ j : ℕ, ∫⁻ w in S j, ENNReal.ofReal (poissonKernel 0 z w) ∂ν
@@ -557,9 +557,9 @@ theorem hasNontangentialLimit_integral_poissonKernel_of_density_zero
   have hR'pos : 0 < R' := by rw [hR'def]; positivity
   have hR'lt : R' < R := by rw [hR'def]; linarith
   have hB : MeasurableSet (closedBall ζ R') := measurableSet_closedBall
-  haveI hfin_n : IsFiniteMeasure (ν.restrict (closedBall ζ R')) :=
+  have hfin_n : IsFiniteMeasure (ν.restrict (closedBall ζ R')) :=
     ⟨by rw [Measure.restrict_apply_univ]; exact measure_lt_top ν _⟩
-  haveI hfin_f : IsFiniteMeasure (ν.restrict (closedBall ζ R')ᶜ) :=
+  have hfin_f : IsFiniteMeasure (ν.restrict (closedBall ζ R')ᶜ) :=
     ⟨by rw [Measure.restrict_apply_univ]; exact measure_lt_top ν _⟩
   have hνn_car : ν.restrict (closedBall ζ R') (sphere 0 1)ᶜ = 0 := by
     rw [Measure.restrict_apply (isClosed_sphere.measurableSet).compl]
@@ -696,7 +696,7 @@ theorem hasNontangentialLimit_poissonIntegral_of_lebesguePoint {k : ℂ → ℝ}
   -- Claude without review
   set σ := circleMeasure 0 1 with hσdef
   set ρ := σ.withDensity (fun w => ENNReal.ofReal |k w - k ζ|) with hρdef
-  haveI hfin : IsFiniteMeasure ρ :=
+  have hfin : IsFiniteMeasure ρ :=
     isFiniteMeasure_withDensity_ofReal ((hk.sub (integrable_const (k ζ))).abs).2
   have hcar : σ (sphere (0:ℂ) 1)ᶜ = 0 := ae_iff.1 (ae_mem_sphere_circleMeasure zero_le_one)
   have hρcar : ρ (sphere (0:ℂ) 1)ᶜ = 0 := withDensity_absolutelyContinuous σ _ hcar
@@ -803,10 +803,10 @@ theorem isAEBoundaryValue_poissonIntegral_zero_of_mutuallySingular
     hvariation_le.absolutelyContinuous hν
   have hvariation_singular : ν.variation ⟂ₘ circleMeasure 0 1 :=
     hsing_total.mono hvariation_le le_rfl
-  haveI htotal_finite : IsFiniteMeasure ν.totalVariation := by
+  have htotal_finite : IsFiniteMeasure ν.totalVariation := by
     rw [SignedMeasure.totalVariation]
     infer_instance
-  haveI : IsFiniteMeasure ν.variation := by
+  have : IsFiniteMeasure ν.variation := by
     constructor
     exact lt_of_le_of_lt (hvariation_le univ) (measure_lt_top ν.totalVariation univ)
   let v := Besicovitch.vitaliFamily (circleMeasure 0 1)

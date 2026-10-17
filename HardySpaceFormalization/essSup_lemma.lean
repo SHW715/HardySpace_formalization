@@ -47,9 +47,10 @@ lemma essSup_enorm_eq_iSup_enorm_of_continuous_of_isOpenPosMeasure
   exact (ne_of_gt hpos) hzero
 
 lemma eLpNorm_top_eq_iSup_enorm_of_continuous_of_isOpenPosMeasure
-    [TopologicalSpace α] [μ.IsOpenPosMeasure] {f : α → E} (hf : Continuous f) :
+    [TopologicalSpace α] [OpensMeasurableSpace α] [SecondCountableTopologyEither α E]
+    [μ.IsOpenPosMeasure] {f : α → E} (hf : Continuous f) :
     eLpNorm f ∞ μ = ⨆ x, ‖f x‖ₑ := by
-  rw [eLpNorm_exponent_top, eLpNormEssSup_eq_essSup_enorm]
+  rw [eLpNorm_exponent_top hf.aestronglyMeasurable, eLpNormEssSup_eq_essSup_enorm]
   exact essSup_enorm_eq_iSup_enorm_of_continuous_of_isOpenPosMeasure hf
 
 lemma essSup_restrict_eq_iSup_of_continuous_of_support
@@ -106,7 +107,7 @@ lemma essSup_restrict_Ico_eq_iSup_of_continuous
     measurableSet_Ico.nullMeasurableSet hφ ?_
   have hclosed : IsClosed (volume.restrict (Ico a b)).support :=
     Measure.isClosed_support
-  refine (Ico_subset_closure_interior a b).trans ?_
+  refine (Ico_subset_closure_interior b a).trans ?_
   refine hclosed.closure_subset_iff.mpr ?_
   intro x hx
   exact Measure.interior_inter_support (μ := volume) (s := Ico a b)

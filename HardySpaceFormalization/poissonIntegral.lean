@@ -35,7 +35,7 @@ theorem ContinuousOn.intervalIntegral_uIcc
     (hcont : ContinuousOn (fun p : ℂ × ℝ => Φ p.1 p.2) (s ×ˢ uIcc a b)) :
     ContinuousOn (fun w : ℂ => ∫ θ in a..b, Φ w θ) s := by
   -- codex without review
-  rw [continuousOn_iff_continuous_restrict]
+  rw [continuousOn_iff_continuous_domRestrict]
   by_cases hab : a ≤ b
   · let Ψ : s → ℝ → E := fun w θ =>
       Φ w ((Set.projIcc a b hab θ : Set.Icc a b) : ℝ)
@@ -280,8 +280,8 @@ theorem integrable_poissonKernel_withDensityᵥ {μ : Measure ℂ} [IsFiniteMeas
     {k : ℂ → ℝ} (hμ : μ (sphere c R)ᶜ = 0) (hw : w ∈ ball c R) (hk : Integrable k μ) :
     (μ.withDensityᵥ k).Integrable (fun z : ℂ => poissonKernel c w z) := by
   -- `k dμ = k⁺ dμ - k⁻ dμ`, and both parts are finite measures carried by the circle.
-  haveI := isFiniteMeasure_withDensity_ofReal (μ := μ) hk.2
-  haveI := isFiniteMeasure_withDensity_ofReal (μ := μ) hk.neg.2
+  have := isFiniteMeasure_withDensity_ofReal (μ := μ) hk.2
+  have := isFiniteMeasure_withDensity_ofReal (μ := μ) hk.neg.2
   rw [withDensityᵥ_eq_withDensity_pos_part_sub_withDensity_neg_part hk, sub_eq_add_neg]
   exact (integrable_poissonKernel_toSignedMeasure (withDensity_absolutelyContinuous μ _ hμ)
     hw).add_vectorMeasure
@@ -297,8 +297,8 @@ theorem poissonIntegral_withDensityᵥ {μ : Measure ℂ} [IsFiniteMeasure μ]
   -- The two positive parts of `k dμ`, as finite measures carried by the circle.
   set μ₁ : Measure ℂ := μ.withDensity fun x => ENNReal.ofReal (k x) with hμ₁
   set μ₂ : Measure ℂ := μ.withDensity fun x => ENNReal.ofReal (-k x) with hμ₂
-  haveI hfin₁ : IsFiniteMeasure μ₁ := isFiniteMeasure_withDensity_ofReal hk.2
-  haveI hfin₂ : IsFiniteMeasure μ₂ := isFiniteMeasure_withDensity_ofReal hk.neg.2
+  have hfin₁ : IsFiniteMeasure μ₁ := isFiniteMeasure_withDensity_ofReal hk.2
+  have hfin₂ : IsFiniteMeasure μ₂ := isFiniteMeasure_withDensity_ofReal hk.neg.2
   have hcar₁ : μ₁ (sphere c R)ᶜ = 0 := withDensity_absolutelyContinuous μ _ hμ
   have hcar₂ : μ₂ (sphere c R)ᶜ = 0 := withDensity_absolutelyContinuous μ _ hμ
   -- Integrability of the kernel against each part, in the measure and the vector-measure sense.
@@ -340,7 +340,7 @@ theorem integrable_poissonKernel_totalVariation {μ : SignedMeasure ℂ}
     (hμ : μ.totalVariation (sphere c R)ᶜ = 0) (hw : w ∈ ball c R) :
     μ.Integrable (fun z : ℂ => poissonKernel c w z) := by
   -- Claude without review
-  haveI : IsFiniteMeasure μ.totalVariation := by
+  have : IsFiniteMeasure μ.totalVariation := by
     rw [SignedMeasure.totalVariation]; infer_instance
   have hint : Integrable (fun z : ℂ => poissonKernel c w z) μ.totalVariation := by
     have h := (integrable_herglotzRieszKernel (μ := μ.totalVariation) hμ hw).re
@@ -604,8 +604,8 @@ theorem harmonicOnNhd_poissonIntegral_withDensityᵥ {μ : Measure ℂ} [IsFinit
   -- Claude without review
   set μ₁ : Measure ℂ := μ.withDensity fun x => ENNReal.ofReal (k x) with hμ₁
   set μ₂ : Measure ℂ := μ.withDensity fun x => ENNReal.ofReal (-k x) with hμ₂
-  haveI : IsFiniteMeasure μ₁ := isFiniteMeasure_withDensity_ofReal hk.2
-  haveI : IsFiniteMeasure μ₂ := isFiniteMeasure_withDensity_ofReal hk.neg.2
+  have : IsFiniteMeasure μ₁ := isFiniteMeasure_withDensity_ofReal hk.2
+  have : IsFiniteMeasure μ₂ := isFiniteMeasure_withDensity_ofReal hk.neg.2
   have hcar₁ : μ₁ (sphere c R)ᶜ = 0 := withDensity_absolutelyContinuous μ _ hμ
   have hcar₂ : μ₂ (sphere c R)ᶜ = 0 := withDensity_absolutelyContinuous μ _ hμ
   -- `k dμ = k⁺ dμ - k⁻ dμ`, so `P[k dμ]` is a difference of Poisson integrals of measures.
@@ -664,18 +664,20 @@ lemma enorm_poissonIntegral_rpow_le_lintegral {p : ℝ≥0∞} (hp : 1 ≤ p) (h
   have hq : 0 < p.toReal := ENNReal.toReal_pos hp0 hp_top
   have hdm : Measurable fun z => ENNReal.ofReal (poissonKernel c w z) :=
     (measurable_poissonKernel c w).ennreal_ofReal
-  haveI : IsProbabilityMeasure
+  have : IsProbabilityMeasure
       ((circleMeasure c R).withDensity fun z => ENNReal.ofReal (poissonKernel c w z)) :=
     ⟨by rw [withDensity_apply _ MeasurableSet.univ, Measure.restrict_univ,
       lintegral_ofReal_poissonKernel_circleMeasure hw]⟩
   -- Jensen, in the form `‖U‖_{L¹(P_w dσ)} ≤ ‖U‖_{Lᵖ(P_w dσ)}`.
-  have hJ := eLpNorm_le_eLpNorm_of_exponent_le hp
-    (hU.1.mono_ac (withDensity_absolutelyContinuous (circleMeasure c R)
-      fun z => ENNReal.ofReal (poissonKernel c w z)))
-  rw [eLpNorm_one_eq_lintegral_enorm, eLpNorm_eq_lintegral_rpow_enorm_toReal hp0 hp_top,
-    lintegral_withDensity_eq_lintegral_mul₀ hdm.aemeasurable hU.1.aemeasurable.enorm,
+  have hUm := hU.aestronglyMeasurable.mono_ac (withDensity_absolutelyContinuous
+    (circleMeasure c R) fun z => ENNReal.ofReal (poissonKernel c w z))
+  have hJ := eLpNorm_le_eLpNorm_of_exponent_le (f := U) hp (μ := (circleMeasure c R).withDensity
+    fun z => ENNReal.ofReal (poissonKernel c w z))
+  rw [eLpNorm_one_eq_lintegral_enorm hUm, eLpNorm_eq_lintegral_rpow_enorm_toReal hp0 hp_top hUm,
     lintegral_withDensity_eq_lintegral_mul₀ hdm.aemeasurable
-      (hU.1.aemeasurable.enorm.pow_const _)] at hJ
+      hU.aestronglyMeasurable.aemeasurable.enorm,
+    lintegral_withDensity_eq_lintegral_mul₀ hdm.aemeasurable
+      (hU.aestronglyMeasurable.aemeasurable.enorm.pow_const _)] at hJ
   simp only [Pi.mul_apply] at hJ
   grw [ENNReal.rpow_le_rpow (enorm_poissonIntegral_le_lintegral (hU.integrable hp) hw) hq.le,
     ENNReal.rpow_le_rpow hJ hq.le]
@@ -714,8 +716,12 @@ theorem eLpNorm_poissonIntegral_radial_le {p : ℝ≥0∞} (hp : 1 ≤ p) {U : �
   -- Jensen for `P_w dσ`, Tonelli, and the symmetry of the kernel instead.
   have hw (θ : ℝ) : (r : ℂ) * exp (I * θ) ∈ ball (0 : ℂ) 1 :=
     radial_point_mem_unitDisc hr.1 hr.2
+  have hPm : AEStronglyMeasurable
+      (fun θ : ℝ => P[0; U ∂ᵥcircleMeasure 0 1] (r * exp (I * θ))) angularMeasure :=
+    radial_aestronglyMeasurable (harmonicOnNhd_poissonIntegral_withDensityᵥ
+      (circleMeasure_compl_sphere zero_le_one) (hU.integrable hp)).continuousOn hr _
   rcases eq_or_ne p ∞ with rfl | hp_top
-  · rw [eLpNorm_exponent_top, eLpNorm_exponent_top]
+  · rw [eLpNorm_exponent_top hPm, eLpNorm_exponent_top hU.aestronglyMeasurable]
     refine eLpNormEssSup_le_of_ae_enorm_bound (Filter.Eventually.of_forall fun θ => ?_)
     refine (enorm_poissonIntegral_le_lintegral (hU.integrable hp) (hw θ)).trans ?_
     grw [lintegral_mono_ae (ae_le_eLpNormEssSup.mono fun z hz => mul_le_mul_right hz _)]
@@ -723,14 +729,14 @@ theorem eLpNorm_poissonIntegral_radial_le {p : ℝ≥0∞} (hp : 1 ≤ p) {U : �
             lintegral_ofReal_poissonKernel_circleMeasure (hw θ), one_mul]
   · have hp0 : p ≠ 0 := (zero_lt_one.trans_le hp).ne'
     have hq : 0 < p.toReal := ENNReal.toReal_pos hp0 hp_top
-    rw [eLpNorm_eq_lintegral_rpow_enorm_toReal hp0 hp_top,
-      eLpNorm_eq_lintegral_rpow_enorm_toReal hp0 hp_top]
+    rw [eLpNorm_eq_lintegral_rpow_enorm_toReal hp0 hp_top hPm,
+      eLpNorm_eq_lintegral_rpow_enorm_toReal hp0 hp_top hU.aestronglyMeasurable]
     refine ENNReal.rpow_le_rpow ?_ (by positivity)
     have hFm : AEMeasurable (Function.uncurry fun (θ : ℝ) (z : ℂ) =>
         ENNReal.ofReal (poissonKernel 0 (r * exp (I * θ)) z) * ‖U z‖ₑ ^ p.toReal)
         (angularMeasure.prod (circleMeasure 0 1)) := by
       refine AEMeasurable.mul (Measurable.aemeasurable (Measurable.ennreal_ofReal ?_))
-        (hU.1.aemeasurable.enorm.pow_const _).comp_snd
+        (hU.aestronglyMeasurable.aemeasurable.enorm.pow_const _).comp_snd
       unfold poissonKernel; fun_prop
     grw [lintegral_mono fun θ => enorm_poissonIntegral_rpow_le_lintegral hp hp_top hU (hw θ)]
     rw [lintegral_lintegral_swap hFm]
@@ -747,7 +753,7 @@ theorem hardyNorm_poissonIntegral_le {p : ℝ≥0∞} (hp : 1 ≤ p) {U : ℂ �
   have hp' : p ∉ Ioo 0 1 := fun h => absurd h.2 (not_lt.mpr hp)
   unfold hardyNorm
   refine iSup₂_le fun r hr => ?_
-  rw [eLpNormFixed, if_neg hp']
+  rw [eLpNormFixed, ite_eq_right hp']
   exact eLpNorm_poissonIntegral_radial_le hp hU hr
 
 
@@ -762,11 +768,11 @@ theorem harmonicOnNhd_hardyNorm_lt_top_iff_exists_memLp_eq_poissonIntegral
   · -- codex without review
     rintro ⟨hu, hbdd⟩
     let q : ℝ≥0∞ := (1 - p⁻¹)⁻¹
-    letI : Fact (1 ≤ p) := ⟨hp.le⟩
-    letI : p.HolderConjugate q := ENNReal.holderConjugate_iff.mpr (by
+    let : Fact (1 ≤ p) := ⟨hp.le⟩
+    let : p.HolderConjugate q := ENNReal.holderConjugate_iff.mpr (by
       dsimp [q]
       rw [inv_inv, add_tsub_cancel_of_le (ENNReal.inv_le_one.mpr hp.le)])
-    letI : Fact (1 ≤ q) := ⟨ENNReal.HolderConjugate.one_le q p⟩
+    let : Fact (1 ≤ q) := ⟨ENNReal.HolderConjugate.one_le q p⟩
     have hq : q ≠ ∞ := ((ENNReal.HolderConjugate.lt_top_iff_one_lt q p).2 hp).ne
     have hc (r : ℝ) (hr : r ∈ Ioo (0 : ℝ) 1) :
         ContinuousOn (fun z : ℂ => u (r * z)) (sphere 0 1) := by
@@ -812,7 +818,7 @@ theorem harmonicOnNhd_hardyNorm_lt_top_iff_exists_memLp_eq_poissonIntegral
       refine (integral_congr_ae ?_).trans (integral_poissonKernel_mul_radial_eq hu hr hw)
       have hfr : (f r : ℂ → ℝ) =ᵐ[circleMeasure 0 1] fun z => u (r * z) := by
         dsimp [f]
-        rw [dif_pos hr]
+        rw [dite_eq_left hr]
         exact MemLp.coeFn_toLp _
       filter_upwards [hfr, MemLp.coeFn_toLp hK] with z hz hk
       simp [K, hz, hk, mul_comm]

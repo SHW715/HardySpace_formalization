@@ -81,7 +81,7 @@ noncomputable def poissonModification (v : ℂ → WithBot ℝ) (r : ℝ) : ℂ 
 lemma poissonModification_zero_eq_withBotRadialMean (v : ℂ → WithBot ℝ) {r : ℝ} (hr : 0 < r) :
     poissonModification v r 0 = withBotRadialMean v r := by
   unfold poissonModification withBotRadialMean
-  rw [if_neg (by simpa using not_le.mpr hr)]
+  rw [ite_eq_right (by simpa using not_le.mpr hr)]
   refine congrArg _ (funext fun θ => ?_)
   rw [zero_div, poissonKernel_def]
   simp [Complex.norm_exp, mul_comm]

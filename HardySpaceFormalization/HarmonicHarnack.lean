@@ -1,5 +1,6 @@
 import HardySpaceFormalization.Poisson_lemma
 import Mathlib.Analysis.Complex.Harmonic.Poisson
+import Mathlib.Analysis.Complex.Harmonic.MeanValue
 
 /-!
 # Harnack's inequality and Harnack's theorem

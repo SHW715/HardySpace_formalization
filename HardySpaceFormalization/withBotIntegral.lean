@@ -167,10 +167,10 @@ lemma integrableOn_unbotD_add_of_bot_null {α : Type*} [MeasurableSpace α]
     IntegrableOn ((WithBot.unbotD 0) ∘ (u + v)) A μ := by
   refine (hu_int.add hv_int).congr_fun_ae ?_
   have hu_ne : ∀ᵐ x ∂μ.restrict A, u x ≠ ⊥ := by
-    rw [ae_iff, Measure.restrict_apply_eq_zero' hA]
+    rw [ae_iff, Measure.restrict_apply_eq_zero' hA.nullMeasurableSet]
     simpa [inter_comm] using hu_bot
   have hv_ne : ∀ᵐ x ∂μ.restrict A, v x ≠ ⊥ := by
-    rw [ae_iff, Measure.restrict_apply_eq_zero' hA]
+    rw [ae_iff, Measure.restrict_apply_eq_zero' hA.nullMeasurableSet]
     simpa [inter_comm] using hv_bot
   filter_upwards [hu_ne, hv_ne] with x hux hvx
   cases hux' : u x with
@@ -218,10 +218,10 @@ lemma withBotIntegral_add {α : Type*} [MeasurableSpace α] {u v : α → WithBo
       have hsum_bot : μ {x | u x + v x = ⊥} = 0 := by
         refine measure_mono_null ?_ (measure_union_null hu_bot hv_bot)
         intro x hx
-        rw [mem_union, mem_setOf_eq, mem_setOf_eq]
+        rw [mem_union, mem_ofPred_eq, mem_ofPred_eq]
         simpa [WithBot.add_eq_bot] using hx
       have hsum_bot_or : μ {x | u x = ⊥ ∨ v x = ⊥} = 0 := by
-        simpa [setOf_or] using measure_union_null hu_bot hv_bot
+        simpa [ofPred_or] using measure_union_null hu_bot hv_bot
       have hsum_cond :
           μ {x | u x + v x = ⊥} = 0 ∧
             Integrable ((WithBot.unbotD 0) ∘ fun x => u x + v x) μ := by

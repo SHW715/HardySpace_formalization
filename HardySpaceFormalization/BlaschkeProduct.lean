@@ -125,7 +125,7 @@ theorem blaschkeSum_le_of_isLeastHarmonicMajorant
     have heq : (fun z => Real.log ‖f z‖) =ᶠ[codiscreteWithin (sphere (0 : ℂ) |r|)] v := by
       filter_upwards [codiscreteWithin_mono (sphere_subset_closedBall.trans hsub) hne] with z hz
       simp [v, hz]
-    rw [Real.circleAverage_congr_codiscreteWithin heq hr.ne', ← HarmonicOnNhd.circleAverage_eq (hu.1.1.mono hsub)]
+    rw [Real.circleAverage_congr_codiscreteWithin heq hr.ne', ← InnerProductSpace.HarmonicOnNhd.circleAverage_eq (hu.1.1.mono hsub)]
     apply Real.circleAverage_mono
           ((hfa.mono (sphere_subset_closedBall.trans hsub)).meromorphicOn.circleIntegrable_log_norm
             |>.congr_codiscreteWithin heq)
@@ -154,19 +154,19 @@ theorem blaschkeSum_le_of_isLeastHarmonicMajorant
     have hdr (z : ℂ) : dr z = if ‖z‖ ≤ r then d z else 0 := by
       by_cases hz : ‖z‖ ≤ r
       · have hzmem : z ∈ closedBall (0 : ℂ) |r| := by simpa [abs_of_pos hr] using hz
-        simp only [if_pos hz]
+        simp only [ite_eq_left hz]
         exact (hfr.divisor_apply hzmem).trans (hfa.divisor_apply (hsub hzmem)).symm
       · have hzmem : z ∉ closedBall (0 : ℂ) |r| := by simpa [abs_of_pos hr] using hz
         simp [dr, hzmem, hz]
     have hfinite : Function.HasFiniteSupport (fun z => (dr z : ℝ) * Real.log (r * ‖z‖⁻¹)) := by
       apply (dr.finiteSupport (isCompact_closedBall ..)).subset
       intro z hz
-      contrapose! hz
+      contrapose hz
       simp only [Function.mem_support] at hz ⊢
       simp [hz]
     have hnonneg (z : ℂ) : 0 ≤ (dr z : ℝ) * Real.log (r * ‖z‖⁻¹) := by
       by_cases hz : ‖z‖ ≤ r
-      · rw [hdr, if_pos hz]
+      · rw [hdr, ite_eq_left hz]
         by_cases hz0 : z = 0
         · simp [hz0, hd0]
         · apply mul_nonneg (hdnonneg z)
@@ -180,7 +180,7 @@ theorem blaschkeSum_le_of_isLeastHarmonicMajorant
       intro z hz
       by_cases hdz : d z = 0
       · simp [hdr, hdz]
-      · rw [hdr, if_pos (hs z hz hdz).le]
+      · rw [hdr, ite_eq_left (hs z hz hdz).le]
     have hj := hfr.circleAverage_log_norm hr.ne' hf0
     simp only [zero_sub, norm_neg] at hj
     rw [hsum]
@@ -288,7 +288,7 @@ theorem AnalyticOnNhd.exists_eq_sub_pow_mul_of_order_ne_top
     by_cases hza : z = a
     · subst z
       simpa [g, n] using heq.self_of_nhds
-    · simp only [g, if_neg hza]
+    · simp only [g, ite_eq_right hza]
       change f z = (z - a) ^ n * (f z / (z - a) ^ n)
       field_simp
 
@@ -319,7 +319,7 @@ lemma hasHarmonicMajorant_logNormBot_of_eq_pow_mul {f g : ℂ → ℂ} {n : ℕ}
   intro z hz
   by_cases hgz : g z = 0
   · simp [logNormBot, hgz]
-  simp only [Function.comp_def, logNormBot, if_neg hgz, WithBot.coe_le_coe]
+  simp only [Function.comp_def, logNormBot, ite_eq_right hgz, WithBot.coe_le_coe]
   by_cases hzsmall : z ∈ closedBall (0 : ℂ) (1 / 2)
   · have hbound : ‖g z‖ - u z ≤ A := hA (mem_image_of_mem _ hzsmall)
     have hAC : A ≤ C := le_max_left _ _
@@ -354,10 +354,10 @@ lemma BlaschkeCondition.of_eq_pow_mul {f g : ℂ → ℂ} {n : ℕ}
     by_cases hz0 : z = 0
     · subst z
       congr 1
-      rw [if_pos rfl]
+      rw [ite_eq_left rfl]
       change analyticOrderAt (id ^ n : ℂ → ℂ) 0 = n
       simp [analyticOrderAt_pow analyticAt_id, nsmul_eq_mul]
-    · rw [if_neg hz0, hp.analyticOrderAt_eq_zero.mpr (pow_ne_zero _ hz0)]
+    · rw [ite_eq_right hz0, hp.analyticOrderAt_eq_zero.mpr (pow_ne_zero _ hz0)]
   have hterm (z : ball (0 : ℂ) 1) :
       (analyticOrderAt f z : ℝ≥0∞) * (1 - ‖z.1‖ₑ) =
         (if z = origin then (n : ℝ≥0∞) else 0) +
@@ -431,7 +431,7 @@ theorem analyticOnNhd_blaschkeProduct {m : ℂ → ℕ∞} (hm : BlaschkeConditi
       DifferentiableOn ℂ (blaschkeProductFactor m a) (ball 0 1) := by
     intro z hz
     by_cases ha0 : (a : ℂ) = 0
-    · simp only [blaschkeProductFactor, ha0, if_pos]
+    · simp only [blaschkeProductFactor, ha0, ite_eq_left]
       fun_prop
     · have hnorm : ‖conj (a : ℂ) * z‖ < 1 := by
         rw [norm_mul, norm_conj]
@@ -441,7 +441,7 @@ theorem analyticOnNhd_blaschkeProduct {m : ℂ → ℕ∞} (hm : BlaschkeConditi
         intro h
         rw [← sub_eq_zero.mp h, norm_one] at hnorm
         exact (lt_irrefl _ hnorm)
-      simp only [blaschkeProductFactor, normedBlaschkeFactor, if_neg ha0]
+      simp only [blaschkeProductFactor, normedBlaschkeFactor, ite_eq_right ha0]
       unfold BlaschkeFactor
       simp only [ofReal_one, one_pow, one_mul, Pi.smul_apply, smul_eq_mul]
       apply DifferentiableAt.differentiableWithinAt
@@ -460,14 +460,14 @@ theorem norm_blaschkeProduct_le_one {m : ℂ → ℕ∞} (hm : BlaschkeCondition
     · have hb : ‖normedBlaschkeFactor 1 a w‖ ≤ 1 := by
         simpa [normedBlaschkeFactor, ha0, norm_smul, norm_div, norm_ne_zero_iff.mpr ha0] using
           norm_BlaschkeFactor_one_le_one a.2 hw
-      simp only [blaschkeProductFactor, if_neg ha0, norm_pow]
+      simp only [blaschkeProductFactor, ite_eq_right ha0, norm_pow]
       exact pow_le_one₀ (norm_nonneg _) hb
   apply le_of_tendsto ((tendstoLocallyUniformlyOn_blaschkeProduct hm).tendsto_at hw).norm
   filter_upwards [] with s
   rw [norm_mul, norm_pow, norm_prod]
-  exact mul_le_one₀ (pow_le_one₀ (norm_nonneg w) (mem_ball_zero_iff.mp hw).le)
-    (Finset.prod_nonneg fun a _ => norm_nonneg _)
-    (Finset.prod_le_one (fun a _ => norm_nonneg _) (fun a _ => hfactor a))
+  exact (mul_le_of_le_one_left (Finset.prod_nonneg fun a _ => norm_nonneg _)
+      (pow_le_one₀ (norm_nonneg w) (mem_ball_zero_iff.mp hw).le)).trans
+    (Finset.prod_le_one₀ (fun a _ => norm_nonneg _) (fun a _ => hfactor a))
 
 /-- The order at a point of the unit disc equals the prescribed multiplicity there. -/
 theorem analyticOrderAt_blaschkeProduct {m : ℂ → ℕ∞} (hm : BlaschkeCondition m)
@@ -485,11 +485,12 @@ theorem blaschkeProduct_eq_zero_iff {m : ℂ → ℕ∞} (hm : BlaschkeCondition
 /-- Extended by zero outside the unit disc, a Blaschke product belongs to `H∞`. -/
 theorem memHpDisc_blaschkeProduct {m : ℂ → ℕ∞} (hm : BlaschkeCondition m) :
   HardySpace.MemHpDisc ∞ ((ball 0 1).indicator (BlaschkeProduct m)) := by
-  refine ⟨(analyticOnNhd_blaschkeProduct hm).analyticOn.congr
-    fun z hz => indicator_of_mem hz _, ?_, fun z hz => indicator_of_notMem hz _⟩
+  have han : AnalyticOn ℂ ((ball 0 1).indicator (BlaschkeProduct m)) (ball 0 1) :=
+    (analyticOnNhd_blaschkeProduct hm).analyticOn.congr fun z hz => indicator_of_mem hz _
+  refine ⟨han, ?_, fun z hz => indicator_of_notMem hz _⟩
   refine lt_of_le_of_lt (iSup₂_le fun r hr => ?_) (ENNReal.ofReal_lt_top (r := 1))
-  simp only [eLpNormFixed, mem_Ioo, not_top_lt, and_false, if_false,
-    MeasureTheory.eLpNorm_exponent_top]
+  simp only [eLpNormFixed, mem_Ioo, not_top_lt, and_false, ite_false]
+  rw [MeasureTheory.eLpNorm_exponent_top (radial_aestronglyMeasurable han.continuousOn hr _)]
   refine MeasureTheory.eLpNormEssSup_le_of_ae_bound (MeasureTheory.ae_of_all _ fun θ => ?_)
   have hz : (r : ℂ) * exp (I * θ) ∈ ball 0 1 := radial_point_mem_unitDisc hr.1 hr.2
   rw [indicator_of_mem hz]
@@ -539,7 +540,7 @@ theorem tendsto_withBotRadialMean_logNormBot_iff_isLeastHarmonicMajorant_zero
     · have hbot : ∀ᶠ r : ℝ in 𝓝[<] 1, withBotRadialMean (logNormBot ∘ f) r = ⊥ := by
         filter_upwards [hr_pos, self_mem_nhdsWithin] with r hr hr1
         unfold withBotRadialMean withBotIntegral
-        rw [if_neg]
+        rw [ite_eq_right]
         rintro ⟨hnull, -⟩
         have huniv : angularMeasure (univ : Set ℝ) = 0 :=
           MeasureTheory.measure_mono_null

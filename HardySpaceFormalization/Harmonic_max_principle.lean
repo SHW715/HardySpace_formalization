@@ -39,7 +39,7 @@ lemma eqOn_closure_of_eqOn_of_continuousOn
   (hu_const : ∀ y ∈ s, u y = c) :
   ∀ y ∈ closure s, u y = c := by
   have hclosed : IsClosed {y | y ∈ closure s ∧ u y = c} := by
-    simpa [Set.mem_setOf_eq] using
+    simpa [Set.mem_ofPred_eq] using
       (isClosed_closure.isClosed_eq hu_cont continuousOn_const)
   have hsubset : s ⊆ {y | y ∈ closure s ∧ u y = c} := by
     intro y hy
@@ -188,12 +188,12 @@ theorem harmonic_maximum_minimum_principle_general
     intro v hv hmax
     rcases hmax with ⟨a, ha, hmax⟩
     let T : Set s := {x | v x = v a}
-    haveI : PreconnectedSpace s := Subtype.preconnectedSpace hs_conn
+    have : PreconnectedSpace s := Subtype.preconnectedSpace hs_conn
     have hT_nonempty : T.Nonempty := ⟨⟨a, ha⟩, rfl⟩
     have hT_closed : IsClosed T := by
       have hv_cont : ContinuousOn v s := hv.continuousOn
-      have hv_cont_s : Continuous (s.restrict v) := hv_cont.restrict
-      simpa [T, Set.restrict_apply] using isClosed_eq hv_cont_s continuous_const
+      have hv_cont_s : Continuous (s.domRestrict v) := hv_cont.domRestrict
+      simpa [T, Set.domRestrict_apply] using isClosed_eq hv_cont_s continuous_const
     have hT_open : IsOpen T := by
       simpa [T] using isOpen_maxLevelSet_of_harmonicOnNhd_isMaxOn_general hs_open hv hmax
     have hT_univ : T = Set.univ := IsClopen.eq_univ ⟨hT_closed, hT_open⟩ hT_nonempty

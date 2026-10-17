@@ -67,7 +67,7 @@ lemma circleAverage_norm_rpow_eq_eLpNormFixed_toReal_rpow
   have h_int_nonneg : 0 ≤ ∫ θ, ‖f (R * exp (I * θ))‖ ^ p.toReal ∂μ :=
     integral_nonneg fun θ => Real.rpow_nonneg (norm_nonneg _) _
   rw [ENNReal.toReal_rpow, eLpNormFixed_rpow_max_one hp hp_ne_top,
-    ← ENNReal.toReal_rpow, MeasureTheory.toReal_eLpNorm hrad_meas,
+    ← ENNReal.toReal_rpow, MeasureTheory.toReal_eLpNorm,
     MeasureTheory.lpNorm_eq_integral_norm_rpow_toReal hp_ne_zero hp_ne_top hrad_meas]
   rw [← Real.rpow_mul h_int_nonneg, inv_mul_cancel₀ hq_pos.ne', Real.rpow_one, circleAverage_def]
   simp only [circleMap_zero]
@@ -149,8 +149,8 @@ lemma enorm_rpow_min_le_const_mul_hardyNorm_of_mem_closedBall
   have hK_nonneg : 0 ≤ K := div_nonneg (add_nonneg hR_pos.le hr_nonneg) (sub_nonneg.mpr hrR.le)
   let q : ℝ := p.toReal
   have hq_pos : 0 < q := ENNReal.toReal_pos (ne_of_gt hp) hp_top
-  let C : ℝ≥0 := if p < 1 then ⟨K, hK_nonneg⟩ else
-    ⟨K ^ q⁻¹, Real.rpow_nonneg hK_nonneg _⟩
+  let C : ℝ≥0 := if p < 1 then NNReal.mk K hK_nonneg else
+    NNReal.mk (K ^ q⁻¹) (Real.rpow_nonneg hK_nonneg _)
   use C
   intro f z hf_an hz
   have hz_closed_R : z ∈ closedBall (0 : ℂ) R := by
@@ -210,7 +210,7 @@ lemma enorm_rpow_min_le_const_mul_hardyNorm_of_mem_closedBall
       simpa [max_eq_right hq_le_one] using h_eval_rpow
     rw [min_eq_left hp_lt_one.le]
     change ‖f z‖ₑ ^ q ≤ (C : ℝ≥0∞) * hardyNorm f p
-    rw [show C = ⟨K, hK_nonneg⟩ by simp [C, hp_lt_one], ENNReal.coe_nnreal_eq]
+    rw [show C = NNReal.mk K hK_nonneg by simp [C, hp_lt_one], ENNReal.coe_nnreal_eq]
     exact h_eval_q
   · have hp_one_le : 1 ≤ p := le_of_not_gt hp_lt_one
     have hq_one_le : 1 ≤ q := by
@@ -227,7 +227,7 @@ lemma enorm_rpow_min_le_const_mul_hardyNorm_of_mem_closedBall
       ← ENNReal.ofReal_rpow_of_nonneg hK_nonneg (inv_nonneg.mpr hq_pos.le),
       ENNReal.rpow_inv_rpow hq_pos.ne']
     rw [min_eq_right hp_one_le, ENNReal.toReal_one, ENNReal.rpow_one]
-    rw [show C = ⟨K ^ q⁻¹, Real.rpow_nonneg hK_nonneg _⟩ by simp [C, hp_lt_one],
+    rw [show C = NNReal.mk (K ^ q⁻¹) (Real.rpow_nonneg hK_nonneg _) by simp [C, hp_lt_one],
       ENNReal.coe_nnreal_eq]
     exact h_eval
 

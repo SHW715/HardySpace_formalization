@@ -44,7 +44,7 @@ instance isProbabilityMeasure_angularMeasure :
 instance isProbabilityMeasure_circleMeasure {c : ℂ} {R : ℝ} :
     IsProbabilityMeasure (circleMeasure c R) := by
   rw [circleMeasure]
-  exact Measure.isProbabilityMeasure_map (measurable_circleMap c R).aemeasurable
+  exact inferInstance
 
 omit [NormedSpace ℝ E] in
 /-- Circle-integrability gives almost-everywhere strong measurability of the pullback to the
@@ -62,7 +62,7 @@ lemma CircleIntegrable.aestronglyMeasurable_comp_circleMap_angularMeasure
 
 /-- On one half-open period, a nondegenerate circle parametrization is a measurable embedding. -/
 lemma measurableEmbedding_circleMap_Ico {c : ℂ} {R : ℝ} (hR : R ≠ 0) :
-    MeasurableEmbedding ((Set.Ico (0 : ℝ) (2 * π)).restrict (circleMap c R)) := by
+    MeasurableEmbedding ((Set.Ico (0 : ℝ) (2 * π)).domRestrict (circleMap c R)) := by
   refine ContinuousOn.measurableEmbedding measurableSet_Ico
     (continuous_circleMap c R).continuousOn ?_
   exact injOn_circleMap_of_abs_sub_le' (c := c) (R := R) hR (by linarith)
@@ -109,22 +109,23 @@ lemma CircleIntegrable.aestronglyMeasurable_circleMeasure
         exact hIco.aestronglyMeasurable
       exact ((MeasurableEmbedding.subtype_coe measurableSet_Ico).aestronglyMeasurable_map_iff).1
         hmap
-    have hemb : MeasurableEmbedding (s.restrict (circleMap c R)) := by
+    have hemb : MeasurableEmbedding (s.domRestrict (circleMap c R)) := by
       simpa [s] using measurableEmbedding_circleMap_Ico (c := c) (R := R) hR
     have hcircle_base :
-        AEStronglyMeasurable f (Measure.map (s.restrict (circleMap c R)) μs) :=
+        AEStronglyMeasurable f (Measure.map (s.domRestrict (circleMap c R)) μs) :=
       (hemb.aestronglyMeasurable_map_iff).2 hsub
     have hmap_base :
         Measure.map (circleMap c R) (volume.restrict s) =
-          Measure.map (s.restrict (circleMap c R)) μs := by
+          Measure.map (s.domRestrict (circleMap c R)) μs := by
       rw [← hsubtype_map]
       rw [Measure.map_map (measurable_circleMap c R) measurable_subtype_coe]
       rfl
     have hcircle_eq :
         circleMeasure c R =
-          ENNReal.ofReal (1 / (2 * π)) • Measure.map (s.restrict (circleMap c R)) μs := by
+          ENNReal.ofReal (1 / (2 * π)) • Measure.map (s.domRestrict (circleMap c R)) μs := by
       unfold circleMeasure angularMeasure
       rw [Measure.map_smul, hmap_base]
+      exact (measurable_circleMap c R).aemeasurable
     exact AEStronglyMeasurable.mono_ac
       (by rw [hcircle_eq]; exact Measure.smul_absolutelyContinuous) hcircle_base
 
@@ -167,7 +168,7 @@ lemma ae_mem_sphere_circleMeasure {c : ℂ} {R : ℝ} (hR : 0 ≤ R) :
 /-- The circle measure vanishes off its circle. -/
 theorem circleMeasure_compl_sphere {c : ℂ} {R : ℝ} (hR : 0 ≤ R) : circleMeasure c R (sphere c R)ᶜ = 0 := by
   have h := ae_mem_sphere_circleMeasure (c := c) (R := R) hR
-  rwa [ae_iff, ← Set.compl_setOf, Set.setOf_mem_eq] at h
+  rwa [ae_iff, ← Set.compl_ofPred, Set.ofPred_mem_eq] at h
 
 /-- Continuous boundary data is integrable against the circle measure. -/
 theorem ContinuousOn.integrable_circleMeasure {k : ℂ → ℝ} {c : ℂ} {R : ℝ} (hR : 0 ≤ R)

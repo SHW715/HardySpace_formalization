@@ -22,7 +22,7 @@ variable {u : ℂ → ℝ} {φ : ℂ → ℂ} {x : ℂ} {s t : Set ℂ}
 /-- A real harmonic function composed with a holomorphic map is harmonic. -/
 theorem HarmonicAt.comp_analyticAt (hu : HarmonicAt u (φ x)) (hφ : AnalyticAt ℂ φ x) :
     HarmonicAt (u ∘ φ) x := by
-  obtain ⟨ε, hε, hball⟩ := Metric.isOpen_iff.1 (isOpen_setOf_harmonicAt u) (φ x) hu
+  obtain ⟨ε, hε, hball⟩ := Metric.isOpen_iff.1 (isOpen_setOfPred_harmonicAt u) (φ x) hu
   obtain ⟨F, hF, hFu⟩ :=
     HarmonicOnNhd.exists_analyticOnNhd_ball_re_eq (f := u) fun y hy => hball hy
   have hFφ : AnalyticAt ℂ (F ∘ φ) x := (hF (φ x) (mem_ball_self hε)).comp hφ

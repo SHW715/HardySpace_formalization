@@ -56,8 +56,8 @@ theorem MemNevanlinnaDisc.exists_isCanonicalFactorization {f : ℂ → ℂ}
   -- (5.7): `μs = μ₂ - μ₁` with `μ₂ = μs⁺`, `μ₁ = μs⁻`, both carried by the circle and `⟂ σ`.
   set μ₁ := μs.toJordanDecomposition.negPart with hμ₁
   set μ₂ := μs.toJordanDecomposition.posPart with hμ₂
-  haveI : IsFiniteMeasure μ₁ := μs.toJordanDecomposition.negPart_finite
-  haveI : IsFiniteMeasure μ₂ := μs.toJordanDecomposition.posPart_finite
+  have : IsFiniteMeasure μ₁ := μs.toJordanDecomposition.negPart_finite
+  have : IsFiniteMeasure μ₂ := μs.toJordanDecomposition.posPart_finite
   obtain ⟨hcirc₂, hcirc₁⟩ := SignedMeasure.totalVariation_apply_eq_zero_iff.mp hμs_circ
   obtain ⟨hsing₂, hsing₁⟩ :=
     SignedMeasure.mutuallySingular_toENNRealVectorMeasure_iff.mp hμs_sing
@@ -124,10 +124,10 @@ theorem IsCanonicalFactorization.unique {f : ℂ → ℂ} {F F' : ℂ → ℂ}
     {μ₁ μ₂ ν₁ ν₂ : Measure ℂ} (h : IsCanonicalFactorization f F μ₁ μ₂)
     (h' : IsCanonicalFactorization f F' ν₁ ν₂) :
     μ₁ = ν₁ ∧ μ₂ = ν₂ ∧ ∀ z ∈ unitDisc, F z = F' z := by
-  haveI := h.isFiniteMeasure₁
-  haveI := h.isFiniteMeasure₂
-  haveI := h'.isFiniteMeasure₁
-  haveI := h'.isFiniteMeasure₂
+  have := h.isFiniteMeasure₁
+  have := h.isFiniteMeasure₂
+  have := h'.isFiniteMeasure₁
+  have := h'.isFiniteMeasure₂
   have h0 : (0 : ℂ) ∈ unitDisc := Metric.mem_ball_self one_pos
   have hS : MeasurableSet (Metric.sphere (0 : ℂ) 1)ᶜ := Metric.isClosed_sphere.measurableSet.compl
   have hσ : circleMeasure 0 1 (Metric.sphere 0 1)ᶜ = 0 := circleMeasure_compl_sphere zero_le_one

@@ -120,7 +120,12 @@ lemma nevanlinnaRadialMean_le_inv_mul_hardyRadialMean_of_lt_one {p : ℝ≥0∞}
   have hp_ne_top : p ≠ ∞ := ne_of_lt (hp.2.trans ENNReal.one_lt_top)
   have hp_pos : 0 < p.toReal := ENNReal.toReal_pos hp_ne_zero hp_ne_top
   unfold nevanlinnaRadialMean hardyRadialMean eLpNormFixed
-  rw [if_pos hp, eLpNorm_eq_eLpNorm' hp_ne_zero hp_ne_top,
+  by_cases hm : AEStronglyMeasurable (fun θ : ℝ ↦ f (r * exp (I * θ))) angularMeasure
+  swap
+  · rw [ite_eq_left hp, eLpNorm_of_not_aestronglyMeasurable hm,
+      ENNReal.top_rpow_of_pos hp_pos, ENNReal.mul_top (by simpa using hp_pos)]
+    exact le_top
+  rw [ite_eq_left hp, eLpNorm_eq_eLpNorm' hp_ne_zero hp_ne_top hm,
      ← lintegral_rpow_enorm_eq_rpow_eLpNorm' hp_pos,
      ← lintegral_const_mul' _ _ ENNReal.ofReal_ne_top]
   refine lintegral_mono fun θ => ?_
@@ -268,7 +273,7 @@ theorem memNevanlinnaDisc_iff_hasHarmonicMajorant {f : ℂ → ℂ}
       simpa only [circleAverage_eq_integral_circleMeasure hcircle,
         integral_circleMeasure_eq_integral_angularMeasure
           hcircle.aestronglyMeasurable_circleMeasure, hrad] using
-        (HarmonicOnNhd.circleAverage_eq (hU.mono hsub))
+        (InnerProductSpace.HarmonicOnNhd.circleAverage_eq (hU.mono hsub))
     calc
       nevanlinnaRadialMean f r ≤
           ∫⁻ θ, ENNReal.ofReal (U (r * exp (I * θ))) ∂angularMeasure :=
@@ -400,7 +405,7 @@ hence is not a member.  It is, however, a unital ring in its own right,
 with unit `unitDisc.indicator 1`.-/
 
 @[simp] lemma memNevanlinnaDisc_iff {f : ℂ → F} :
-    f ∈ NevanlinnaDisc ↔ MemNevanlinnaDisc f := Iff.rfl
+    f ∈ NevanlinnaDisc (F := F) ↔ MemNevanlinnaDisc f := Iff.rfl
 
 /-- As `ℂ`-submodules, `H^p ≤ N` for all `p > 0`, including `p = ∞`. -/
 theorem hpDisc_le_nevanlinnaDisc {p : ℝ≥0∞} (hp : 0 < p) :

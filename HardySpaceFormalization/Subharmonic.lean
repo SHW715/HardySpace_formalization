@@ -280,7 +280,7 @@ lemma exp_weighted_circleAverage_le_circleAverage_weighted_exp
   have hP_int : CircleIntegrable P c R := hP_cont.circleIntegrable hR
   have hP_meas : AEMeasurable P (circleMeasure c R) :=
     hP_int.aestronglyMeasurable_circleMeasure.aemeasurable
-  haveI : IsProbabilityMeasure μP :=
+  have : IsProbabilityMeasure μP :=
     isProbabilityMeasure_withDensity_circleMeasure hP_nonneg_ae hP_int hP_avg
   have hPψ_int : CircleIntegrable (fun z : ℂ => P z * ψ z) c R :=
     (hP_cont.mul hψ_cont).circleIntegrable hR

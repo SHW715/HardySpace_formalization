@@ -19,26 +19,26 @@ variable {α ε ε' E F G 𝕜 : Type*} {m m0 : MeasurableSpace α} {p : ℝ≥0
 
 
 /-- Fixed `eLpNorm` where raised to the power `p` when `0 < p < 1`. -/
-def eLpNormFixed [ENorm ε] {_ : MeasurableSpace α}
+def eLpNormFixed [TopologicalSpace ε] [ENorm ε] {_ : MeasurableSpace α}
     (f : α → ε) (p : ℝ≥0∞) (μ : Measure α := by volume_tac) : ℝ≥0∞ :=
   if p ∈ Ioo 0 1 then (eLpNorm f p μ) ^ p.toReal else eLpNorm f p μ
 
 /-- `eLpNormFixed` is the usual `eLpNorm` raised to `min p 1`. -/
-lemma eLpNormFixed_eq_eLpNorm_rpow_min_one [ENorm ε]
+lemma eLpNormFixed_eq_eLpNorm_rpow_min_one [TopologicalSpace ε] [ENorm ε]
     {f : α → ε} (hp : 0 < p) :
     eLpNormFixed f p μ = eLpNorm f p μ ^ (min p 1).toReal := by
   by_cases hp_lt_one : p < 1
   · have hp_small : p ∈ Ioo (0 : ℝ≥0∞) 1 := ⟨hp, hp_lt_one⟩
-    rw [eLpNormFixed, if_pos hp_small, min_eq_left hp_lt_one.le]
+    rw [eLpNormFixed, ite_eq_left hp_small, min_eq_left hp_lt_one.le]
   · have hp_one_le : 1 ≤ p := le_of_not_gt hp_lt_one
     have hp_not_small : p ∉ Ioo (0 : ℝ≥0∞) 1 := fun hp_small ↦ hp_lt_one hp_small.2
-    rw [eLpNormFixed, if_neg hp_not_small, min_eq_right hp_one_le,
+    rw [eLpNormFixed, ite_eq_right hp_not_small, min_eq_right hp_one_le,
       ENNReal.toReal_one, ENNReal.rpow_one]
 
 
 
 /-- Raising `eLpNormFixed` to `max p 1` recovers the usual finite `p`-moment. -/
-lemma eLpNormFixed_rpow_max_one [ENorm ε]
+lemma eLpNormFixed_rpow_max_one [TopologicalSpace ε] [ENorm ε]
     {f : α → ε} (hp : 0 < p) (hp_ne_top : p ≠ ∞) :
     eLpNormFixed f p μ ^ max p.toReal 1 = eLpNorm f p μ ^ p.toReal := by
   by_cases hp_lt_one : p < 1
@@ -46,13 +46,13 @@ lemma eLpNormFixed_rpow_max_one [ENorm ε]
     have hp_toReal_le_one : p.toReal ≤ 1 := by
       rw [← ENNReal.toReal_one]
       exact ENNReal.toReal_mono ENNReal.one_ne_top hp_lt_one.le
-    rw [eLpNormFixed, if_pos hp_small, max_eq_right hp_toReal_le_one, ENNReal.rpow_one]
+    rw [eLpNormFixed, ite_eq_left hp_small, max_eq_right hp_toReal_le_one, ENNReal.rpow_one]
   · have hp_one_le : 1 ≤ p := le_of_not_gt hp_lt_one
     have hp_not_small : p ∉ Ioo (0 : ℝ≥0∞) 1 := fun hp_small ↦ hp_lt_one hp_small.2
     have hp_toReal_one_le : 1 ≤ p.toReal := by
       rw [← ENNReal.toReal_one]
       exact (ENNReal.toReal_le_toReal ENNReal.one_ne_top hp_ne_top).2 hp_one_le
-    rw [eLpNormFixed, if_neg hp_not_small, max_eq_left hp_toReal_one_le]
+    rw [eLpNormFixed, ite_eq_right hp_not_small, max_eq_left hp_toReal_one_le]
 
 
 
@@ -74,32 +74,32 @@ theorem eLpNormFixed_const_smul
 
 theorem eLpNormFixed_eq_zero_iff
     [TopologicalSpace ε] [ENormedAddMonoid ε]
-    {f : α → ε} (hf : AEStronglyMeasurable f μ) (h0 : p ≠ 0) :
+    {f : α → ε} (h0 : p ≠ 0) :
     eLpNormFixed f p μ = 0 ↔ f =ᵐ[μ] 0 := by
   by_cases hp : p ∈ Ioo (0 : ℝ≥0∞) 1
   · have hp_ne_top : p ≠ ∞ := ne_of_lt (hp.2.trans ENNReal.one_lt_top)
     have hpt : 0 < p.toReal := ENNReal.toReal_pos h0 hp_ne_top
-    simp only [eLpNormFixed, hp, if_true]
+    simp only [eLpNormFixed, hp, ite_true]
     constructor
     · intro h
       have he : eLpNorm f p μ = 0 := (ENNReal.rpow_eq_zero_iff_of_pos hpt).1 h
-      exact (eLpNorm_eq_zero_iff hf h0).1 he
+      exact (eLpNorm_eq_zero_iff h0).1 he
     · intro h
-      have he : eLpNorm f p μ = 0 := (eLpNorm_eq_zero_iff hf h0).2 h
+      have he : eLpNorm f p μ = 0 := (eLpNorm_eq_zero_iff h0).2 h
       exact (ENNReal.rpow_eq_zero_iff_of_pos hpt).2 he
-  · simp only [eLpNormFixed, hp, if_false]
-    exact eLpNorm_eq_zero_iff hf h0
+  · simp only [eLpNormFixed, hp, ite_false]
+    exact eLpNorm_eq_zero_iff h0
 
 theorem eLpNormFixed_add_le
-    [TopologicalSpace ε] [ESeminormedAddMonoid ε]
+    [TopologicalSpace ε] [ESeminormedAddMonoid ε] [ContinuousAdd ε]
     (hf : AEStronglyMeasurable f μ) (hg : AEStronglyMeasurable g μ)
      : eLpNormFixed (f + g) p μ ≤ eLpNormFixed f p μ + eLpNormFixed g p μ := by
   by_cases hp0 : p = 0
-  · simp [eLpNormFixed, hp0]
+  · simp [eLpNormFixed, hp0, eLpNorm_exponent_zero (hf.add hg)]
   by_cases hp1 : 1 ≤ p
   · have hp_not_mem_Ioo : p ∉ Ioo (0 : ℝ≥0∞) 1 := by
       intro hp; exact (not_lt_of_ge hp1) hp.2
-    simpa [eLpNormFixed, hp_not_mem_Ioo] using eLpNorm_add_le hf hg hp1
+    simpa [eLpNormFixed, hp_not_mem_Ioo] using eLpNorm_add_le hp1
   · have hp_mem_Ioo : p ∈ Ioo (0 : ℝ≥0∞) 1 := by
       exact ⟨pos_iff_ne_zero.mpr hp0, lt_of_not_ge hp1⟩
     simp [eLpNormFixed, hp_mem_Ioo]
@@ -108,9 +108,9 @@ theorem eLpNormFixed_add_le
     have hq_pos : 0 < p.toReal := ENNReal.toReal_pos hp0 hp_ne_top
     have hq_le_one : p.toReal ≤ 1 := by
       exact (ENNReal.toReal_le_toReal hp_ne_top (by simp)).2 hp_mem_Ioo.2.le
-    rw [eLpNorm_eq_eLpNorm' hp0 hp_ne_top,
-      eLpNorm_eq_eLpNorm' hp0 hp_ne_top,
-      eLpNorm_eq_eLpNorm' hp0 hp_ne_top]
+    rw [eLpNorm_eq_eLpNorm' hp0 hp_ne_top (hf.add hg),
+      eLpNorm_eq_eLpNorm' hp0 hp_ne_top hf,
+      eLpNorm_eq_eLpNorm' hp0 hp_ne_top hg]
     rw [← lintegral_rpow_enorm_eq_rpow_eLpNorm' (μ := μ) (f := f + g) hq_pos,
       ← lintegral_rpow_enorm_eq_rpow_eLpNorm' (μ := μ) (f := f) hq_pos,
       ← lintegral_rpow_enorm_eq_rpow_eLpNorm' (μ := μ) (f := g) hq_pos]
@@ -132,8 +132,7 @@ theorem eLpNormFixed_add_le
 
 theorem eLpNormFixed_le_eLpNormFixed_of_exponent_le
     [TopologicalSpace ε] [ContinuousENorm ε]
-    {f : α → ε} {p q : ℝ≥0∞} (hpq : p ≤ q) [Fact (1 ≤ p)] [IsProbabilityMeasure μ]
-    (hf : AEStronglyMeasurable f μ) :
+    {f : α → ε} {p q : ℝ≥0∞} (hpq : p ≤ q) [Fact (1 ≤ p)] [IsProbabilityMeasure μ] :
     eLpNormFixed f p μ ≤ eLpNormFixed f q μ := by
   have hp1 : (1 : ℝ≥0∞) ≤ p := Fact.out
   have hq1 : (1 : ℝ≥0∞) ≤ q := hp1.trans hpq
@@ -144,7 +143,7 @@ theorem eLpNormFixed_le_eLpNormFixed_of_exponent_le
     intro hq
     exact (not_lt_of_ge hq1) hq.2
   simpa [eLpNormFixed, hp_not_mem_Ioo, hq_not_mem_Ioo] using
-    eLpNorm_le_eLpNorm_of_exponent_le hpq hf
+    eLpNorm_le_eLpNorm_of_exponent_le hpq
 
 /-- Unconditional version of `eLpNormFixed_le_eLpNormFixed_of_exponent_le` for `0 < p ≤ q`:
 since `eLpNormFixed` is `eLpNorm` raised to the fixed positive power `min p 1` (resp. `min q 1`),
@@ -152,8 +151,7 @@ comparing exponents across the `p < 1` boundary only gives a comparison up to a 
 positive power, not a literal `≤`. -/
 theorem eLpNormFixed_le_eLpNormFixed_rpow_of_exponent_le
     [TopologicalSpace ε] [ContinuousENorm ε]
-    {f : α → ε} {p q : ℝ≥0∞} (hp : p ≠ 0) (hpq : p ≤ q) [IsProbabilityMeasure μ]
-    (hf : AEStronglyMeasurable f μ) :
+    {f : α → ε} {p q : ℝ≥0∞} (hp : p ≠ 0) (hpq : p ≤ q) [IsProbabilityMeasure μ] :
     eLpNormFixed f p μ ≤ eLpNormFixed f q μ ^ ((min p 1).toReal / (min q 1).toReal) := by
   have hp_pos : 0 < p := pos_iff_ne_zero.mpr hp
   have hq_pos : 0 < q := hp_pos.trans_le hpq
@@ -164,17 +162,17 @@ theorem eLpNormFixed_le_eLpNormFixed_rpow_of_exponent_le
     field_simp
   rw [eLpNormFixed_eq_eLpNorm_rpow_min_one hp_pos, eLpNormFixed_eq_eLpNorm_rpow_min_one hq_pos,
     ← ENNReal.rpow_mul, hkey]
-  exact ENNReal.rpow_le_rpow (eLpNorm_le_eLpNorm_of_exponent_le hpq hf) ENNReal.toReal_nonneg
+  exact ENNReal.rpow_le_rpow (eLpNorm_le_eLpNorm_of_exponent_le hpq) ENNReal.toReal_nonneg
 
 theorem eLpNormFixed_le_of_ae_bound_of_one_le
     {f : α → E} {C : ℝ} (hp : 1 ≤ p) [IsProbabilityMeasure μ]
-    (hfC : ∀ᵐ x ∂μ, ‖f x‖ ≤ C) :
+    (hf : AEStronglyMeasurable f μ) (hfC : ∀ᵐ x ∂μ, ‖f x‖ ≤ C) :
     eLpNormFixed f p μ ≤ ENNReal.ofReal C := by
   have hp_not_mem_Ioo : p ∉ Ioo (0 : ℝ≥0∞) 1 := by
     intro hp_mem
     exact (not_lt_of_ge hp) hp_mem.2
   simpa [eLpNormFixed, hp_not_mem_Ioo, measure_univ] using
-    (eLpNorm_le_of_ae_bound (p := p) (μ := μ) hfC)
+    (eLpNorm_le_of_ae_bound (p := p) (μ := μ) hf hfC)
 
 /-- Fatou/lower-semicontinuity for `eLpNormFixed`. -/
 theorem eLpNormFixed_lim_le_liminf_eLpNormFixed
@@ -187,7 +185,8 @@ theorem eLpNormFixed_lim_le_liminf_eLpNormFixed
     have hp_pos : 0 < p.toReal := ENNReal.toReal_pos hp_ne_zero hp_ne_top
     have hfatou :
         eLpNorm u_lim p μ ≤ atTop.liminf fun n => eLpNorm (u n) p μ :=
-      Lp.eLpNorm_lim_le_liminf_eLpNorm (p := p) hu u_lim h_lim
+      Lp.eLpNorm_lim_le_liminf_eLpNorm (p := p) hu u_lim
+        (aestronglyMeasurable_of_tendsto_ae atTop hu h_lim) h_lim
     have hpow_liminf :
         (atTop.liminf fun n => eLpNorm (u n) p μ) ^ p.toReal =
           atTop.liminf fun n => (eLpNorm (u n) p μ) ^ p.toReal := by
@@ -198,7 +197,8 @@ theorem eLpNormFixed_lim_le_liminf_eLpNormFixed
     simpa [eLpNormFixed, hp, hpow_liminf] using
       ENNReal.rpow_le_rpow hfatou hp_pos.le
   · simpa [eLpNormFixed, hp] using
-      (Lp.eLpNorm_lim_le_liminf_eLpNorm (p := p) hu u_lim h_lim)
+      (Lp.eLpNorm_lim_le_liminf_eLpNorm (p := p) hu u_lim
+        (aestronglyMeasurable_of_tendsto_ae atTop hu h_lim) h_lim)
 
 /-- Fatou/lower-semicontinuity for `eLpNormFixed` along a countably generated filter. -/
 theorem eLpNormFixed_le_liminf_filter
