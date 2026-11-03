@@ -99,13 +99,74 @@ number of $z_n$ equal to $0$. Then the \textbf{Blaschke product}
 \end{equation}
 converges on $\mathbb{D}$. The function $B$ is in $H^\infty(\mathbb{D})$ with $|B(z)|\leq 1$,
 and the zeros of $B$ are precisely the points $z_n$, each zero having multiplicity equal to
-the number of times it occurs in $\{z_n\}$. Moreover,
-\begin{equation*}
-  |B(e^{i\theta})|=1
-\end{equation*}
-for almost every $\theta$, where $B(e^{i\theta})=\lim_{r\rightarrow 1}B(re^{i\theta})$ is the
-radial limit of $B$.
+the number of times it occurs in $\{z_n\}$. Moreover, $B$ has a nontangential limit
+$B^*(\zeta)$ at almost every $\zeta\in\mathbb{T}$, and $|B^*|=1$ almost everywhere on
+$\mathbb{T}$.
 \end{theorem}
+\begin{proof}
+We can suppose $|z_n|>0$ for all $n$, since the factor $z^m$ is analytic, has a zero of order
+$m$ at $0$, satisfies $|z^m|\leq 1$ on $\mathbb{D}$ and has modulus $1$ on $\mathbb{T}$. Let
+\begin{equation*}
+  b_n(z)=-\frac{\overline{z_n}}{|z_n|}\frac{z-z_n}{1-\overline{z_n}z}.
+\end{equation*}
+Then the product $\prod b_n$ converges on $\mathbb{D}$ to an analytic function having
+$\{z_n\}$ for zeros, each with multiplicity equal to the number of times it occurs in
+$\{z_n\}$, provided that $\sum|1-b_n(z)|$ converges uniformly on each compact subset of
+$\mathbb{D}$ (see \cite[Chapter 15]{rudin1974real}). But by a calculation,
+\begin{equation*}
+  |1-b_n(z)|=\frac{|z_n+z|z_n||}{|z_n||1-\overline{z_n}z|}(1-|z_n|)
+  \leq\frac{1+|z|}{1-|z|}(1-|z_n|),
+\end{equation*}
+and the convergence follows from Blaschke's condition.
+
+Since $|b_n(z)|\leq 1$, it is clear that $B\in H^\infty(\mathbb{D})$ and $|B(z)|\leq 1$.
+
+For the boundary values, here we need a lemma:
+\begin{lemma}\label{lem:bounded_analytic_boundary_value}
+Let $g\in H^\infty(\mathbb{D})$. Then $g$ has a nontangential limit $g^*(\zeta)$ at almost
+every $\zeta\in\mathbb{T}$, $|g^*|\leq\|g\|_{H^\infty}$ almost everywhere, and
+\begin{equation*}
+  g(0)=\frac{1}{2\pi}\int_0^{2\pi}g^*(e^{i\theta})\,d\theta.
+\end{equation*}
+In particular,
+\begin{equation*}
+  |g(0)|\leq\frac{1}{2\pi}\int_0^{2\pi}|g^*(e^{i\theta})|\,d\theta.
+\end{equation*}
+\end{lemma}
+\begin{proof}
+The functions $\text{Re}\, g$ and $\text{Im}\, g$ are bounded harmonic functions on $\mathbb{D}$. By
+Theorem \ref{Characterization of Poisson integrals}(a) with $p=\infty$, there are
+$f_1,f_2\in L^\infty(\mathbb{T})$ with $\text{Re}\, g=P[f_1]$ and $\text{Im}\, g=P[f_2]$; replacing $f_j$
+by $\text{Re}\, f_j$, we may take $f_1,f_2$ real-valued. Since $L^\infty(\mathbb{T})\subset
+L^1(\mathbb{T})$, Corollary \ref{cor:poisson_nontangential_ae} shows that $\text{Re}\, g$ and
+$\text{Im}\, g$ have nontangential limits $f_1$ and $f_2$ almost everywhere. Hence $g$ has
+nontangential limit $g^*=f_1+if_2$ almost everywhere, and $|g^*|\leq\|g\|_{H^\infty}$
+since $|g|\leq\|g\|_{H^\infty}$ on $\mathbb{D}$. Finally $P_0(\theta)=1$, so
+\begin{equation*}
+  g(0)=P[f_1](0)+iP[f_2](0)=\frac{1}{2\pi}\int_0^{2\pi}(f_1+if_2)(\theta)\,d\theta
+  =\frac{1}{2\pi}\int_0^{2\pi}g^*(e^{i\theta})\,d\theta,
+\end{equation*}
+and the inequality follows from the triangle inequality for integrals.
+\end{proof}
+
+By Lemma \ref{lem:bounded_analytic_boundary_value}, the bounded analytic function $B$ has
+nontangential limits $B^*$ with $|B^*|\leq 1$ almost everywhere. To see that $|B^*|=1$
+almost everywhere, set $B_n(z)=\prod_{k=1}^n b_k(z)$. Then $B/B_n$ is another Blaschke
+product, with zeros $\{z_k\}_{k>n}$, so by the above it is in $H^\infty(\mathbb{D})$. Since
+$B_n$ is continuous on $\overline{\mathbb{D}}$ with $|B_n|=1$ on $\mathbb{T}$, we have
+$(B/B_n)^*=B^*/B_n$ wherever $B^*$ exists. Applying
+Lemma \ref{lem:bounded_analytic_boundary_value} to $B/B_n$ gives
+\begin{equation*}
+  \left|\frac{B(0)}{B_n(0)}\right|
+  \leq\frac{1}{2\pi}\int_0^{2\pi}\frac{|B^*(e^{i\theta})|}{|B_n(e^{i\theta})|}\,d\theta
+  =\frac{1}{2\pi}\int_0^{2\pi}|B^*(e^{i\theta})|\,d\theta.
+\end{equation*}
+Since $B(0)\neq 0$ and $B_n(0)\rightarrow B(0)$, letting $n\rightarrow\infty$ now yields
+\begin{equation*}
+  \frac{1}{2\pi}\int_0^{2\pi}|B^*(e^{i\theta})|\,d\theta\geq 1.
+\end{equation*}
+Together with $|B^*|\leq 1$, this gives $|B^*|=1$ almost everywhere.
+\end{proof}
 
 Here's a characterization of Blaschke products in terms of harmonic majorants:
 \begin{theorem}\label{characterization of Blaschke products}
@@ -117,28 +178,6 @@ Let $f\in H^\infty(\mathbb{D})$ with $\|f\|_{H^\infty}\leq 1$. The followings ar
   \item[(c)] The least harmonic majorant of $\log |f|$ is 0.
 \end{itemize}
 \end{theorem}
-
-\section{Boundary functions of Hardy functions}
-Every $H^p$ function has a boundary function in $L^p(\mathbb{T})$, and for $p\geq 1$ it can be
-recovered from its boundary function via Poisson integral.
-\begin{theorem}\label{thm:Hp_boundary_function}
-Let $0<p\leq\infty$ and $f\in H^p(\D)$. Then $f$ has a nontangential limit $f^*(\zeta)$ at
-almost every $\zeta\in\mathbb{T}$, and $f^*\in L^p(\mathbb{T}, \frac{d\theta}{2\pi})$ with
-\begin{equation*}
-  \|f^*\|_{L^p}=\|f\|_{H^p}.
-\end{equation*}
-Moreover:
-\begin{itemize}
-  \item[(a)] if $0<p<\infty$, then
-  \begin{equation*}
-    \lim_{r\rightarrow 1}\|f(re^{i\cdot})-f^*\|_{L^p}=0;
-  \end{equation*}
-  \item[(b)] if $1\leq p\leq\infty$, then $f=P[f^*]$.
-\end{itemize}
-\end{theorem}
-
-
-
 
 \section{Nevanlinna class} 
 \begin{definition}

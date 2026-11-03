@@ -171,7 +171,7 @@ and are not verbatim reproductions of the source.
   \begin{proof}
     \proves{thm:poisson_measure_unique}
     \uses{thm:poisson_extension}
-    \notready
+    \leanok
     The standard weak-star argument: $P[\mu](r\,\cdot)\,d\sigma\to\mu$ when
     tested against continuous functions on the circle, because the Poisson
     integral of continuous data converges uniformly to it. This is what
@@ -855,7 +855,7 @@ and are not verbatim reproductions of the source.
 
 \begin{definition}[Blaschke condition for a multiplicity function]
   \label{def:blaschke_condition}
-  \lean{BlaschkeCondition, BlaschkeCondition.ne_top}
+  \lean{BlaschkeCondition, BlaschkeCondition.ne_top, BlaschkeCondition.mono}
   \leanok
   \uses{def:blaschke_sum}
   A multiplicity function $m$ satisfies Blaschke's condition on $\mathbb D$
@@ -924,6 +924,11 @@ and are not verbatim reproductions of the source.
     tendstoLocallyUniformlyOn_blaschkeProduct,
     analyticOnNhd_blaschkeProduct, norm_blaschkeProduct_le_one,
     norm_BlaschkeFactor_one_le_one,
+    norm_one_sub_normedBlaschkeFactor_le, norm_one_sub_blaschkeProductFactor_le,
+    blaschkeProduct_ne_zero_of_multiplicity_eq_zero, analyticOrderAt_normedBlaschkeFactor,
+    norm_normedBlaschkeFactor_eq_one, continuousOn_partialBlaschkeProduct,
+    blaschkeProduct_eq_normedBlaschkeFactor_pow_mul, blaschkeProduct_eq_partialProd_mul,
+    tendsto_blaschkeProduct_tail_zero,
     analyticOrderAt_blaschkeProduct, blaschkeProduct_eq_zero_iff,
     memHpDisc_blaschkeProduct, ae_hasNontangentialLimit_blaschkeProduct}
   \leanok
@@ -941,7 +946,7 @@ and are not verbatim reproductions of the source.
   \begin{proof}
     \proves{thm:II_2_2}
     \uses{cor:II_3_2(p=∞)}
-    \notready
+    \leanok
     The passage from the product omitting origin zeros to the full product
     $B(z)=z^mP(z)$ is formalized: multiplication by $z^m$, whose modulus
     is at most one on $\D$, preserves locally uniform convergence.
@@ -951,11 +956,23 @@ and are not verbatim reproductions of the source.
     The bound $|B|\le1$ is formalized by bounding each finite product
     and passing to the pointwise limit. The factor bound follows from
     $|1-\overline a z|^2-|z-a|^2=(1-|a|^2)(1-|z|^2)\ge0$.
+    The pointwise deviation estimate for a normalized factor is proved from
+    $1-b_a(z)=(1-|a|)(|a|+\overline a z)/(|a|(1-\overline a z))$ and
+    $|1-\overline a z|\ge1-|z|$. Its multiplicity version is proved from that estimate
+    using $|1-u^k|\le k|1-u|$ for $|u|\le1$.
+    Local uniform convergence of the product omitting origin zeros is proved
+    from this estimate: on $|z|\le r<1$, the deviations are bounded by the
+    summable family $\frac{1+r}{1-r}m(a)(1-|a|)$. Apply uniform convergence
+    of products on each closed disc, then pass to local uniform convergence.
+    Nonvanishing at points with prescribed multiplicity zero is proved directly
+    from summability of the deviations and nonvanishing of each factor, independently
+    of the product's multiplicity formula. Each normalized factor is proved to have
+    order one at its defining point, including the factor $z$ at the origin.
     Membership in $H^\infty$ follows from analyticity and $|B|\le1$, and
     the zero set is read off from the multiplicity formula, since an analytic
     function vanishes exactly where its order is nonzero.
-    Convergence of the product omitting origin zeros, the multiplicity
-    formula, and the boundary modulus remain to be proved.
+    The multiplicity formula follows by splitting off the factor at $w$:
+    $B_m=b_w^{m(w)}B_{m'}$ on $\D$, where $m'$ agrees with $m$ except $m'(w)=0$.
     For the boundary modulus, first remove the origin zeros and let $B_n$
     be the finite partial products. The tail product $Q_n=B/B_n$ is bounded
     analytic. Corollary~\ref{cor:II_3_2(p=∞)} gives
@@ -991,15 +1008,16 @@ and are not verbatim reproductions of the source.
   \begin{proof}
     \proves{thm:II_2_4}
     \uses{thm:I_6_7, thm:II_2_2, thm:log_abs_subharmonic}
-    \notready
+    \leanok
     For $(a)\Rightarrow(b)$, remove a finite initial Blaschke product so that
     the remaining product has modulus at the origin arbitrarily close to one;
     apply the subharmonic mean inequality and let the radius tend to one.
     For $(b)\Leftrightarrow(c)$, Theorem~\ref{thm:I_6_7} identifies the radial
     limit with $u(0)$ for the least harmonic majorant $u\le0$.
     The harmonic maximum principle gives $u(0)=0$ if and only if $u\equiv0$.
-    This equivalence is formalized using the existing prerequisite theorems;
-    the proof of $(a)\Rightarrow(b)$ remains to be formalized.
+    This equivalence is formalized using the existing prerequisite theorems.
+    In the formalization of $(a)\Rightarrow(b)$, the sub-mean inequality
+    for $\log|f/B_n|$ is taken from Jensen's formula.
   \end{proof}
 \end{theorem}
 
@@ -1033,28 +1051,28 @@ and are not verbatim reproductions of the source.
 \begin{corollary}[Garnett II.3.2, $p=\infty$: Poisson representation on the disc]
   \label{cor:II_3_2(p=∞)}
   \uses{def:poisson_integral, def:boundary_function}
-  \notready
+  \lean{InnerProductSpace.HarmonicOnNhd.exists_isAEBoundaryValue_of_hardyNorm_lt_top,
+    AnalyticOnNhd.exists_isAEBoundaryValue_of_bounded,
+    AnalyticOnNhd.memLp_boundaryValue_of_bounded,
+    AnalyticOnNhd.integral_boundaryValue_eq_of_bounded,
+    AnalyticOnNhd.norm_le_integral_norm_boundaryValue_of_bounded}
+  \leanok
   \bookref{Garnett}{II.3.2 ($p=\infty$)}{Chapter II, Section 3,
     printed page 56, PDF page 68; disc form}
-  Let $\sigma$ be normalized arclength on $\partial\D$ and let
-  $U\in L^\infty(\sigma;\mathbb C)$. Then $U$ is the a.e. nontangential
-  boundary value of an $H^\infty(\D)$ function if and only if
-  $P[U\,d\sigma]$ is analytic on $\D$. Every such function equals
-  $P[U\,d\sigma]$ on $\D$. In particular, for $f\in H^\infty(\D)$,
+  Let $\sigma$ be normalized arclength on $\partial\D$ and let $f$ be bounded
+  and analytic on $\D$. Then $f^*\in L^\infty(\sigma)$ and
   \[
-    f(z)=P[f^*\,d\sigma](z),\qquad
+    f(0)=\int_{\partial\D}f^*\,d\sigma,\qquad
     |f(0)|\le\int_{\partial\D}|f^*|\,d\sigma.
   \]
   \begin{proof}
     \proves{cor:II_3_2(p=∞)}
     \uses{thm:I_3_5(a), thm:I_5_3_ac, eq:I_3_5}
-    \notready
-    Apply Theorem~\ref{thm:I_3_5(a)} to the real and imaginary parts of
-    a bounded analytic function. Theorem~\ref{thm:I_5_3_ac} identifies the
-    resulting densities with its boundary values. Conversely, positivity
-    and unit mass of the Poisson kernel give the $L^\infty$ bound, and
-    Theorem~\ref{thm:I_5_3_ac} gives the prescribed boundary values.
-    At the origin the kernel is one, giving the displayed inequality.
+    \leanok
+    Apply Theorem~\ref{thm:I_3_5(a)} to the real and imaginary parts of $f$.
+    Theorem~\ref{thm:I_5_3_ac} identifies the resulting densities with the
+    boundary values of $f$. At the origin the Poisson kernel is one, giving
+    the displayed identity and inequality.
   \end{proof}
 \end{corollary}
 
@@ -1135,7 +1153,7 @@ and are not verbatim reproductions of the source.
   \begin{proof}
     \proves{thm:outer_function_properties}
     \uses{lem:poisson_integral_linear}
-    \notready
+    \leanok
     The integral $\int\frac{\zeta+z}{\zeta-z}\,k(\zeta)\,d\sigma(\zeta)$ is
     analytic in $z\in\D$, and its real part is $P[k\,d\sigma](z)$ because the
     real part of the Herglotz--Riesz kernel is the Poisson kernel.
@@ -1182,7 +1200,7 @@ and are not verbatim reproductions of the source.
   \begin{proof}
     \proves{thm:outer_boundary_modulus}
     \uses{thm:II_4_4}
-    \notready
+    \leanok
     The book's outer construction permits arbitrary integrable logarithmic
     data. To justify finite complex boundary limits without II.5.3, write
     $k=k^+-k^-$ and $O_k=O_{-k^-}/O_{-k^+}$. Apply the bounded construction
@@ -1205,7 +1223,7 @@ and are not verbatim reproductions of the source.
   \begin{proof}
     \proves{thm:outer_uniqueness}
     \uses{thm:outer_boundary_modulus, thm:outer_function_properties}
-    \notready
+    \leanok
     Write $F_j=C_jO_{k_j}$. By Theorem~\ref{thm:outer_boundary_modulus},
     $e^{k_1}=|F_1^*|=|F_2^*|=e^{k_2}$ almost everywhere, so $k_1=k_2$
     almost everywhere and $\log|F_1|=P[k_1\,d\sigma]=\log|F_2|$ on $\D$. The
@@ -1441,20 +1459,20 @@ and are not verbatim reproductions of the source.
 \end{theorem}
 
 \begin{theorem}[Characterization of singular functions]
-  \label{thm:singular_function_characterization}
+  \label{thm:singular_function_properties}
   \uses{def:singular_function_formula, def:nt_limit}
-  \lean{IsSingularFunction.ae_hasNontangentialLimit_norm_eq_one,
-    isSingularFunction_iff}
+  \lean{IsSingularFunction.ae_hasNontangentialLimit_norm_eq_one}
   \leanok
   \bookref{Garnett}{II.5}{Printed page 70, PDF page 82}
   A function $S$ is singular if and only if it is analytic on $\D$,
   has no zeros there, satisfies $|S|\le1$, has nontangential limits of
   modulus one $\sigma$-almost everywhere, and $S(0)$ is positive real. In
   particular every singular function belongs to $H^\infty$.
+  In Lean we only prove the forward direction.
   \begin{proof}
-    \proves{thm:singular_function_characterization}
+    \proves{thm:singular_function_properties}
     \uses{eq:II_5_9, lem:I_5_4, cor:II_3_1(p=∞), thm:I_3_5(c), thm:I_5_3}
-    \notready
+    \leanok
     The exponential integral is analytic and satisfies
     $\log|S_\mu|=-P[\mu]$. Positivity, the singular Poisson boundary theorem,
     and bounded-analytic Fatou give the four properties.
@@ -1572,7 +1590,7 @@ and are not verbatim reproductions of the source.
   \begin{proof}
     \proves{thm:nevanlinna_factorization_uniqueness}
     \uses{thm:II_2_2, thm:II_5_3, thm:outer_uniqueness, thm:outer_boundary_modulus,
-      thm:singular_function_characterization, lem:II_5_2, thm:outer_function_properties,
+      thm:singular_function_properties, lem:II_5_2, thm:outer_function_properties,
       eq:II_5_9, lem:poisson_integral_linear, thm:poisson_measure_unique,
       thm:jordan_decomposition_singular_measure}
     \leanok

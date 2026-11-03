@@ -2,6 +2,7 @@ import HardySpaceFormalization.HardySpaceDisc
 import HardySpaceFormalization.poissonIntegral
 import HardySpaceFormalization.NontangentialLimit
 import HardySpaceFormalization.NevanlinnaClass
+import HardySpaceFormalization.HardySpaceBoundary
 
 /-!
 # Outer functions on the unit disc
@@ -13,7 +14,7 @@ On the circle, `O_k` has nontangential limits of modulus `e^k` almost everywhere
 function is determined by its boundary modulus up to a unimodular constant.
 -/
 
-open MeasureTheory Complex
+open MeasureTheory Complex Filter Topology
 open scoped PoissonIntegral
 
 
@@ -45,7 +46,15 @@ boundary log-data `k`, since the real part of the Herglotz--Riesz kernel is the 
 theorem norm_outerFunction {k : ℂ → ℝ} (hk : Integrable k (circleMeasure 0 1)) {z : ℂ}
     (hz : z ∈ unitDisc) :
     ‖outerFunction k z‖ = Real.exp (P[0; k ∂ᵥ circleMeasure 0 1] z) := by
-  sorry
+  -- Claude without review
+  rw [outerFunction, Complex.norm_exp,
+    poissonIntegral_withDensityᵥ (circleMeasure_compl_sphere zero_le_one) hz hk,
+    ← RCLike.re_eq_complex_re,
+    ← integral_re (integrable_herglotzRieszKernel_mul (g := fun ζ => (k ζ : ℂ))
+      (circleMeasure_compl_sphere zero_le_one) hz hk.ofReal)]
+  congr 1
+  refine integral_congr_ae (Filter.Eventually.of_forall fun ζ => ?_)
+  simp [poissonKernel_eq_re_herglotzRieszKernel]
 
 /-- **Garnett II.4.** `log |O_k|` is the Poisson integral of the boundary log-data `k`. -/
 theorem log_norm_outerFunction {k : ℂ → ℝ} (hk : Integrable k (circleMeasure 0 1)) {z : ℂ}
@@ -116,18 +125,85 @@ theorem IsOuterFunction.memNevanlinnaDisc_indicator {F : ℂ → ℂ} (hF : IsOu
 
 /-! ### Boundary values -/
 
+
 /-- **Garnett II.4.** The outer-function formula with integrable boundary log-data has
 nontangential limits almost everywhere on the unit circle. -/
 theorem ae_nontangentiallyConvergentAt_outerFunction {k : ℂ → ℝ}
     (hk : Integrable k (circleMeasure 0 1)) :
     ∀ᵐ ζ ∂circleMeasure 0 1, NontangentiallyConvergentAt (outerFunction k) ζ := by
-  sorry
+  -- Claude without review
+  -- `O_k = O_{-k⁻} / O_{-k⁺}`, a quotient of two analytic functions bounded by `1`. Bounded Fatou
+  -- gives their limits, and Poisson Fatou shows the limit of the denominator does not vanish.
+  have hσ : circleMeasure 0 1 (Metric.sphere 0 1)ᶜ = 0 := circleMeasure_compl_sphere zero_le_one
+  have hae : ∀ᵐ ζ ∂circleMeasure 0 1, ζ ∈ Metric.sphere (0 : ℂ) 1 := ae_iff.2 hσ
+  have hfatou {h : ℂ → ℝ} (hh : Integrable h (circleMeasure 0 1)) (h0 : ∀ ζ, 0 ≤ h ζ) :
+      ∀ᵐ ζ ∂circleMeasure 0 1, ∃ L : ℂ, L ≠ 0 ∧
+        HasNontangentialLimit (outerFunction fun ζ => -h ζ) ζ L := by
+    have hhn : Integrable (fun ζ => -h ζ) (circleMeasure 0 1) := hh.neg
+    have han : AnalyticOnNhd ℂ (outerFunction fun ζ => -h ζ) (Metric.ball 0 1) :=
+      (analyticOnNhd_integral_herglotzRieszKernel_mul (c := 0) (R := 1) hσ hhn.ofReal).cexp
+    -- `|O_{-h}| = exp P[-h] ≤ 1`, because the Poisson kernel is nonnegative on the circle.
+    have hbdd : ∀ z ∈ Metric.ball (0 : ℂ) 1, ‖outerFunction (fun ζ => -h ζ) z‖ ≤ 1 := by
+      intro z hz
+      rw [norm_outerFunction hhn hz, Real.exp_le_one_iff, poissonIntegral_withDensityᵥ hσ hz hhn]
+      refine integral_nonpos_of_ae ?_
+      filter_upwards [hae] with ζ hζ
+      exact smul_nonpos_of_nonneg_of_nonpos (poissonKernel_nonneg hz hζ) (neg_nonpos.2 (h0 ζ))
+    filter_upwards [AnalyticOnNhd.ae_nontangentiallyConvergentAt_of_bounded han hbdd,
+      isAEBoundaryValue_poissonIntegral hhn, ae_nontangentially_neBot_circleMeasure]
+      with ζ ⟨L, hL⟩ hP hne
+    refine ⟨L, fun hL0 => ?_, hL⟩
+    have h1 : Tendsto (fun z => ‖outerFunction (fun ζ => -h ζ) z‖) (nontangentially ζ)
+        (𝓝 (Real.exp (-h ζ))) := by
+      refine ((Real.continuous_exp.tendsto _).comp hP).congr' ?_
+      filter_upwards [eventually_mem_ball_nontangentially ζ] with z hz
+      exact (norm_outerFunction hhn hz).symm
+    have h2 := Filter.Tendsto.norm hL
+    rw [hL0, norm_zero] at h2
+    exact (Real.exp_pos _).ne' (tendsto_nhds_unique h1 h2)
+  have hkp : Integrable (fun ζ => max (k ζ) 0) (circleMeasure 0 1) := hk.pos_part
+  have hkn : Integrable (fun ζ => max (-k ζ) 0) (circleMeasure 0 1) := hk.neg_part
+  -- The quotient formula on the disc.
+  have heq : ∀ z ∈ Metric.ball (0 : ℂ) 1, outerFunction k z =
+      outerFunction (fun ζ => -max (-k ζ) 0) z / outerFunction (fun ζ => -max (k ζ) 0) z := by
+    intro z hz
+    rw [outerFunction, outerFunction, outerFunction, ← Complex.exp_sub,
+      ← integral_sub (integrable_herglotzRieszKernel_mul
+          (g := fun ζ => ((-max (-k ζ) 0 : ℝ) : ℂ)) hσ hz hkn.neg.ofReal)
+        (integrable_herglotzRieszKernel_mul
+          (g := fun ζ => ((-max (k ζ) 0 : ℝ) : ℂ)) hσ hz hkp.neg.ofReal)]
+    congr 1
+    refine integral_congr_ae (Filter.Eventually.of_forall fun ζ => ?_)
+    have hk' : (k ζ : ℂ) = ((max (k ζ) 0 : ℝ) : ℂ) - ((max (-k ζ) 0 : ℝ) : ℂ) := by
+      norm_cast
+      rcases le_total (k ζ) 0 with h | h
+      · rw [max_eq_right h, max_eq_left (neg_nonneg.2 h)]; ring
+      · rw [max_eq_left h, max_eq_right (neg_nonpos.2 h)]; ring
+    simp only [Complex.ofReal_neg]
+    rw [hk']
+    ring
+  filter_upwards [hfatou hkp (fun _ => le_max_right _ _), hfatou hkn (fun _ => le_max_right _ _)]
+    with ζ ⟨L₁, hL₁0, hL₁⟩ ⟨L₂, _, hL₂⟩
+  refine ⟨L₂ / L₁, (Filter.Tendsto.div hL₂ hL₁ hL₁0).congr' ?_⟩
+  filter_upwards [eventually_mem_ball_nontangentially ζ] with z hz
+  exact (heq z hz).symm
+
 
 /-- **Garnett II.4.** The boundary values of `O_k` have modulus `e^k` almost everywhere. -/
 theorem ae_norm_boundaryValue_outerFunction {k : ℂ → ℝ}
     (hk : Integrable k (circleMeasure 0 1)) :
     ∀ᵐ ζ ∂circleMeasure 0 1, ‖boundaryValue (outerFunction k) ζ‖ = Real.exp (k ζ) := by
-  sorry
+  -- Claude without review
+  -- `|O_k| = exp P[k] → e^{k(ζ)}` by Poisson Fatou, and `|O_k| → |O_k^*(ζ)|`.
+  filter_upwards [ae_nontangentiallyConvergentAt_outerFunction hk,
+    isAEBoundaryValue_poissonIntegral hk, ae_nontangentially_neBot_circleMeasure]
+    with ζ hO hP hne
+  have h1 : Tendsto (fun z => ‖outerFunction k z‖) (nontangentially ζ)
+      (𝓝 (Real.exp (k ζ))) := by
+    refine ((Real.continuous_exp.tendsto _).comp hP).congr' ?_
+    filter_upwards [eventually_mem_ball_nontangentially ζ] with z hz
+    exact (norm_outerFunction hk hz).symm
+  exact tendsto_nhds_unique (Filter.Tendsto.norm hO.hasNontangentialLimit) h1
 
 /-- **Garnett II.4.** An outer function is determined by the modulus of its boundary values, up
 to a unimodular constant. -/
@@ -135,4 +211,33 @@ theorem IsOuterFunction.exists_eq_const_mul_of_ae_norm_boundaryValue_eq {F₁ F�
     (h₁ : IsOuterFunction F₁) (h₂ : IsOuterFunction F₂)
     (h : ∀ᵐ ζ ∂circleMeasure 0 1, ‖boundaryValue F₁ ζ‖ = ‖boundaryValue F₂ ζ‖) :
     ∃ c : ℂ, ‖c‖ = 1 ∧ ∀ z ∈ unitDisc, F₁ z = c * F₂ z := by
-  sorry
+  -- Claude without review
+  obtain ⟨k₁, hk₁, C₁, hC₁, hF₁⟩ := h₁
+  obtain ⟨k₂, hk₂, C₂, hC₂, hF₂⟩ := h₂
+  -- `|F^*| = |C| |O_k^*| = e^k` almost everywhere.
+  have hbv {F : ℂ → ℂ} {k : ℂ → ℝ} (hk : Integrable k (circleMeasure 0 1)) {C : ℂ}
+      (hC : ‖C‖ = 1) (hF : ∀ z ∈ unitDisc, F z = C * outerFunction k z) :
+      ∀ᵐ ζ ∂circleMeasure 0 1, ‖boundaryValue F ζ‖ = Real.exp (k ζ) := by
+    filter_upwards [ae_nontangentiallyConvergentAt_outerFunction hk,
+      ae_norm_boundaryValue_outerFunction hk, ae_nontangentially_neBot_circleMeasure]
+      with ζ hO hnorm hne
+    have hlim : HasNontangentialLimit F ζ (C * boundaryValue (outerFunction k) ζ) := by
+      refine (tendsto_const_nhds.mul hO.hasNontangentialLimit).congr' ?_
+      filter_upwards [eventually_mem_ball_nontangentially ζ] with z hz
+      exact (hF z hz).symm
+    rw [hlim.boundaryValue_eq, norm_mul, hC, one_mul, hnorm]
+  -- Equal boundary moduli force `k₁ = k₂` a.e., hence `O_{k₁} = O_{k₂}`.
+  have hk : k₁ =ᵐ[circleMeasure 0 1] k₂ := by
+    filter_upwards [hbv hk₁ hC₁ hF₁, hbv hk₂ hC₂ hF₂, h] with ζ hζ₁ hζ₂ hζ
+    exact Real.exp_injective (hζ₁.symm.trans (hζ.trans hζ₂))
+  have hO : outerFunction k₁ = outerFunction k₂ := by
+    funext z
+    rw [outerFunction, outerFunction]
+    congr 1
+    refine integral_congr_ae ?_
+    filter_upwards [hk] with ζ hζ
+    rw [hζ]
+  have hC₂0 : C₂ ≠ 0 := norm_ne_zero_iff.1 (by rw [hC₂]; exact one_ne_zero)
+  refine ⟨C₁ / C₂, by rw [norm_div, hC₁, hC₂, div_one], fun z hz => ?_⟩
+  rw [hF₁ z hz, hF₂ z hz, hO]
+  field_simp

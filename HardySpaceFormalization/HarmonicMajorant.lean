@@ -2,6 +2,7 @@ import HardySpaceFormalization.Subharmonic
 import HardySpaceFormalization.withBotIntegral
 import Mathlib.Analysis.Complex.Poisson
 import Mathlib.Topology.Order.WithTop
+import Mathlib.Analysis.SpecialFunctions.Integrability.Log
 
 
 
@@ -85,6 +86,69 @@ lemma poissonModification_zero_eq_withBotRadialMean (v : ℂ → WithBot ℝ) {r
   refine congrArg _ (funext fun θ => ?_)
   rw [zero_div, poissonKernel_def]
   simp [Complex.norm_exp, mul_comm]
+
+/-- If a `WithBot ℝ`-valued function agrees almost everywhere on the circle of radius `r` with a
+circle-integrable real function `u`, its radial mean is the circle average of `u`. -/
+lemma withBotRadialMean_eq_circleAverage {v : ℂ → WithBot ℝ} {u : ℂ → ℝ} {r : ℝ}
+    (hvu : ∀ᵐ θ : ℝ ∂angularMeasure, v (r * exp (I * θ)) = u (r * exp (I * θ)))
+    (hu : CircleIntegrable u 0 r) :
+    withBotRadialMean v r = ((circleAverage u 0 r : ℝ) : WithBot ℝ) := by
+  have hcm (θ : ℝ) : circleMap 0 r θ = (r : ℂ) * exp (I * θ) := by
+    simp [circleMap, mul_comm]
+  -- The pullback of `u` is integrable against the normalized angular measure.
+  have hIco : IntegrableOn (fun θ : ℝ => u (circleMap 0 r θ)) (Ico 0 (2 * π)) volume := by
+    rw [← intervalIntegrable_iff_integrableOn_Ico_of_le (by positivity)]
+    exact hu
+  have hint : Integrable (fun θ : ℝ => u ((r : ℂ) * exp (I * θ))) angularMeasure := by
+    unfold angularMeasure
+    simpa only [hcm] using hIco.smul_measure ENNReal.ofReal_ne_top
+  have havg : circleAverage u 0 r = ∫ θ, u ((r : ℂ) * exp (I * θ)) ∂angularMeasure := by
+    rw [circleAverage_eq_integral_circleMeasure hu,
+      integral_circleMeasure_eq_integral_angularMeasure hu.aestronglyMeasurable_circleMeasure]
+    simp only [hcm]
+  -- The `⊥`-set is null and the real representative agrees with `u` almost everywhere.
+  have hbot : angularMeasure {θ : ℝ | v (r * exp (I * θ)) = ⊥} = 0 := by
+    have h : ∀ᵐ θ : ℝ ∂angularMeasure, v (r * exp (I * θ)) ≠ ⊥ :=
+      hvu.mono fun θ h => by rw [h]; exact WithBot.coe_ne_bot
+    simpa using ae_iff.mp h
+  have hunbot : (fun θ : ℝ => (v (r * exp (I * θ))).unbotD 0) =ᵐ[angularMeasure]
+      fun θ => u (r * exp (I * θ)) :=
+    hvu.mono fun θ h => by simp only [h, WithBot.unbotD_coe]
+  have hcond : angularMeasure {θ : ℝ | v (r * exp (I * θ)) = ⊥} = 0 ∧
+      Integrable ((WithBot.unbotD 0) ∘ fun θ : ℝ => v (r * exp (I * θ))) angularMeasure :=
+    ⟨hbot, hint.congr hunbot.symm⟩
+  unfold withBotRadialMean withBotIntegral
+  rw [ite_eq_left_of_eq_true _ _ (eq_true hcond), integral_congr_ae hunbot, havg]
+
+/-- For an analytic function on the unit disc that is not identically zero, the `WithBot` radial
+mean of `log ‖g‖` on a circle of radius `0 < r < 1` is the real circle average of `log ‖g‖`. -/
+lemma withBotRadialMean_logNormBot_eq_circleAverage {g : ℂ → ℂ}
+    (hg : AnalyticOnNhd ℂ g (ball 0 1)) (hne : ∃ z ∈ ball (0 : ℂ) 1, g z ≠ 0)
+    {r : ℝ} (hr : r ∈ Ioo 0 1) :
+    withBotRadialMean (logNormBot ∘ g) r =
+      ((circleAverage (fun z => Real.log ‖g z‖) 0 r : ℝ) : WithBot ℝ) := by
+  obtain ⟨z₀, hz₀, hgz₀⟩ := hne
+  have hr0 : r ≠ 0 := hr.1.ne'
+  have hsph : sphere (0 : ℂ) |r| ⊆ ball 0 1 := by
+    intro z hz
+    rw [mem_sphere_zero_iff_norm, abs_of_pos hr.1] at hz
+    simpa [hz] using hr.2
+  -- The zeros of `g` are isolated in the disc, hence null on the circle.
+  have hcod : ∀ᶠ z in codiscreteWithin (sphere (0 : ℂ) |r|), g z ≠ 0 :=
+    codiscreteWithin_mono hsph ((hg.eqOn_zero_or_eventually_ne_zero_of_preconnected
+      (convex_ball (0 : ℂ) 1).isPreconnected).resolve_left fun h => hgz₀ (h hz₀))
+  have hθ : ∀ᵐ θ : ℝ ∂angularMeasure, g (circleMap 0 r θ) ≠ 0 := by
+    have h : ∀ᵐ θ : ℝ ∂(volume.restrict (Ico 0 (2 * π))), g (circleMap 0 r θ) ≠ 0 :=
+      ae_restrict_le_codiscreteWithin measurableSet_Ico
+        (codiscreteWithin_mono (subset_univ _) (circleMap_preimage_codiscrete hr0 hcod))
+    exact Measure.ae_smul_measure h _
+  refine withBotRadialMean_eq_circleAverage ?_
+    (AnalyticOnNhd.meromorphicOn (hg.mono hsph)).circleIntegrable_log_norm
+  filter_upwards [hθ] with θ hθ
+  have hcm : circleMap 0 r θ = (r : ℂ) * exp (I * θ) := by
+    simp [circleMap, mul_comm]
+  rw [hcm] at hθ
+  simp [logNormBot, hθ]
 
 
 

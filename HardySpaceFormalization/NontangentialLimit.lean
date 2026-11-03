@@ -50,6 +50,16 @@ theorem hasNontangentialLimit_iff_forall {f : ℂ → X} {ζ : ℂ} {L : X} :
     HasNontangentialLimit f ζ L ↔ ∀ α > 1, HasNontangentialLimitWithin f α ζ L := by
   simp [HasNontangentialLimit, HasNontangentialLimitWithin, nontangentially, tendsto_iSup]
 
+/-- The nontangential filter at any point only sees points of the unit disc. -/
+theorem eventually_mem_ball_nontangentially (ζ : ℂ) :
+    ∀ᶠ z in nontangentially ζ, z ∈ ball (0 : ℂ) 1 := by
+  rw [nontangentially, eventually_iSup]
+  intro α
+  rw [eventually_iSup]
+  intro _
+  filter_upwards [self_mem_nhdsWithin] with z hz
+  exact mem_ball_zero_iff.2 hz.1
+
 
 -- ## It seems to be a redundant definition
 /-- The boundary value of `f` at `ζ` **within the single approach region** `Γ_α(ζ)`. -/
@@ -725,16 +735,9 @@ theorem hasNontangentialLimit_poissonIntegral_of_lebesguePoint {k : ℂ → ℝ}
     simp only [hseam]; simpa using ENNReal.tendsto_ofReal hleb
   have hL3 : HasNontangentialLimit (fun z => ∫ w, poissonKernel 0 z w ∂ρ) ζ 0 := by
     simpa using hasNontangentialLimit_integral_poissonKernel_of_density_zero hρcar hζ hdens
-  have hball : ∀ᶠ z in nontangentially ζ, z ∈ ball (0:ℂ) 1 := by
-    rw [nontangentially, eventually_iSup]
-    intro α
-    rw [eventually_iSup]
-    intro _
-    filter_upwards [self_mem_nhdsWithin] with z hz
-    exact mem_ball_zero_iff.2 hz.1
   have hle : ∀ᶠ z in nontangentially ζ,
       ‖P[0; k ∂ᵥσ] z - k ζ‖ ≤ ∫ w, poissonKernel 0 z w ∂ρ := by
-    filter_upwards [hball] with z hz
+    filter_upwards [eventually_mem_ball_nontangentially ζ] with z hz
     have hPk : Integrable (fun w => poissonKernel 0 z w * k w) σ :=
       integrable_poissonKernel_mul hcar hz hk
     have hPc : Integrable (fun w => poissonKernel 0 z w * k ζ) σ :=
@@ -827,16 +830,9 @@ theorem isAEBoundaryValue_poissonIntegral_zero_of_mutuallySingular
       P[0; ν.variation.toSignedMeasure] ζ 0 :=
     hasNontangentialLimit_integral_poissonKernel_of_density_zero
       hvariation_carried hζnorm hdensityζ
-  have hball : ∀ᶠ z in nontangentially ζ, z ∈ ball (0 : ℂ) 1 := by
-    rw [nontangentially, eventually_iSup]
-    intro α
-    rw [eventually_iSup]
-    intro _
-    filter_upwards [self_mem_nhdsWithin] with z hz
-    exact mem_ball_zero_iff.2 hz.1
   have hle : ∀ᶠ z in nontangentially ζ,
       ‖P[0; ν] z‖ ≤ P[0; ν.variation.toSignedMeasure] z := by
-    filter_upwards [hball] with z hz
+    filter_upwards [eventually_mem_ball_nontangentially ζ] with z hz
     rw [poissonIntegral_toSignedMeasure, poissonIntegral, integral_smul_eq_integral_flip]
     have hnonneg : ∀ᵐ w ∂ν.variation, 0 ≤ poissonKernel 0 z w := by
       filter_upwards [ae_iff.2 hvariation_carried] with w hw
@@ -889,17 +885,10 @@ theorem isAEBoundaryValue_poissonIntegral_rnDeriv {μ : SignedMeasure ℂ}
       ζ (k ζ) := by
     change Tendsto _ (nontangentially ζ) (𝓝 (k ζ))
     simpa only [Pi.zero_apply, zero_add] using hsingζ.add hacζ
-  have hinside : ∀ᶠ z in nontangentially ζ, z ∈ ball (0 : ℂ) 1 := by
-    rw [nontangentially, eventually_iSup]
-    intro α
-    rw [eventually_iSup]
-    intro _
-    filter_upwards [self_mem_nhdsWithin] with z hz
-    exact mem_ball_zero_iff.2 hz.1
   have heq :
       (fun z => P[0; μ.singularPart σ] z + P[0; k ∂ᵥσ] z)
         =ᶠ[nontangentially ζ] P[0; μ] := by
-    filter_upwards [hinside] with z hz
+    filter_upwards [eventually_mem_ball_nontangentially ζ] with z hz
     have hsing_int : (μ.singularPart σ).Integrable (fun w => poissonKernel 0 z w) :=
       integrable_poissonKernel_totalVariation hsing_car hz
     have hμ_int : μ.Integrable (fun w => poissonKernel 0 z w) :=

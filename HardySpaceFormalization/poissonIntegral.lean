@@ -9,6 +9,7 @@ import HardySpaceFormalization.LpDuality
 import Mathlib.Analysis.Normed.Module.WeakDual
 import Mathlib.MeasureTheory.VectorMeasure.Integral
 import Mathlib.MeasureTheory.VectorMeasure.WithDensity
+import Mathlib.MeasureTheory.Measure.HasOuterApproxClosed
 
 noncomputable section
 
@@ -549,15 +550,155 @@ theorem poissonIntegral_continuousOn_closedBall_eq_boundary
 /-!
 ### Uniqueness of the boundary measure
 
-Garnett I.3, after Theorem 3.1: a measure is determined by its Poisson integral.
+Garnett I.3, after Theorem 3.1: a measure is determined by its Poisson integral.  Tested against
+continuous `g`, Fubini and the symmetry of the kernel move the Poisson integral from the measure
+onto `g`, and the Poisson extension of `g` lets `r → 1⁻`.
 -/
+
+open scoped BoundedContinuousFunction
+
+/-- For `0 ≤ r < 1`, the radial point `c + r (z - c)` of a boundary point `z` lies in the open
+disc. -/
+theorem radial_mem_ball (hR : 0 < R) {r : ℝ} (hr : r ∈ Ico (0 : ℝ) 1) {z : ℂ}
+    (hz : z ∈ sphere c R) : c + r * (z - c) ∈ ball c R := by
+  rw [mem_ball_iff_norm, add_sub_cancel_left, norm_mul, Complex.norm_real, Real.norm_eq_abs,
+    abs_of_nonneg hr.1, mem_sphere_iff_norm.1 hz]
+  nlinarith [hr.2]
+
+/-- **Fubini step.** For `0 ≤ r < 1`, integrating continuous data `g` against the Poisson integral
+of a boundary measure `m` on the circle of radius `r R` equals integrating the Poisson integral
+of `g` on that circle against `m`. -/
+theorem integral_mul_poissonIntegral_radial_eq (hR : 0 < R) {m : Measure ℂ} [IsFiniteMeasure m]
+    (hm : m (sphere c R)ᶜ = 0) (g : ℂ →ᵇ ℝ) {r : ℝ} (hr : r ∈ Ico (0 : ℝ) 1) :
+    ∫ ζ, g ζ * P[c; m.toSignedMeasure] (c + r * (ζ - c)) ∂circleMeasure c R =
+      ∫ z, P[c; g ∂ᵥcircleMeasure c R] (c + r * (z - c)) ∂m := by
+  -- Claude without review
+  have hσ : circleMeasure c R (sphere c R)ᶜ = 0 := circleMeasure_compl_sphere hR.le
+  have hσae : ∀ᵐ ζ ∂circleMeasure c R, ζ ∈ sphere c R := ae_mem_sphere_circleMeasure hR.le
+  have hmae : ∀ᵐ z ∂m, z ∈ sphere c R := ae_iff.2 hm
+  set F : ℂ → ℂ → ℝ := fun ζ z => g ζ * poissonKernel c (c + r * (z - c)) ζ with hF
+  -- The kernel is bounded by `(1 + r) / (1 - r)` on the product of the two circles.
+  have hint : Integrable (Function.uncurry F) ((circleMeasure c R).prod m) := by
+    refine Integrable.of_bound (C := ‖g‖ * ((R + r * R) / (R - r * R))) ?_ ?_
+    · have hg : Measurable g := g.continuous.measurable
+      refine Measurable.aestronglyMeasurable ?_
+      simp only [hF, Function.uncurry_def, poissonKernel]
+      fun_prop
+    · filter_upwards [Measure.quasiMeasurePreserving_fst.ae hσae,
+        Measure.quasiMeasurePreserving_snd.ae hmae] with p hp₁ hp₂
+      have hw := radial_mem_ball hR hr hp₂
+      have hn : ‖c + r * (p.2 - c) - c‖ = r * R := by
+        rw [add_sub_cancel_left, norm_mul, Complex.norm_real, Real.norm_eq_abs,
+          abs_of_nonneg hr.1, mem_sphere_iff_norm.1 hp₂]
+      show ‖g p.1 * poissonKernel c (c + r * (p.2 - c)) p.1‖ ≤ _
+      rw [norm_mul]
+      have := norm_poissonKernel_le_of_mem_ball hw hp₁
+      rw [hn] at this
+      exact mul_le_mul (g.norm_coe_le_norm _) this (norm_nonneg _) (norm_nonneg _)
+  have hL : ∀ᵐ ζ ∂circleMeasure c R,
+      g ζ * P[c; m.toSignedMeasure] (c + r * (ζ - c)) = ∫ z, F ζ z ∂m := by
+    filter_upwards [hσae] with ζ hζ
+    rw [poissonIntegral_toSignedMeasure_apply, ← integral_const_mul]
+    refine integral_congr_ae ?_
+    filter_upwards [hmae] with z hz
+    rw [hF, poissonKernel_symm_of_mem_sphere hz hζ r]
+  have hR' : ∀ᵐ z ∂m, P[c; g ∂ᵥcircleMeasure c R] (c + r * (z - c)) =
+      ∫ ζ, F ζ z ∂circleMeasure c R := by
+    filter_upwards [hmae] with z hz
+    rw [poissonIntegral_withDensityᵥ hσ (radial_mem_ball hR hr hz)
+      (g.continuous.continuousOn.integrable_circleMeasure hR.le)]
+    simp only [hF, smul_eq_mul, mul_comm]
+  rw [integral_congr_ae hL, integral_congr_ae hR', integral_integral_swap hint]
+
+/-- **Limit step.** As `r → 1⁻`, the integral against a boundary measure `m` of the Poisson
+integral of continuous data `g` on the circle of radius `r R` tends to `∫ g dm`. -/
+theorem tendsto_integral_poissonIntegral_radial (hR : 0 < R) {m : Measure ℂ} [IsFiniteMeasure m]
+    (hm : m (sphere c R)ᶜ = 0) (g : ℂ →ᵇ ℝ) :
+    Tendsto (fun r : ℝ => ∫ z, P[c; g ∂ᵥcircleMeasure c R] (c + r * (z - c)) ∂m) (𝓝[<] 1)
+      (𝓝 (∫ z, g z ∂m)) := by
+  -- Claude without review
+  have hmae : ∀ᵐ z ∂m, z ∈ sphere c R := ae_iff.2 hm
+  obtain ⟨u, hu_cont, -, hu_ball, hu_sph⟩ :=
+    poissonIntegral_continuousOn_closedBall_eq_boundary (c := c) (R := R) g.continuous.continuousOn
+  obtain ⟨C, hC⟩ := (isCompact_closedBall c R).exists_bound_of_continuousOn hu_cont
+  have hIco : ∀ᶠ r in 𝓝[<] (1 : ℝ), r ∈ Ico (0 : ℝ) 1 :=
+    mem_of_superset (Ioo_mem_nhdsLT one_pos) Ioo_subset_Ico_self
+  -- On the circle of radius `r R` the Poisson integral is the continuous extension `u`.
+  refine Tendsto.congr' (f₁ := fun r : ℝ => ∫ z, u (c + r * (z - c)) ∂m) ?_ ?_
+  · filter_upwards [hIco] with r hr
+    refine integral_congr_ae ?_
+    filter_upwards [hmae] with z hz
+    exact hu_ball _ (radial_mem_ball hR hr hz)
+  refine tendsto_integral_filter_of_dominated_convergence (fun _ => C) ?_ ?_
+    (integrable_const C) ?_
+  · filter_upwards [hIco] with r hr
+    have hcont : ContinuousOn (fun z : ℂ => u (c + r * (z - c))) (sphere c R) :=
+      hu_cont.comp (by fun_prop) fun z hz => ball_subset_closedBall (radial_mem_ball hR hr hz)
+    rw [← Measure.restrict_eq_self_of_ae_mem hmae]
+    exact hcont.aestronglyMeasurable isClosed_sphere.measurableSet
+  · filter_upwards [hIco] with r hr
+    filter_upwards [hmae] with z hz
+    exact hC _ (ball_subset_closedBall (radial_mem_ball hR hr hz))
+  · filter_upwards [hmae] with z hz
+    have hlim : Tendsto (fun r : ℝ => c + r * (z - c)) (𝓝[<] 1) (𝓝[closedBall c R] z) := by
+      refine tendsto_nhdsWithin_iff.2 ⟨?_, ?_⟩
+      · have : Tendsto (fun r : ℝ => c + r * (z - c)) (𝓝 1) (𝓝 (c + (1 : ℝ) * (z - c))) :=
+          (by fun_prop : Continuous fun r : ℝ => c + r * (z - c)).tendsto 1
+        simpa using this.mono_left nhdsWithin_le_nhds
+      · filter_upwards [hIco] with r hr
+        exact ball_subset_closedBall (radial_mem_ball hR hr hz)
+    rw [← hu_sph z hz]
+    exact (hu_cont z (sphere_subset_closedBall hz)).tendsto.comp hlim
 
 /-- **A boundary measure is determined by its Poisson integral.** Two finite signed measures
 carried by the circle `sphere c R` whose Poisson integrals agree on the open disc are equal. -/
 theorem eq_of_eqOn_poissonIntegral (hR : 0 < R) {μ ν : SignedMeasure ℂ}
     (hμ : μ.totalVariation (sphere c R)ᶜ = 0) (hν : ν.totalVariation (sphere c R)ᶜ = 0)
     (h : EqOn P[c; μ] P[c; ν] (ball c R)) : μ = ν := by
-  sorry
+  -- Claude without review
+  -- Compare the finite positive measures `μ⁺ + ν⁻` and `ν⁺ + μ⁻`.
+  have hcar {ρ : SignedMeasure ℂ} (hρ : ρ.totalVariation (sphere c R)ᶜ = 0) :
+      ρ.toJordanDecomposition.posPart (sphere c R)ᶜ = 0 ∧
+        ρ.toJordanDecomposition.negPart (sphere c R)ᶜ = 0 := by
+    rw [SignedMeasure.totalVariation, Measure.add_apply] at hρ
+    exact add_eq_zero.1 hρ
+  obtain ⟨hμ₁, hμ₂⟩ := hcar hμ
+  obtain ⟨hν₁, hν₂⟩ := hcar hν
+  set μ₁ := μ.toJordanDecomposition.posPart
+  set μ₂ := μ.toJordanDecomposition.negPart
+  set ν₁ := ν.toJordanDecomposition.posPart
+  set ν₂ := ν.toJordanDecomposition.negPart
+  have hm₁ : (μ₁ + ν₂) (sphere c R)ᶜ = 0 := by rw [Measure.add_apply, hμ₁, hν₂, add_zero]
+  have hm₂ : (ν₁ + μ₂) (sphere c R)ᶜ = 0 := by rw [Measure.add_apply, hν₁, hμ₂, add_zero]
+  have hP : EqOn P[c; (μ₁ + ν₂).toSignedMeasure] P[c; (ν₁ + μ₂).toSignedMeasure] (ball c R) := by
+    intro w hw
+    have hw' := h hw
+    rw [poissonIntegral_eq_posPart_sub_negPart (integrable_poissonKernel_totalVariation hμ hw),
+      poissonIntegral_eq_posPart_sub_negPart (integrable_poissonKernel_totalVariation hν hw)]
+      at hw'
+    rw [poissonIntegral_toSignedMeasure_apply, poissonIntegral_toSignedMeasure_apply,
+      integral_add_measure (integrable_poissonKernel hμ₁ hw) (integrable_poissonKernel hν₂ hw),
+      integral_add_measure (integrable_poissonKernel hν₁ hw) (integrable_poissonKernel hμ₂ hw)]
+    linarith
+  -- Both measures integrate every bounded continuous function to the same value.
+  have hint (g : ℂ →ᵇ ℝ) : ∫ z, g z ∂(μ₁ + ν₂) = ∫ z, g z ∂(ν₁ + μ₂) := by
+    refine tendsto_nhds_unique (tendsto_integral_poissonIntegral_radial hR hm₁ g)
+      ((tendsto_integral_poissonIntegral_radial hR hm₂ g).congr' ?_)
+    filter_upwards [Ioo_mem_nhdsLT one_pos] with r hr
+    have hr' : r ∈ Ico (0 : ℝ) 1 := Ioo_subset_Ico_self hr
+    rw [← integral_mul_poissonIntegral_radial_eq hR hm₁ g hr',
+      ← integral_mul_poissonIntegral_radial_eq hR hm₂ g hr']
+    refine integral_congr_ae ?_
+    filter_upwards [ae_mem_sphere_circleMeasure hR.le] with ζ hζ
+    rw [hP (radial_mem_ball hR hr' hζ)]
+  have hm : (μ₁ + ν₂).toSignedMeasure = (ν₁ + μ₂).toSignedMeasure := by
+    congr 1
+    exact ext_of_forall_integral_eq_of_IsFiniteMeasure hint
+  rw [Measure.toSignedMeasure_add, Measure.toSignedMeasure_add] at hm
+  rw [← μ.toSignedMeasure_toJordanDecomposition, ← ν.toSignedMeasure_toJordanDecomposition]
+  show μ₁.toSignedMeasure - μ₂.toSignedMeasure = ν₁.toSignedMeasure - ν₂.toSignedMeasure
+  rw [sub_eq_sub_iff_add_eq_add]
+  exact hm
 
 
 

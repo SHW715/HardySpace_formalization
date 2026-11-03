@@ -1,0 +1,11 @@
+# Local Lean LSP MCP configuration for this project.
+[mcp_servers.lean-lsp]
+command = "/opt/homebrew/bin/uvx"
+args = ["lean-lsp-mcp==0.31.0"]
+cwd = "/Users/wangshuhan/Documents/GitHub/HardySpace_formalization"
+startup_timeout_sec = 120
+tool_timeout_sec = 600
+
+[mcp_servers.lean-lsp.env]
+LEAN_PROJECT_PATH = "/Users/wangshuhan/Documents/GitHub/HardySpace_formalization"
+PATH = "/Users/wangshuhan/.elan/bin:/opt/homebrew/bin:/Applications/ChatGPT.app/Contents/Resources/codex-cli/codex-path:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"

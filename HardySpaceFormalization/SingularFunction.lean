@@ -1,5 +1,6 @@
 import HardySpaceFormalization.HardySpaceDisc
 import HardySpaceFormalization.NontangentialLimit
+import HardySpaceFormalization.HardySpaceBoundary
 
 /-!
 # Singular functions on the unit disc
@@ -8,7 +9,7 @@ Garnett II.5, formulas (5.8) and (5.9) and the four properties on printed page 7
 `S_μ` is analytic and zero-free on the disc, `log |S_μ| = -P[μ]` there, and `S_μ(0) = e^{-μ(T)}`.
 -/
 
-open MeasureTheory Complex
+open MeasureTheory Complex Topology Filter
 open scoped PoissonIntegral ENNReal
 
 /-- The **singular-function formula** associated to a measure `μ`. Its singular-function
@@ -100,12 +101,44 @@ theorem IsSingularFunction.memHpDisc_indicator {S : ℂ → ℂ} (hS : IsSingula
     HardySpace.MemHpDisc ∞ (unitDisc.indicator S) :=
   HardySpace.memHpDisc_top_indicator_of_norm_le hS.analyticOn fun _ hz => hS.norm_le_one hz
 
+
 /-- **Garnett II.5, property (iii).** A singular function has nontangential limits of
 modulus one almost everywhere on the unit circle. -/
 theorem IsSingularFunction.ae_hasNontangentialLimit_norm_eq_one {S : ℂ → ℂ}
     (hS : IsSingularFunction S) :
     ∀ᵐ ζ ∂circleMeasure 0 1, ∃ L : ℂ, HasNontangentialLimit S ζ L ∧ ‖L‖ = 1 := by
-  sorry
+  -- Claude without review
+  -- `S_μ` is bounded analytic, and `|S_μ| = exp (-P[μ]) → 1` by Lemma I.5.4 since `μ ⟂ dθ`.
+  obtain ⟨μ, hfin, hμ, hμσ, hSμ⟩ := hS
+  -- The Jordan decomposition of `μ`, viewed as a signed measure, is `(μ, 0)`.
+  have hj : μ.toSignedMeasure.toJordanDecomposition = ⟨μ, 0, .zero_right⟩ := by
+    rw [← JordanDecomposition.toJordanDecomposition_toSignedMeasure ⟨μ, 0, .zero_right⟩]
+    congr 1
+    simp [JordanDecomposition.toSignedMeasure]
+  have hcar : μ.toSignedMeasure.totalVariation (Metric.sphere 0 1)ᶜ = 0 := by
+    rw [SignedMeasure.totalVariation, hj]
+    simpa using hμ
+  have hsing : μ.toSignedMeasure ⟂ᵥ (circleMeasure 0 1).toENNRealVectorMeasure := by
+    rw [SignedMeasure.mutuallySingular_toENNRealVectorMeasure_iff, hj]
+    exact ⟨hμσ, .zero_left⟩
+  have han : AnalyticOnNhd ℂ (singularFunction μ) (Metric.ball 0 1) :=
+    (analyticOnNhd_integral_herglotzRieszKernel (c := 0) (R := 1) hμ).neg.cexp
+  have hbdd : ∀ z ∈ Metric.ball (0 : ℂ) 1, ‖singularFunction μ z‖ ≤ 1 :=
+    fun z hz => (isSingularFunction_singularFunction hμ hμσ).norm_le_one hz
+  filter_upwards [AnalyticOnNhd.ae_nontangentiallyConvergentAt_of_bounded han hbdd,
+    isAEBoundaryValue_poissonIntegral_zero_of_mutuallySingular hcar hsing,
+    ae_nontangentially_neBot_circleMeasure] with ζ ⟨L, hL⟩ hP hne
+  refine ⟨L, Tendsto.congr' ?_ hL, ?_⟩
+  · filter_upwards [eventually_mem_ball_nontangentially ζ] with z hz
+    exact (hSμ z hz).symm
+  have h0 : Tendsto (fun z => Real.exp (-P[0; μ.toSignedMeasure] z)) (nontangentially ζ)
+      (𝓝 1) := by
+    simpa [Function.comp_def] using (Real.continuous_exp.tendsto _).comp (Filter.Tendsto.neg hP)
+  have h1 : Tendsto (fun z => ‖singularFunction μ z‖) (nontangentially ζ) (𝓝 1) := by
+    refine h0.congr' ?_
+    filter_upwards [eventually_mem_ball_nontangentially ζ] with z hz
+    exact (norm_singularFunction hμ hz).symm
+  exact tendsto_nhds_unique (Filter.Tendsto.norm hL) h1
 
 /-- **Garnett II.5, property (iv).** A singular function takes a positive real value at zero. -/
 theorem IsSingularFunction.zero_pos {S : ℂ → ℂ} (hS : IsSingularFunction S) :
@@ -114,13 +147,5 @@ theorem IsSingularFunction.zero_pos {S : ℂ → ℂ} (hS : IsSingularFunction S
   rw [hS 0 (Metric.mem_ball_self one_pos), singularFunction_zero hμ]
   exact ⟨ofReal_im _, by rw [ofReal_re]; exact Real.exp_pos _⟩
 
-/-- The measure representation is equivalent to analyticity and Garnett's four properties
-of a singular function (II.5, printed page 70). -/
-theorem isSingularFunction_iff {S : ℂ → ℂ} :
-    IsSingularFunction S ↔
-      AnalyticOn ℂ S unitDisc ∧
-      (∀ z ∈ unitDisc, S z ≠ 0) ∧
-      (∀ z ∈ unitDisc, ‖S z‖ ≤ 1) ∧
-      (∀ᵐ ζ ∂circleMeasure 0 1, ∃ L : ℂ, HasNontangentialLimit S ζ L ∧ ‖L‖ = 1) ∧
-      (S 0).im = 0 ∧ 0 < (S 0).re := by
-  sorry
+/- Actually singular function is equivalent to functions with above 4 properties, but as we don't
+need the equivalence argument to proceed this project, we don't give the proof of converse argument-/

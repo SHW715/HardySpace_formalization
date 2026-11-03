@@ -184,6 +184,17 @@ theorem integrable_herglotzRieszKernel {μ : Measure ℂ} [IsFiniteMeasure μ]
   refine norm_herglotzRieszKernel_le ?_ hz le_rfl
   simpa [Metric.mem_ball, dist_eq_norm] using hw
 
+/-- For an interior point, the Herglotz-Riesz kernel times an integrable boundary weight is
+integrable against any finite measure carried by the boundary circle. -/
+theorem integrable_herglotzRieszKernel_mul {μ : Measure ℂ} [IsFiniteMeasure μ]
+    (hμ : μ (sphere c R)ᶜ = 0) (hw : w ∈ ball c R) {g : ℂ → ℂ} (hg : Integrable g μ) :
+    Integrable (fun z : ℂ => herglotzRieszKernel c w z * g z) μ := by
+  refine hg.bdd_mul (c := (R + ‖w - c‖) / (R - ‖w - c‖))
+    (measurable_herglotzRieszKernel c w).aestronglyMeasurable ?_
+  filter_upwards [ae_iff.2 hμ] with z hz
+  refine norm_herglotzRieszKernel_le ?_ hz le_rfl
+  simpa [Metric.mem_ball, dist_eq_norm] using hw
+
 /-- **The Herglotz-Riesz transform of a boundary measure is analytic.**  For a finite measure `μ`
 carried by the circle `sphere c R`, the function
 `w ↦ ∫ z, herglotzRieszKernel c w z ∂μ` is analytic on `ball c R`.
@@ -279,11 +290,8 @@ theorem analyticOnNhd_integral_herglotzRieszKernel_mul {μ : Measure ℂ} [IsFin
     refine (hasDerivAt_herglotzRieszKernel ?_).mul_const (g z)
     exact norm_pos_iff.1 (hpos.trans_le (le_norm_sub_sub_of_mem_sphere (w := x) hz (hball x hx)))
   -- at `w₀` the kernel is bounded on the circle, so the weighted kernel is integrable
-  have hint : Integrable (fun z => herglotzRieszKernel c w₀ z * g z) μ := by
-    refine hg.bdd_mul (c := (R + ‖w₀ - c‖) / (R - ‖w₀ - c‖))
-      (measurable_herglotzRieszKernel c w₀).aestronglyMeasurable ?_
-    filter_upwards [hae] with z hz
-    exact norm_herglotzRieszKernel_le hw₀_norm hz le_rfl
+  have hint : Integrable (fun z => herglotzRieszKernel c w₀ z * g z) μ :=
+    integrable_herglotzRieszKernel_mul hμ hw₀ hg
   obtain ⟨-, hderiv⟩ := hasDerivAt_integral_of_dominated_loc_of_deriv_le
     (μ := μ) (F := fun x z : ℂ => herglotzRieszKernel c x z * g z)
     (F' := fun x z : ℂ => 2 * (z - c) / ((z - c) - (x - c)) ^ 2 * g z)

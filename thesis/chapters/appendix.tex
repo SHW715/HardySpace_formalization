@@ -3,4 +3,208 @@
 % Included from main.tex via \input{chapters/appendix}, after \appendix.
 
 \chapter{\texorpdfstring{$L^p$ Duality}{L^p Duality}}
+Let $(X,\mu)$ be a measure space.
+Let $p,q,r\in\mathbb{R}$ be \textbf{H\"{o}lder triple}, i.e. they satisfy:
+\begin{equation*}
+    \frac{1}{p}+\frac{1}{q}=\frac{1}{r}
+\end{equation*}
+We have the following \textbf{H\"{o}lder's inequality}:
+\begin{theorem}\label{Holder inequality}
+If $f,g$ are measurable functions on $X$, then 
+\begin{equation*}
+    \|fg\|_{L^r}\leq \|f\|_{L^p}\|g\|_{L^q}
+\end{equation*}
+for $p,q,r$: H\"{o}lder triple. In particular, if $f\in L^p$, $g\in L^q$, 
+then $fg\in L^r$.
+\end{theorem}
+
+In Mathlib, we often consider $E$-valued $L^p$ functions, where $E$ is a normed space (or 
+real Banach space if considering their Bochner integral), for the sake of generality. So in this appendix,
+we will discuss the topic up to this level of generality to be aligned with Mathlib.
+
+For $E,F,G$: normed spaces, consider a continuous bilinear map:
+\begin{equation*}
+    B: E\times F\rightarrow G
+\end{equation*}
+it induces an associated map:
+\begin{equation*}
+    H_B : L^p(X;E)\times L^q(X;F)\rightarrow L^r(X;G),\quad (f,g)\mapsto (x\mapsto B(f(x),g(x)))
+\end{equation*}
+for $p,q,r$: H\"{o}lder triple. One can check that it is well-defined using H\"{o}lder's inequality.
+
+For special case when $r=1$, i.e. $\frac{1}{p}+\frac{1}{q}=1$, we call $p,q$ to be \textbf{H\"{o}lder conjugate}. 
+Consider the associated map $H_B: L^p(X;E)\times L^q(X;F)\rightarrow L^1(X;G)$ of the pairing $B: E\times F\rightarrow G$,
+and take integral over $L^1(X;G)$ for $G$: real Banach space, we get the following \textbf{$L^p$-pairing}:
+\begin{equation*}
+    \Phi_B^p : L^p(X;E)\times L^q(X;F)\rightarrow G,\quad (f,g)\mapsto \int_X B(f(x),g(x)) d\mu (x).
+\end{equation*}
+
+Now let's consider the specific case for $E,F$: $\Bbbk$-normed space and $G=\Bbbk$. Then one 
+can think of $B$ as a continuous linear map $E\rightarrow F^*$ and its associated $L^p$-pairing
+$\Phi_B^p$ as a continuous linear map $L^p(X;E)\rightarrow (L^q(X;F))^*$. Then we have the 
+following theorem:
+\begin{theorem}
+If $B: E\rightarrow F^*$ is an isometry, then its corresponding $L^p$-pairing
+ $\Phi_B^p:L^p(X;E)\rightarrow (L^q(X;F))^*$ is also an isometry for $1\leq p<\infty$. 
+If $\mu$ is semifinite, this result holds also for $p=\infty$.
+\end{theorem}
+\begin{proof}
+We can first decompose $\Phi_B^p$ as follow:
+\begin{equation*}
+\begin{tikzcd}
+L^p(X;E) \arrow[rd, "L^p(B)"'] \arrow[rr, "\Phi_B^p"] &                               & (L^q(X;F))^* \\
+                                                    & L^p(X;F^*) \arrow[ru, "\Phi_J^p"'] &             
+\end{tikzcd}
+\end{equation*}
+where 
+\begin{equation*}
+    L^p(B) : L^p(X;E)\rightarrow L^p(X;F^*),\quad f\mapsto B\circ f
+\end{equation*}
+and $J:F^*\times F\rightarrow \Bbbk$ is the canonical pairing and $\Phi_J^p$ is the corresponding $L^p$-pairing. One 
+can check this diagram commutes. Now it suffices to show that $\Phi_J^p$ is isometry, as if so, we will have:
+\begin{equation*}
+    \|\Phi_B^p (f)\|=\|\Phi_J^p\circ L^p(B)(f)\|=\|B\circ f\|=\|f\|
+\end{equation*}
+as both $\Phi_J^p$ and $B$ are isometries.
+
+To show $\Phi_J^p$ is isometry, i.e. for all $h\in L^p(X;F^*)$, we have $\|\Phi_J^p(h)\|=\|h\|$. First 
+consider the following lemma:
+\begin{lemma}
+For a continuous bilinear pairing $B:E\times F\rightarrow \Bbbk$ and its
+corresponding $L^p$-pairing $\Phi_B^p$, we have $\|\Phi_B^p\|\leq \|B\|$.
+\end{lemma}
+\begin{proof}[Proof of Lemma]
+Let $p,q$ be conjugates, we have
+\begin{equation*}
+    |\Phi_B^p(g)(f)|\leq \int_X |B(g(x),f(x))|d\mu(x)\leq \|B\|\int_X\|g(x)\|\|f(x)\| d\mu(x)\leq \|B\|\|g\|_p\|f\|_q
+\end{equation*}
+where the last step uses H\"{o}lder's inequality. Thus
+\begin{equation*}
+    \|\Phi_B^p\|=\sup_{\|f\|_q\leq 1, \|g\|_p\leq 1}\|\Phi_B^p(g)(f)\|\leq \|B\|.
+\end{equation*}
+\end{proof}
+Therefore, given $h\in L^p(X;F^*)$, we have 
+\begin{equation*}
+    \|\Phi_J^p(h)\|\leq \|\Phi_J^p\|\|h\|\leq \|J\|\|h\|\leq \|h\|
+\end{equation*}
+as one can show that $\|J\|\leq 1$. So now it suffices to show that for given $h\in L^p(X;F^*)$, we 
+have $\|\Phi_J^p(h)\|\geq \|h\|$. 
+
+For $1\leq p <\infty$, we first consider the following lemma:
+\begin{lemma}
+Given $\varepsilon>0$, for all $\varphi\in F^*$, there exists $v\in F$ s.t. $\|v\|\leq 1$ and 
+$\text{Re}\;\varphi(v)\geq (1-\varepsilon)\|\varphi\|$.
+\end{lemma}
+\begin{proof}[Proof of Lemma]
+Note $\|\varphi\|=\sup_{\|v\|\leq 1}\|\varphi(v)\|$, so for all $\varepsilon>0$, we can always find $\|v\|\leq 1$ s.t.
+\begin{equation*}
+    |\varphi(v)|\geq (1-\varepsilon)\|\varphi\|
+\end{equation*}
+Now let's consider $\tilde{v}:=\frac{\overline{\varphi(v)}}{|\varphi(v)|}v$, then $\varphi(\tilde{v})=|\varphi(v)|$, so
+\begin{equation*}
+    \text{Re}\;\varphi(\tilde{v})=\text{Re}\;|\varphi(v)|=|\varphi(v)|>(1-\varepsilon)\|\varphi\|.
+\end{equation*}
+\end{proof}
+Given $\varepsilon>0$, let's consider $h$ to be a simple function first and write $h=\sum_{i=1}^n \varphi_i \1_{A_i}$ with $A_i$ pairwise disjoint and $\varphi_i\neq 0$, so that $\mu(A_i)<\infty$.
+Then for each $\varphi_i\in F^*$, pick $v_i\in F$ s.t. $\|v_i\|\leq 1$ and 
+$\text{Re}\;\varphi_i(v_i)\geq (1-\varepsilon)\|\varphi_i\|$. Now consider 
+\begin{equation*}
+    f=\sum_{i=1}^n \|\varphi_i\|^{p-1}v_i \1_{A_i}
+\end{equation*}
+First, we can see that $f\in L^q$, as it is a simple function supported on a set of finite measure. Moreover,
+\begin{equation*}
+    \|f\|_q^q=\sum_{i=1}^n\|\varphi_i\|^{q(p-1)}\|v_i\|^q \mu(A_i)\leq \sum_{i=1}^n\|\varphi_i\|^p \mu(A_i)=\|h\|_p^p
+\end{equation*}
+thus $\|f\|_q \leq \|h\|_p^{p/q}=\|h\|_p^{p-1}$ (Here we skip the details for specific case of 
+$p=1$, $q=\infty$, but it is not hard to check). Note that 
+\begin{align*}
+    |\Phi_J^p(h)(f)|&\geq \text{Re}\; \Phi_J^p(h)(f)\\
+      &= \sum_i \|\varphi_i\|^{p-1}\text{Re}\;\varphi_i(v_i)\mu(A_i)\\
+      &\geq (1-\varepsilon)\sum_i \|\varphi_i\|^p \mu(A_i)\\
+      &= (1-\varepsilon)\|h\|_p^p.
+\end{align*}
+so we have
+\begin{equation*}
+    \|\Phi_J^p(h)\|\geq \frac{|\Phi_J^p(h)(f)|}{\|f\|_q}\geq (1-\varepsilon)\frac{\|h\|_p^p}{\|f\|_q}\geq (1-\varepsilon)\frac{\|h\|_p^p}{\|h\|_p^{p-1}}=(1-\varepsilon)\|h\|.
+\end{equation*}
+As it is true for all given $\varepsilon>0$, we have $\|\Phi_J^p(h)\|\geq \|h\|$ for $h$: simple function. Now let's consider
+\begin{equation*}
+    S:=\{g\in L^p(X;F^*):\|g\|\leq \|\Phi_J^p(g)\|\}\subset L^p(X;F^*).
+\end{equation*}
+It is easy to see that $S$ is closed and it contains all simple functions in $L^p$. As these simple functions are dense in 
+$L^p$, $S=L^p$, which gives us desired result.
+
+For $p=\infty$, assume $\mu$ is semifinite. We want to show that $\|\Phi_{J}^\infty(h)\|\geq \|h\|_\infty$ for 
+$\Phi_{J}^\infty : L^\infty(X;F^*)\rightarrow (L^1(X;F))^*$. First we introduce the following lemma:
+\begin{lemma}
+For all measurable $D\subset X$ with $0<\mu(D)<\infty$, we have 
+\begin{equation*}
+    \|\Phi^\infty_J(h)\|\geq \frac{1}{\mu(D)}\int_D \|h(x)\| d\mu(x).
+\end{equation*}
+\end{lemma}
+\begin{proof}[Proof of Lemma]
+Given measurable $D\subset X$ with $0<\mu(D)<\infty$. Consider the operator 
+\begin{equation*}
+    \iota_D : L^\infty(X) \rightarrow L^1(X), \quad f\mapsto \1_D f
+\end{equation*}
+It is well-defined as $\mu(D)$ is finite and $f\in L^\infty$ is bounded a.e.. Then we can show that the following diagram
+\begin{equation*}
+\begin{tikzcd}
+L^\infty (X;F^*) \arrow[rr, "\Phi_J^\infty"] \arrow[d, "\iota_D"'] &  & (L^1(X;F))^* \arrow[d, "\iota_D^*"] \\
+L^1 (X;F^*) \arrow[rr, "\Phi_J^1"]                                 &  & (L^\infty(X;F))^*                  
+\end{tikzcd}
+\end{equation*}
+commutes. This can be shown by:
+\begin{align*}
+  \Phi_J^1(\1_D h)(f)&=\int_X \1_D(x)h(x)(f(x))d\mu(x)\\
+  &=\int_D h(x)(\1_D(x)f(x))d\mu(x)=\Phi^\infty_J(h)(\1_D f).
+\end{align*}
+Therefore,
+\begin{equation*}
+    |\Phi_J^1(\1_D h)(f)|=|\Phi^\infty_J(h)(\1_D f)|\leq \|\Phi^\infty_J(h)\|\|\1_D f\|_1\leq \mu(D)\|\Phi^\infty_J(h)\|\| f\|_\infty
+\end{equation*}
+This implies:
+\begin{equation*}
+    \|\Phi_J^1(\1_D h)\|=\sup_{\|f\|_\infty \leq 1}|\Phi_J^1(\1_D h)(f)|\leq \sup_{\|f\|_\infty \leq 1}\mu(D)\|\Phi^\infty_J(h)\|\| f\|_\infty\leq \mu(D)\|\Phi^\infty_J(h)\|.
+\end{equation*}
+Recall that we've already proved that 
+\begin{equation*}
+    \|\Phi_J^1(\1_D h)\|=\|\1_D h\|_1=\int_D \|h(x)\|d\mu(x)
+\end{equation*}
+Thus we have our desired result.
+\end{proof}
+Now let $M:=\|h\|_\infty$. For $M=0$, the inequality trivially holds. For $M>0$, given $0<\varepsilon<M$, consider
+\begin{equation*}
+    A:=\{x\in X: \|h(x)\|>M-\varepsilon\}
+\end{equation*}
+By definition of $\|\cd\|_\infty$, $\mu(A)>0$. As $\mu$ is semifinite, there exists $D\subset A$: measurable s.t. $0<\mu(D)<\infty$.
+As $D\subset A$, for all $x\in D$, we have $\|h(x)\|>M-\varepsilon$. Therefore,
+\begin{equation*}
+    \|\Phi^\infty_J(h)\|\geq \frac{1}{\mu(D)}\int_D \|h(x)\|d\mu(x)\geq M-\varepsilon.
+\end{equation*}
+As it is true for all given $\varepsilon$, we have $\|\Phi_J^\infty(h)\|\geq \|h\|_\infty$.
+\end{proof}
+
+
+\begin{theorem}
+Let $p$ and $q$ be H\"{o}lder conjugate, and let $B:\Bbbk\times\Bbbk\rightarrow\Bbbk$ be the multiplication.
+If $1<p<\infty$, for each $\phi\in(L^q(X;\Bbbk))^*$ there exists $f\in L^p(X;\Bbbk)$ such that
+$\phi(g)=\int_X fg\, d\mu$ for all $g\in L^q(X;\Bbbk)$, and hence
+$\Phi_B^p:L^p(X;\Bbbk)\rightarrow(L^q(X;\Bbbk))^*$ is an isometric isomorphism.
+The same conclusion holds for $p=\infty$ provided $\mu$ is $\sigma$-finite.
+\end{theorem}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
