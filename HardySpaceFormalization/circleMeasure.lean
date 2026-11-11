@@ -28,6 +28,13 @@ lemma integral_circleMeasure_eq_integral_angularMeasure
     (integral_map (μ := angularMeasure) (φ := circleMap c R)
       (measurable_circleMap c R).aemeasurable hf)
 
+/-- Lower Lebesgue integration against `circleMeasure` is integration of the pullback along
+`circleMap` against the normalized angular measure. -/
+lemma lintegral_circleMeasure_eq_lintegral_angularMeasure {c : ℂ} {R : ℝ} {f : ℂ → ℝ≥0∞}
+    (hf : AEMeasurable f (circleMeasure c R)) :
+    ∫⁻ z, f z ∂circleMeasure c R = ∫⁻ θ, f (circleMap c R θ) ∂angularMeasure :=
+  lintegral_map' hf (measurable_circleMap c R).aemeasurable
+
 /-- The normalized angular measure is a probability measure. -/
 instance isProbabilityMeasure_angularMeasure :
     IsProbabilityMeasure angularMeasure := by
@@ -218,6 +225,26 @@ lemma integral_withDensity_circleMeasure_eq_circleAverage_mul
   apply integral_congr_ae
   filter_upwards [hP_nonneg] with z hz
   simp [ENNReal.toReal_ofReal hz, smul_eq_mul]
+
+-- # might possibly goes to Mathlib
+/-- The mass that a measure weighted by a nonnegative integrable real density gives to a measurable
+set is the integral of the density over that set. -/
+lemma withDensity_ofReal_apply {α : Type*} [MeasurableSpace α] {μ : Measure α} {f : α → ℝ}
+    {s : Set α} (hs : MeasurableSet s) (hf : IntegrableOn f s μ)
+    (hf_nonneg : 0 ≤ᵐ[μ.restrict s] f) :
+    μ.withDensity (fun x => ENNReal.ofReal (f x)) s = ENNReal.ofReal (∫ x in s, f x ∂μ) := by
+  rw [withDensity_apply _ hs, ofReal_integral_eq_lintegral_ofReal hf hf_nonneg]
+
+/-- The total mass of the circle measure weighted by a nonnegative circle-integrable density is the
+circle average of the density. -/
+lemma withDensity_circleMeasure_univ
+    {c : ℂ} {R : ℝ} {P : ℂ → ℝ} (hP_nonneg : ∀ᵐ z ∂circleMeasure c R, 0 ≤ P z)
+    (hP_int : CircleIntegrable P c R) :
+    (circleMeasure c R).withDensity (fun z => ENNReal.ofReal (P z)) Set.univ =
+      ENNReal.ofReal (circleAverage P c R) := by
+  rw [withDensity_ofReal_apply MeasurableSet.univ hP_int.integrable_circleMeasure.integrableOn
+    (by rwa [Measure.restrict_univ]), setIntegral_univ,
+    ← circleAverage_eq_integral_circleMeasure hP_int]
 
 /-- If a circle-density is nonnegative and has circle average one, then the corresponding weighted
 circle measure is a probability measure. -/

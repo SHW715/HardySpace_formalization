@@ -70,6 +70,85 @@ For $0<p\leq q\leq \infty$, we have $H^q\leq H^p$ as subspace.
 \end{theorem}
 
 
+\section{Boundary function of Hardy functions}
+In this section we only consider $H^\infty(\D)$, which is the case needed later. Garnett proves
+the results below for all $0<p\leq\infty$, see \cite[Chapter II]{garnett2006bounded}.
+
+\begin{lemma}\label{lem:bounded_analytic_boundary_value}
+Let $g\in H^\infty(\mathbb{D})$. Then $g$ has a nontangential limit $g^*(\zeta)$ at almost
+every $\zeta\in\mathbb{T}$, $|g^*|\leq\|g\|_{H^\infty}$ almost everywhere, and
+\begin{equation*}
+  g(0)=\frac{1}{2\pi}\int_0^{2\pi}g^*(e^{i\theta})\,d\theta.
+\end{equation*}
+In particular,
+\begin{equation*}
+  |g(0)|\leq\frac{1}{2\pi}\int_0^{2\pi}|g^*(e^{i\theta})|\,d\theta.
+\end{equation*}
+\end{lemma}
+\begin{proof}
+The functions $\text{Re}\, g$ and $\text{Im}\, g$ are bounded harmonic functions on $\mathbb{D}$. By
+Theorem \ref{Characterization of Poisson integrals}(a) with $p=\infty$, there are
+$f_1,f_2\in L^\infty(\mathbb{T})$ with $\text{Re}\, g=P[f_1]$ and $\text{Im}\, g=P[f_2]$; replacing $f_j$
+by $\text{Re}\, f_j$, we may take $f_1,f_2$ real-valued. Since $L^\infty(\mathbb{T})\subset
+L^1(\mathbb{T})$, Corollary \ref{cor:poisson_nontangential_ae} shows that $\text{Re}\, g$ and
+$\text{Im}\, g$ have nontangential limits $f_1$ and $f_2$ almost everywhere. Hence $g$ has
+nontangential limit $g^*=f_1+if_2$ almost everywhere, and $|g^*|\leq\|g\|_{H^\infty}$
+since $|g|\leq\|g\|_{H^\infty}$ on $\mathbb{D}$. Finally $P_0(\theta)=1$, so
+\begin{equation*}
+  g(0)=P[f_1](0)+iP[f_2](0)=\frac{1}{2\pi}\int_0^{2\pi}(f_1+if_2)(\theta)\,d\theta
+  =\frac{1}{2\pi}\int_0^{2\pi}g^*(e^{i\theta})\,d\theta,
+\end{equation*}
+and the inequality follows from the triangle inequality for integrals.
+\end{proof}
+
+\begin{theorem}\label{thm:log_integrability_boundary}
+Let $f\in H^\infty(\D)$, $f\not\equiv 0$. Then
+\begin{equation*}
+  \frac{1}{2\pi}\int\log|f^*(e^{i\theta})|\,d\theta>-\infty.
+\end{equation*}
+If $f(0)\neq 0$, then
+\begin{equation}\label{eq:log_f_0}
+  \log|f(0)|\leq\frac{1}{2\pi}\int\log|f^*(e^{i\theta})|\,d\theta,
+\end{equation}
+and more generally, if $f(z_0)\neq 0$, then
+\begin{equation}\label{eq:log_f_z0}
+  \log|f(z_0)|\leq\frac{1}{2\pi}\int\log|f^*(e^{i\theta})|\,P_{z_0}(\theta)\,d\theta.
+\end{equation}
+\end{theorem}
+\begin{proof}
+Since $\log|f|\leq\log\|f\|_{H^\infty}$, the subharmonic function $\log|f|$
+(Example \ref{log |f| is subharmonic}) has a harmonic majorant. By
+Theorem \ref{Harmonic majorant criterion}, and since $P_{z/r}\rightarrow P_z$ uniformly as
+$r\rightarrow 1$,
+\begin{equation*}
+  \log|f(z)|\leq\lim_{r\rightarrow 1}\frac{1}{2\pi}\int\log|f(re^{i\theta})|\,P_z(\theta)\,d\theta.
+\end{equation*}
+By Lemma \ref{lem:bounded_analytic_boundary_value}, $\log|f(re^{i\theta})|\rightarrow
+\log|f^*(e^{i\theta})|$ almost everywhere, and since these functions are bounded above by the
+constant $\log^+\|f\|_{H^\infty}$, we have
+\begin{equation*}
+  \int\log^+|f(re^{i\theta})|\,P_{z_0}(\theta)\,d\theta\rightarrow
+  \int\log^+|f^*(e^{i\theta})|\,P_{z_0}(\theta)\,d\theta.
+\end{equation*}
+Fatou's lemma can now be applied to the negative parts to give us
+\begin{equation*}
+  \lim_{r\rightarrow 1}\frac{1}{2\pi}\int\log|f(re^{i\theta})|\,P_{z_0}(\theta)\,d\theta\leq
+  \frac{1}{2\pi}\int\log|f^*(e^{i\theta})|\,P_{z_0}(\theta)\,d\theta.
+\end{equation*}
+This proves \eqref{eq:log_f_z0} and \eqref{eq:log_f_0}. The remaining inequality follows by
+removing any zero at the origin: if $f$ has a zero of order $m$ at $0$, then
+$g(z)=f(z)/z^m\in H^\infty(\D)$ with $g(0)\neq 0$ and $|g^*|=|f^*|$ almost everywhere, and we
+apply \eqref{eq:log_f_0} to $g$.
+\end{proof}
+
+\begin{corollary}\label{cor:boundary_uniqueness}
+If $f\in H^\infty(\D)$ and $f^*=0$ on a set of positive measure, then $f\equiv 0$.
+\end{corollary}
+\begin{proof}
+If $f\not\equiv 0$, then $\log|f^*|>-\infty$ almost everywhere by
+Theorem \ref{thm:log_integrability_boundary}, so $f^*\neq 0$ almost everywhere.
+\end{proof}
+
 \section{Blaschke product}
 \begin{definition}
 Given a sequence $\{z_n\}$ on $\mathbb{D}$, we say that this sequence satisfies
@@ -120,34 +199,6 @@ $\mathbb{D}$ (see \cite[Chapter 15]{rudin1974real}). But by a calculation,
 and the convergence follows from Blaschke's condition.
 
 Since $|b_n(z)|\leq 1$, it is clear that $B\in H^\infty(\mathbb{D})$ and $|B(z)|\leq 1$.
-
-For the boundary values, here we need a lemma:
-\begin{lemma}\label{lem:bounded_analytic_boundary_value}
-Let $g\in H^\infty(\mathbb{D})$. Then $g$ has a nontangential limit $g^*(\zeta)$ at almost
-every $\zeta\in\mathbb{T}$, $|g^*|\leq\|g\|_{H^\infty}$ almost everywhere, and
-\begin{equation*}
-  g(0)=\frac{1}{2\pi}\int_0^{2\pi}g^*(e^{i\theta})\,d\theta.
-\end{equation*}
-In particular,
-\begin{equation*}
-  |g(0)|\leq\frac{1}{2\pi}\int_0^{2\pi}|g^*(e^{i\theta})|\,d\theta.
-\end{equation*}
-\end{lemma}
-\begin{proof}
-The functions $\text{Re}\, g$ and $\text{Im}\, g$ are bounded harmonic functions on $\mathbb{D}$. By
-Theorem \ref{Characterization of Poisson integrals}(a) with $p=\infty$, there are
-$f_1,f_2\in L^\infty(\mathbb{T})$ with $\text{Re}\, g=P[f_1]$ and $\text{Im}\, g=P[f_2]$; replacing $f_j$
-by $\text{Re}\, f_j$, we may take $f_1,f_2$ real-valued. Since $L^\infty(\mathbb{T})\subset
-L^1(\mathbb{T})$, Corollary \ref{cor:poisson_nontangential_ae} shows that $\text{Re}\, g$ and
-$\text{Im}\, g$ have nontangential limits $f_1$ and $f_2$ almost everywhere. Hence $g$ has
-nontangential limit $g^*=f_1+if_2$ almost everywhere, and $|g^*|\leq\|g\|_{H^\infty}$
-since $|g|\leq\|g\|_{H^\infty}$ on $\mathbb{D}$. Finally $P_0(\theta)=1$, so
-\begin{equation*}
-  g(0)=P[f_1](0)+iP[f_2](0)=\frac{1}{2\pi}\int_0^{2\pi}(f_1+if_2)(\theta)\,d\theta
-  =\frac{1}{2\pi}\int_0^{2\pi}g^*(e^{i\theta})\,d\theta,
-\end{equation*}
-and the inequality follows from the triangle inequality for integrals.
-\end{proof}
 
 By Lemma \ref{lem:bounded_analytic_boundary_value}, the bounded analytic function $B$ has
 nontangential limits $B^*$ with $|B^*|\leq 1$ almost everywhere. To see that $|B^*|=1$

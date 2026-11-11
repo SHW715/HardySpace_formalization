@@ -6,10 +6,12 @@
 -- `Subharmonic_used` (they do not compile).
 import HardySpaceFormalization.BlaschkeProduct
 import HardySpaceFormalization.CanonicalFactorization
+import HardySpaceFormalization.FiniteMeasureCompact
 import HardySpaceFormalization.HardyNorm_Bounded_inequality
 import HardySpaceFormalization.HardySpaceBoundary
 import HardySpaceFormalization.HardySpaceComplete
 import HardySpaceFormalization.HardySpaceDisc
+import HardySpaceFormalization.HardySpaceLog
 import HardySpaceFormalization.HarmonicComp
 import HardySpaceFormalization.HarmonicHarnack
 import HardySpaceFormalization.HarmonicMajorant
@@ -23,6 +25,7 @@ import HardySpaceFormalization.Poisson_lemma
 import HardySpaceFormalization.SignedMeasure
 import HardySpaceFormalization.SingularFunction
 import HardySpaceFormalization.Subharmonic
+import HardySpaceFormalization.SubharmonicMeanValue
 import HardySpaceFormalization.circleMeasure
 import HardySpaceFormalization.eLpNormFixed
 import HardySpaceFormalization.essSup_lemma

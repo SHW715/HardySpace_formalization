@@ -352,3 +352,18 @@ lemma withBotIntegral_mono_set {α : Type*} [MeasurableSpace α] {u v : α → W
     (hv_int : IntegrableOn (fun x => (WithBot.unbotD 0) (v x)) A μ) :
     withBotIntegral (μ.restrict A) u ≤ withBotIntegral (μ.restrict A) v := by
   exact withBotIntegral_mono (μ := μ.restrict A) h hv_int.integrable
+
+/-- If a `WithBot ℝ`-valued function agrees almost everywhere with an integrable real function,
+its `WithBot` integral is the Bochner integral of that function. -/
+lemma withBotIntegral_eq_coe_of_ae_eq {α : Type*} [MeasurableSpace α] {μ : Measure α}
+    {u : α → WithBot ℝ} {f : α → ℝ} (h : ∀ᵐ x ∂μ, u x = f x) (hf : Integrable f μ) :
+    withBotIntegral μ u = ((∫ x, f x ∂μ : ℝ) : WithBot ℝ) := by
+  have hbot : μ {x | u x = ⊥} = 0 := by
+    have h' : ∀ᵐ x ∂μ, u x ≠ ⊥ := h.mono fun x hx => by rw [hx]; exact WithBot.coe_ne_bot
+    simpa using ae_iff.mp h'
+  have hunbot : (fun x => (u x).unbotD 0) =ᵐ[μ] f :=
+    h.mono fun x hx => by simp only [hx, WithBot.unbotD_coe]
+  have hcond : μ {x | u x = ⊥} = 0 ∧ Integrable ((WithBot.unbotD 0) ∘ u) μ :=
+    ⟨hbot, hf.congr hunbot.symm⟩
+  unfold withBotIntegral
+  rw [ite_eq_left_of_eq_true _ _ (eq_true hcond), integral_congr_ae hunbot]

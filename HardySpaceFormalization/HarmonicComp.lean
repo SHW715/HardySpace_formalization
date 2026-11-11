@@ -35,4 +35,16 @@ theorem HarmonicOnNhd.comp_analyticOnNhd (hu : HarmonicOnNhd u t) (hφ : Analyti
     (hst : MapsTo φ s t) : HarmonicOnNhd (u ∘ φ) s :=
   fun x hx => (hu (φ x) (hst hx)).comp_analyticAt (hφ x hx)
 
+/-- A radial dilate `z ↦ u (c + r (z - c))`, `0 ≤ r < 1`, of a function harmonic on the open disc
+`ball c R` is harmonic on a neighbourhood of the closed disc. -/
+theorem HarmonicOnNhd.comp_radial {c : ℂ} {R r : ℝ} (hR : 0 < R)
+    (hu : HarmonicOnNhd u (ball c R)) (hr : r ∈ Ico (0 : ℝ) 1) :
+    HarmonicOnNhd (fun z : ℂ => u (c + r * (z - c))) (closedBall c R) := by
+  refine hu.comp_analyticOnNhd (φ := fun z : ℂ => c + r * (z - c)) (fun z _ => by fun_prop) ?_
+  intro z hz
+  rw [mem_ball_iff_norm, add_sub_cancel_left, norm_mul, Complex.norm_real, Real.norm_eq_abs,
+    abs_of_nonneg hr.1]
+  calc r * ‖z - c‖ ≤ r * R := mul_le_mul_of_nonneg_left (mem_closedBall_iff_norm.1 hz) hr.1
+    _ < R := mul_lt_of_lt_one_left hR hr.2
+
 end InnerProductSpace

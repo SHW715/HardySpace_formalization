@@ -1,4 +1,5 @@
 import HardySpaceFormalization.Poisson_lemma
+import HardySpaceFormalization.Harmonic_max_principle
 import Mathlib.Analysis.Complex.Harmonic.Poisson
 import Mathlib.Analysis.Complex.Harmonic.MeanValue
 
@@ -17,6 +18,9 @@ without proof in the course of Theorem I.6.7.
   on a neighbourhood of `closedBall c R` and nonnegative on the boundary circle, then for `w`
   interior, with `ρ = ‖w - c‖`,
   `((R - ρ) / (R + ρ)) * u c ≤ u w ≤ ((R + ρ) / (R - ρ)) * u c`.
+* `exists_harmonicOnNhd_tendstoLocallyUniformlyOn_of_monotone` : **Harnack's theorem**. An
+  increasing sequence of harmonic functions on a connected open set, bounded at one point,
+  converges locally uniformly to a harmonic function.
 
 These come from the Poisson integral formula together with the two-sided Poisson kernel estimates
 `le_poissonKernel_of_mem_ball` and `poissonKernel_le_of_mem_ball`, and the mean value property at
@@ -113,5 +117,209 @@ theorem harnack_inequality (hu : HarmonicOnNhd u (closedBall c R))
     (R - ‖w - c‖) / (R + ‖w - c‖) * u c ≤ u w ∧
       u w ≤ (R + ‖w - c‖) / (R - ‖w - c‖) * u c :=
   ⟨le_harnack hu hnonneg hw, harnack_le hu hnonneg hw⟩
+
+/-! ### Harnack's theorem -/
+
+/-- A harmonic function that is nonnegative on the boundary circle is nonnegative at the centre,
+by the mean value property. -/
+private theorem nonneg_center_of_nonneg_sphere (hu : HarmonicOnNhd u (closedBall c R))
+    (hR : 0 ≤ R) (hnonneg : ∀ z ∈ sphere c R, 0 ≤ u z) : 0 ≤ u c := by
+  have habs : |R| = R := abs_of_nonneg hR
+  have hmean : circleAverage u c R = u c :=
+    HarmonicOnNhd.circleAverage_eq (R := R) (by rwa [habs])
+  rw [← hmean]
+  exact circleAverage_nonneg_of_nonneg (by rwa [habs])
+
+/-- Harnack's inequality on the half ball, upper half: the Harnack factor is at most `3`. -/
+lemma harnack_le_three_mul (hu : HarmonicOnNhd u (closedBall c R))
+    (hnonneg : ∀ z ∈ sphere c R, 0 ≤ u z) (hw : w ∈ closedBall c (R / 2)) :
+    u w ≤ 3 * u c := by
+  have hρ : ‖w - c‖ ≤ R / 2 := by rwa [mem_closedBall, dist_eq_norm] at hw
+  have hR : 0 ≤ R := by linarith [norm_nonneg (w - c)]
+  have hc := nonneg_center_of_nonneg_sphere hu hR hnonneg
+  rcases hR.eq_or_lt with hR0 | hR0
+  · -- `R = 0` forces `w = c`.
+    subst hR0
+    have hwc : w = c := sub_eq_zero.1 (norm_le_zero_iff.1 (by linarith))
+    subst hwc
+    linarith
+  · have hw' : w ∈ ball c R := by rw [mem_ball, dist_eq_norm]; linarith
+    refine (harnack_le hu hnonneg hw').trans (mul_le_mul_of_nonneg_right ?_ hc)
+    rw [div_le_iff₀ (by linarith)]
+    linarith
+
+/-- Harnack's inequality on the half ball, lower half: the Harnack factor is at least `1 / 3`. -/
+lemma le_three_mul_harnack (hu : HarmonicOnNhd u (closedBall c R))
+    (hnonneg : ∀ z ∈ sphere c R, 0 ≤ u z) (hw : w ∈ closedBall c (R / 2)) :
+    u c ≤ 3 * u w := by
+  have hρ : ‖w - c‖ ≤ R / 2 := by rwa [mem_closedBall, dist_eq_norm] at hw
+  have hR : 0 ≤ R := by linarith [norm_nonneg (w - c)]
+  have hc := nonneg_center_of_nonneg_sphere hu hR hnonneg
+  rcases hR.eq_or_lt with hR0 | hR0
+  · -- `R = 0` forces `w = c`.
+    subst hR0
+    have hwc : w = c := sub_eq_zero.1 (norm_le_zero_iff.1 (by linarith))
+    subst hwc
+    linarith
+  · have hw' : w ∈ ball c R := by rw [mem_ball, dist_eq_norm]; linarith
+    have hfac : 1 / 3 ≤ (R - ‖w - c‖) / (R + ‖w - c‖) := by
+      rw [le_div_iff₀ (by linarith [norm_nonneg (w - c)])]
+      linarith
+    have := mul_le_mul_of_nonneg_right hfac hc
+    linarith [le_harnack hu hnonneg hw']
+
+/-- For a pointwise increasing sequence of harmonic functions on a connected open set, boundedness
+above at one point propagates to every point: by Harnack's inequality, the set of points where the
+sequence is bounded and its complement are both open. -/
+lemma bddAbove_range_of_monotone_of_harmonicOnNhd
+    {s : Set ℂ} {f : ℕ → ℂ → ℝ} (hs : IsOpen s) (hs' : IsPreconnected s)
+    (hf : ∀ n, HarmonicOnNhd (f n) s) (hmono : ∀ z ∈ s, Monotone fun n => f n z)
+    {z₀ : ℂ} (hz₀ : z₀ ∈ s) (hbdd : BddAbove (range fun n => f n z₀)) :
+    ∀ z ∈ s, BddAbove (range fun n => f n z) := by
+  -- Near each point of `s`, boundedness at the point is equivalent to boundedness nearby.
+  have hloc : ∀ z ∈ s, ∃ r > 0, ball z r ⊆ s ∧ ∀ w ∈ ball z r,
+      (BddAbove (range fun n => f n z) ↔ BddAbove (range fun n => f n w)) := by
+    intro z hz
+    obtain ⟨ε, hε, hεs⟩ := Metric.isOpen_iff.1 hs z hz
+    have hsub : closedBall z (ε / 2) ⊆ s := (closedBall_subset_ball (by linarith)).trans hεs
+    refine ⟨ε / 4, by linarith, (ball_subset_closedBall.trans
+      (closedBall_subset_closedBall (by linarith))).trans hsub, fun w hw => ?_⟩
+    have hw' : w ∈ closedBall z (ε / 2 / 2) :=
+      ball_subset_closedBall (by rwa [show ε / 2 / 2 = ε / 4 by ring])
+    -- Harnack's inequality for the nonnegative harmonic functions `f n - f 0`.
+    have key : ∀ n, f n w - f 0 w ≤ 3 * (f n z - f 0 z) ∧
+        f n z - f 0 z ≤ 3 * (f n w - f 0 w) := by
+      intro n
+      have hu : HarmonicOnNhd (f n - f 0) (closedBall z (ε / 2)) :=
+        ((hf n).sub (hf 0)).mono hsub
+      have hnn : ∀ y ∈ sphere z (ε / 2), 0 ≤ (f n - f 0) y := fun y hy =>
+        sub_nonneg.2 (hmono y (hsub (sphere_subset_closedBall hy)) (Nat.zero_le n))
+      exact ⟨harnack_le_three_mul hu hnn hw', le_three_mul_harnack hu hnn hw'⟩
+    constructor
+    · rintro ⟨M, hM⟩
+      refine ⟨f 0 w + 3 * (M - f 0 z), ?_⟩
+      rintro _ ⟨n, rfl⟩
+      have h : f n z ≤ M := hM ⟨n, rfl⟩
+      show f n w ≤ _
+      linarith [(key n).1]
+    · rintro ⟨M, hM⟩
+      refine ⟨f 0 z + 3 * (M - f 0 w), ?_⟩
+      rintro _ ⟨n, rfl⟩
+      have h : f n w ≤ M := hM ⟨n, rfl⟩
+      show f n z ≤ _
+      linarith [(key n).2]
+  -- Hence the bounded and the unbounded points of `s` form two disjoint open sets covering `s`.
+  have hU : IsOpen {z | z ∈ s ∧ BddAbove (range fun n => f n z)} :=
+    Metric.isOpen_iff.2 fun z hz => by
+      obtain ⟨r, hr, hrs, h⟩ := hloc z hz.1
+      exact ⟨r, hr, fun w hw => ⟨hrs hw, (h w hw).1 hz.2⟩⟩
+  have hV : IsOpen {z | z ∈ s ∧ ¬BddAbove (range fun n => f n z)} :=
+    Metric.isOpen_iff.2 fun z hz => by
+      obtain ⟨r, hr, hrs, h⟩ := hloc z hz.1
+      exact ⟨r, hr, fun w hw => ⟨hrs hw, fun hb => hz.2 ((h w hw).2 hb)⟩⟩
+  intro z₁ hz₁
+  by_contra hcon
+  obtain ⟨x, -, hxU, hxV⟩ := hs' _ _ hU hV
+    (fun z hz => by
+      by_cases hb : BddAbove (range fun n => f n z)
+      · exact Or.inl ⟨hz, hb⟩
+      · exact Or.inr ⟨hz, hb⟩)
+    ⟨z₀, hz₀, hz₀, hbdd⟩ ⟨z₁, hz₁, hz₁, hcon⟩
+  exact hxV.2 hxU.2
+
+/-- A pointwise increasing, pointwise bounded sequence of harmonic functions on an open set
+converges locally uniformly to its pointwise supremum: on a half ball,
+`0 ≤ g w - f n w ≤ 3 * (g z - f n z)` by Harnack's inequality for the differences `f m - f n`. -/
+lemma tendstoLocallyUniformlyOn_iSup_of_monotone_of_harmonicOnNhd
+    {s : Set ℂ} {f : ℕ → ℂ → ℝ} (hs : IsOpen s)
+    (hf : ∀ n, HarmonicOnNhd (f n) s) (hmono : ∀ z ∈ s, Monotone fun n => f n z)
+    (hbdd : ∀ z ∈ s, BddAbove (range fun n => f n z)) :
+    TendstoLocallyUniformlyOn f (fun z => ⨆ n, f n z) Filter.atTop s := by
+  rw [Metric.tendstoLocallyUniformlyOn_iff]
+  intro ε hε z hz
+  obtain ⟨δ, hδ, hδs⟩ := Metric.isOpen_iff.1 hs z hz
+  have hsub : closedBall z (δ / 2) ⊆ s := (closedBall_subset_ball (by linarith)).trans hδs
+  refine ⟨ball z (δ / 4), mem_nhdsWithin_of_mem_nhds (ball_mem_nhds z (by linarith)), ?_⟩
+  -- Pointwise convergence at the centre `z`.
+  have hlim : Filter.Tendsto (fun n => f n z) Filter.atTop (𝓝 (⨆ n, f n z)) :=
+    tendsto_atTop_ciSup (hmono z hz) (hbdd z hz)
+  filter_upwards [hlim.eventually
+    (lt_mem_nhds (show (⨆ n, f n z) - ε / 3 < ⨆ n, f n z by linarith))] with n hn
+  intro y hy
+  have hy' : y ∈ closedBall z (δ / 2 / 2) :=
+    ball_subset_closedBall (by rwa [show δ / 2 / 2 = δ / 4 by ring])
+  have hys : y ∈ s := hsub (closedBall_subset_closedBall (by linarith) hy')
+  have hle : f n y ≤ ⨆ m, f m y := le_ciSup (hbdd y hys) n
+  -- Harnack's inequality for `f (max m n) - f n` transfers the estimate from `z` to `y`.
+  have hup : (⨆ m, f m y) ≤ f n y + 3 * ((⨆ m, f m z) - f n z) := by
+    refine ciSup_le fun m => ?_
+    have hu : HarmonicOnNhd (f (max m n) - f n) (closedBall z (δ / 2)) :=
+      ((hf _).sub (hf n)).mono hsub
+    have hnn : ∀ x ∈ sphere z (δ / 2), 0 ≤ (f (max m n) - f n) x := fun x hx =>
+      sub_nonneg.2 (hmono x (hsub (sphere_subset_closedBall hx)) (le_max_right m n))
+    have h1 : f (max m n) y - f n y ≤ 3 * (f (max m n) z - f n z) :=
+      harnack_le_three_mul hu hnn hy'
+    have h2 : f m y ≤ f (max m n) y := hmono y hys (le_max_left m n)
+    have h3 : f (max m n) z ≤ ⨆ m, f m z := le_ciSup (hbdd z hz) _
+    linarith
+  show dist (⨆ m, f m y) (f n y) < ε
+  rw [Real.dist_eq, abs_of_nonneg (by linarith)]
+  linarith
+
+/-- A locally uniform limit of harmonic functions on an open set is harmonic: the limit is
+continuous and inherits the mean value property. -/
+lemma harmonicOnNhd_of_tendstoLocallyUniformlyOn
+    {s : Set ℂ} {f : ℕ → ℂ → ℝ} {g : ℂ → ℝ} (hs : IsOpen s)
+    (hf : ∀ n, HarmonicOnNhd (f n) s) (hfg : TendstoLocallyUniformlyOn f g Filter.atTop s) :
+    HarmonicOnNhd g s := by
+  have hcont : ContinuousOn g s :=
+    hfg.continuousOn (Filter.Frequently.of_forall fun n => (hf n).continuousOn)
+  -- It suffices to check the mean value property on small balls.
+  refine HarmonicOnNhd_of_ballAverage_eq hs hcont fun x hx => ?_
+  obtain ⟨ε, hε, hεs⟩ := Metric.isOpen_iff.1 hs x hx
+  refine ⟨ε, hε, fun r hr => ?_⟩
+  have hsub : closedBall x r ⊆ s := (closedBall_subset_ball hr.2).trans hεs
+  have hunif : TendstoUniformlyOn f g Filter.atTop (closedBall x r) :=
+    (tendstoLocallyUniformlyOn_iff_forall_isCompact hs).1 hfg _ hsub (isCompact_closedBall x r)
+  have hmean : ∀ n, ballAverage (f n) x r = f n x := fun n =>
+    HarmonicOnNhd.ballAverage_eq ((hf n).mono (by rwa [abs_of_pos hr.1]))
+  have hlim : Filter.Tendsto (fun n => f n x) Filter.atTop (𝓝 (g x)) :=
+    hunif.tendsto_at (mem_closedBall_self hr.1.le)
+  -- Uniform convergence on the closed ball passes to the ball averages.
+  have hint : ∀ {h : ℂ → ℝ}, ContinuousOn h s → IntegrableOn h (ball x r) := fun hh =>
+    ((hh.mono hsub).integrableOn_compact (isCompact_closedBall x r)).mono_set
+      ball_subset_closedBall
+  have hintegral : Filter.Tendsto (fun n => ∫ y in ball x r, f n y) Filter.atTop
+      (𝓝 (∫ y in ball x r, g y)) := by
+    rw [Metric.tendsto_atTop]
+    intro δ hδ
+    set V := (volume (ball x r)).toReal with hV_def
+    have hV : 0 ≤ V := ENNReal.toReal_nonneg
+    have hδ' : 0 < δ / (V + 1) := by positivity
+    obtain ⟨N, hN⟩ := Filter.eventually_atTop.1 (Metric.tendstoUniformlyOn_iff.1 hunif _ hδ')
+    refine ⟨N, fun n hn => ?_⟩
+    rw [dist_eq_norm, ← integral_sub (hint (hf n).continuousOn) (hint hcont)]
+    calc ‖∫ y in ball x r, (f n y - g y)‖
+        ≤ δ / (V + 1) * V :=
+          norm_setIntegral_le_of_norm_le_const measure_ball_lt_top fun y hy => by
+            have := hN n hn y (ball_subset_closedBall hy)
+            rw [dist_comm, dist_eq_norm] at this
+            exact this.le
+      _ < δ / (V + 1) * (V + 1) := mul_lt_mul_of_pos_left (by linarith) hδ'
+      _ = δ := div_mul_cancel₀ _ (by positivity)
+  have havg : Filter.Tendsto (fun n => ballAverage (f n) x r) Filter.atTop
+      (𝓝 (ballAverage g x r)) := hintegral.const_smul _
+  exact tendsto_nhds_unique havg (by simpa only [hmean] using hlim)
+
+/-- **Harnack's theorem**. A pointwise increasing sequence of harmonic functions on a connected
+open set, bounded above at one point, converges locally uniformly to a harmonic function. -/
+theorem exists_harmonicOnNhd_tendstoLocallyUniformlyOn_of_monotone
+    {s : Set ℂ} {f : ℕ → ℂ → ℝ} (hs : IsOpen s) (hs' : IsPreconnected s)
+    (hf : ∀ n, HarmonicOnNhd (f n) s) (hmono : ∀ z ∈ s, Monotone fun n => f n z)
+    {z₀ : ℂ} (hz₀ : z₀ ∈ s) (hbdd : BddAbove (range fun n => f n z₀)) :
+    ∃ g : ℂ → ℝ, HarmonicOnNhd g s ∧ TendstoLocallyUniformlyOn f g Filter.atTop s := by
+  have hconv := tendstoLocallyUniformlyOn_iSup_of_monotone_of_harmonicOnNhd hs hf hmono
+    (bddAbove_range_of_monotone_of_harmonicOnNhd hs hs' hf hmono hz₀ hbdd)
+  exact ⟨_, harmonicOnNhd_of_tendstoLocallyUniformlyOn hs hf hconv, hconv⟩
 
 end InnerProductSpace

@@ -10,6 +10,9 @@ import Mathlib.Analysis.Normed.Module.WeakDual
 import Mathlib.MeasureTheory.VectorMeasure.Integral
 import Mathlib.MeasureTheory.VectorMeasure.WithDensity
 import Mathlib.MeasureTheory.Measure.HasOuterApproxClosed
+import Mathlib.MeasureTheory.Measure.Prokhorov
+import Mathlib.Analysis.Complex.Harmonic.MeanValue
+import HardySpaceFormalization.FiniteMeasureCompact
 
 noncomputable section
 
@@ -538,6 +541,136 @@ theorem harmonicOnNhd_circleAverage_poissonKernel_smul (hf : ContinuousOn f (sph
     simp [Function.comp_apply]
   exact hCA w hw
 
+/-! ### The Dirichlet problem on a disc: boundary continuity of the Poisson integral -/
+
+/-- Since the Poisson kernel has total mass one, the difference between the Poisson integral of
+`u` and a constant `a` is the Poisson integral of `u - a`. -/
+lemma poissonIntegral_circleMeasure_sub_const {u : ℂ → ℝ} (hu : ContinuousOn u (sphere c R))
+    (hw : w ∈ ball c R) (a : ℝ) :
+    P[c; u ∂ᵥcircleMeasure c R] w - a =
+      ∫ ζ, poissonKernel c w ζ * (u ζ - a) ∂circleMeasure c R := by
+  have hR : 0 ≤ R := dist_nonneg.trans (mem_ball.mp hw).le
+  have hP := continuousOn_poissonKernel_right_of_mem_ball hw
+  have hone : ∫ ζ, poissonKernel c w ζ ∂circleMeasure c R = 1 := by
+    simpa [poissonIntegral_toSignedMeasure] using poissonIntegral_circleMeasure_eq_one hw
+  rw [poissonIntegral_withDensityᵥ (circleMeasure_compl_sphere hR) hw (hu.integrable_circleMeasure hR)]
+  have hi₁ : Integrable (fun ζ => poissonKernel c w ζ * u ζ) (circleMeasure c R) :=
+    (hP.mul hu).integrable_circleMeasure hR
+  have hi₂ : Integrable (fun ζ => poissonKernel c w ζ * a) (circleMeasure c R) :=
+    (hP.mul continuousOn_const).integrable_circleMeasure hR
+  simp_rw [smul_eq_mul, mul_sub]
+  rw [integral_sub hi₁ hi₂, integral_mul_const, hone, one_mul]
+
+/-- Away from a boundary point `ζ₀`, the Poisson kernel is small when `w` is near `ζ₀`: if
+`dist w ζ₀ < δ / 2` and `δ ≤ dist ζ ζ₀`, then `‖ζ - w‖ ≥ δ / 2`. -/
+lemma poissonKernel_le_of_le_dist {ζ₀ ζ : ℂ} {δ : ℝ} (hδ : 0 < δ) (hζ : ζ ∈ sphere c R)
+    (hw : w ∈ ball c R) (hwζ₀ : dist w ζ₀ < δ / 2) (hζζ₀ : δ ≤ dist ζ ζ₀) :
+    poissonKernel c w ζ ≤ 4 * (R ^ 2 - ‖w - c‖ ^ 2) / δ ^ 2 := by
+  have hζc : ‖ζ - c‖ = R := by simpa [mem_sphere, dist_eq_norm] using hζ
+  have hwc : ‖w - c‖ < R := by simpa [mem_ball, dist_eq_norm] using hw
+  have hN : 0 ≤ R ^ 2 - ‖w - c‖ ^ 2 := by nlinarith [norm_nonneg (w - c)]
+  -- `ζ` stays at distance at least `δ / 2` from `w`.
+  have hd : δ / 2 ≤ ‖ζ - w‖ := by
+    have : δ ≤ dist ζ w + dist w ζ₀ := hζζ₀.trans (dist_triangle ζ w ζ₀)
+    rw [dist_eq_norm ζ w] at this
+    linarith
+  rw [poissonKernel_def, hζc, sub_sub_sub_cancel_right,
+    show 4 * (R ^ 2 - ‖w - c‖ ^ 2) / δ ^ 2 = (R ^ 2 - ‖w - c‖ ^ 2) / (δ / 2) ^ 2 by
+      field_simp; ring]
+  exact div_le_div_of_nonneg_left hN (by positivity) (pow_le_pow_left₀ (by positivity) hd 2)
+
+/-- The approximate-identity estimate: split the circle into the arc `dist ζ ζ₀ < δ`, where `u` is
+within `ε` of `u ζ₀`, and its complement, where the kernel is small. -/
+lemma abs_poissonIntegral_circleMeasure_sub_le {u : ℂ → ℝ} (hu : ContinuousOn u (sphere c R))
+    {ζ₀ : ℂ} (hζ₀ : ζ₀ ∈ sphere c R) {ε δ M : ℝ} (hδ : 0 < δ)
+    (hclose : ∀ ζ ∈ sphere c R, dist ζ ζ₀ < δ → |u ζ - u ζ₀| ≤ ε)
+    (hM : ∀ ζ ∈ sphere c R, |u ζ| ≤ M) (hw : w ∈ ball c R) (hwζ₀ : dist w ζ₀ < δ / 2) :
+    |P[c; u ∂ᵥcircleMeasure c R] w - u ζ₀| ≤
+      ε + 2 * M * (4 * (R ^ 2 - ‖w - c‖ ^ 2) / δ ^ 2) := by
+  have hR : 0 ≤ R := dist_nonneg.trans (mem_ball.mp hw).le
+  have hP := continuousOn_poissonKernel_right_of_mem_ball hw
+  set K := 4 * (R ^ 2 - ‖w - c‖ ^ 2) / δ ^ 2 with hK
+  have hK0 : 0 ≤ K := by
+    have hwc : ‖w - c‖ < R := by simpa [mem_ball, dist_eq_norm] using hw
+    have : 0 ≤ R ^ 2 - ‖w - c‖ ^ 2 := by nlinarith [norm_nonneg (w - c)]
+    positivity
+  have hε : 0 ≤ ε := by simpa using hclose ζ₀ hζ₀ (by simpa using hδ)
+  have hone : ∫ ζ, poissonKernel c w ζ ∂circleMeasure c R = 1 := by
+    simpa [poissonIntegral_toSignedMeasure] using poissonIntegral_circleMeasure_eq_one hw
+  -- Pointwise on the circle: near `ζ₀` use continuity, away from `ζ₀` use the kernel bound.
+  have hpt : ∀ ζ ∈ sphere c R,
+      |poissonKernel c w ζ * (u ζ - u ζ₀)| ≤ ε * poissonKernel c w ζ + 2 * M * K := by
+    intro ζ hζ
+    have hP0 := poissonKernel_nonneg hw hζ
+    have h2M : |u ζ - u ζ₀| ≤ 2 * M := by
+      have := abs_sub (u ζ) (u ζ₀)
+      linarith [hM ζ hζ, hM ζ₀ hζ₀]
+    have hM0 : 0 ≤ M := (abs_nonneg _).trans (hM ζ₀ hζ₀)
+    rw [abs_mul, abs_of_nonneg hP0]
+    by_cases hnear : dist ζ ζ₀ < δ
+    · have := mul_le_mul_of_nonneg_left (hclose ζ hζ hnear) hP0
+      nlinarith [mul_nonneg hM0 hK0]
+    · have hPK := poissonKernel_le_of_le_dist hδ hζ hw hwζ₀ (not_lt.1 hnear)
+      have := mul_le_mul hPK h2M (abs_nonneg _) hK0
+      nlinarith [mul_nonneg hε hP0]
+  rw [poissonIntegral_circleMeasure_sub_const hu hw (u ζ₀)]
+  calc |∫ ζ, poissonKernel c w ζ * (u ζ - u ζ₀) ∂circleMeasure c R|
+      ≤ ∫ ζ, |poissonKernel c w ζ * (u ζ - u ζ₀)| ∂circleMeasure c R :=
+        abs_integral_le_integral_abs
+    _ ≤ ∫ ζ, (ε * poissonKernel c w ζ + 2 * M * K) ∂circleMeasure c R := by
+        refine integral_mono_ae ?_ ?_ ?_
+        · exact (hP.mul (hu.sub continuousOn_const)).abs.integrable_circleMeasure hR
+        · exact ((continuousOn_const.mul hP).add continuousOn_const).integrable_circleMeasure hR
+        · filter_upwards [ae_mem_sphere_circleMeasure (c := c) hR] with ζ hζ using hpt ζ hζ
+    _ = ε + 2 * M * K := by
+        have hi : Integrable (fun ζ => ε * poissonKernel c w ζ) (circleMeasure c R) :=
+          (continuousOn_const.mul hP).integrable_circleMeasure hR
+        rw [integral_add hi (integrable_const _), integral_const_mul, hone]
+        simp
+
+/-- The Poisson integral of continuous boundary data tends to the boundary value at each boundary
+point, along the open disc. -/
+theorem tendsto_poissonIntegral_circleMeasure_nhdsWithin_ball {u : ℂ → ℝ}
+    (hu : ContinuousOn u (sphere c R)) {ζ₀ : ℂ} (hζ₀ : ζ₀ ∈ sphere c R) :
+    Tendsto (fun w => P[c; u ∂ᵥcircleMeasure c R] w) (𝓝[ball c R] ζ₀) (𝓝 (u ζ₀)) := by
+  obtain ⟨M, hM⟩ := (isCompact_sphere c R).exists_bound_of_continuousOn hu
+  simp only [Real.norm_eq_abs] at hM
+  have hM0 : 0 ≤ M := (abs_nonneg _).trans (hM ζ₀ hζ₀)
+  have hζ₀c : ‖ζ₀ - c‖ = R := by simpa [mem_sphere, dist_eq_norm] using hζ₀
+  rw [Metric.tendsto_nhdsWithin_nhds]
+  intro ε hε
+  obtain ⟨δ, hδ, hcont⟩ := Metric.continuousWithinAt_iff.1 (hu ζ₀ hζ₀) (ε / 2) (by positivity)
+  have hclose : ∀ ζ ∈ sphere c R, dist ζ ζ₀ < δ → |u ζ - u ζ₀| ≤ ε / 2 := fun ζ hζ h => by
+    simpa [Real.dist_eq] using (hcont hζ h).le
+  have hR0 : 0 ≤ R := hζ₀c ▸ norm_nonneg _
+  set η := min (δ / 2) (ε * δ ^ 2 / (32 * (M + 1) * (R + 1))) with hη
+  refine ⟨η, lt_min (by positivity) (by positivity), fun {w} hw hwζ₀ => ?_⟩
+  have hd1 : dist w ζ₀ < δ / 2 := hwζ₀.trans_le (min_le_left _ _)
+  have hd2 : dist w ζ₀ < ε * δ ^ 2 / (32 * (M + 1) * (R + 1)) := hwζ₀.trans_le (min_le_right _ _)
+  have hest := abs_poissonIntegral_circleMeasure_sub_le hu hζ₀ hδ hclose hM hw hd1
+  -- The error term is controlled by `dist w ζ₀`, since `R - ‖w - c‖ ≤ ‖w - ζ₀‖`.
+  have hwc : ‖w - c‖ < R := by simpa [mem_ball, dist_eq_norm] using hw
+  have hRw : R - ‖w - c‖ ≤ dist w ζ₀ := by
+    have := norm_sub_le (ζ₀ - w) (c - w)
+    rw [sub_sub_sub_cancel_right, ← hζ₀c] at *
+    rw [dist_eq_norm, ← norm_neg (w - c), neg_sub, ← norm_neg (w - ζ₀), neg_sub] at *
+    have h' := norm_sub_le (ζ₀ - c) (w - c)
+    rw [sub_sub_sub_cancel_right] at h'
+    linarith [norm_sub_rev ζ₀ w, norm_sub_rev w c]
+  have hN : R ^ 2 - ‖w - c‖ ^ 2 ≤ 2 * R * dist w ζ₀ := by
+    nlinarith [norm_nonneg (w - c), dist_nonneg (x := w) (y := ζ₀)]
+  have hpos : 0 < 32 * (M + 1) * (R + 1) := by positivity
+  have h3 : dist w ζ₀ * (32 * (M + 1) * (R + 1)) < ε * δ ^ 2 := (lt_div_iff₀ hpos).1 hd2
+  have h4 : 2 * M * (4 * (R ^ 2 - ‖w - c‖ ^ 2) / δ ^ 2) < ε / 2 := by
+    rw [show 2 * M * (4 * (R ^ 2 - ‖w - c‖ ^ 2) / δ ^ 2) = 8 * M * (R ^ 2 - ‖w - c‖ ^ 2) / δ ^ 2
+      by ring, div_lt_iff₀ (by positivity)]
+    have hd0 := dist_nonneg (x := w) (y := ζ₀)
+    nlinarith [mul_le_mul_of_nonneg_left hN (by positivity : (0 : ℝ) ≤ 8 * M),
+      mul_nonneg hM0 hR0, mul_nonneg (mul_nonneg hM0 hR0) hd0, mul_nonneg hM0 hd0,
+      mul_nonneg hR0 hd0]
+  rw [Real.dist_eq]
+  linarith
+
 /-- The Poisson integral of continuous real-valued boundary data has a continuous extension to the
 closed disk whose boundary values are the original boundary data. -/
 theorem poissonIntegral_continuousOn_closedBall_eq_boundary
@@ -545,7 +678,31 @@ theorem poissonIntegral_continuousOn_closedBall_eq_boundary
     ∃ h : ℂ → ℝ, ContinuousOn h (closedBall c R) ∧ InnerProductSpace.HarmonicOnNhd h (ball c R)
     ∧ (∀ w ∈ ball c R, h w = P[c; u ∂ᵥcircleMeasure c R] w)
     ∧ (∀ y ∈ sphere c R, h y = u y) := by
-  sorry
+  classical
+  -- Glue the Poisson integral inside the disc with the boundary data on the circle.
+  set h : ℂ → ℝ := fun w => if w ∈ ball c R then P[c; u ∂ᵥcircleMeasure c R] w else u w with hh
+  have hball : ∀ w ∈ ball c R, h w = P[c; u ∂ᵥcircleMeasure c R] w := fun w hw => ite_eq_left hw
+  have hsph : ∀ y ∈ sphere c R, h y = u y := fun y hy => ite_eq_right fun hy' => by
+    rw [mem_ball] at hy'
+    rw [mem_sphere] at hy
+    linarith
+  have hharm : InnerProductSpace.HarmonicOnNhd h (ball c R) := by
+    intro w hw
+    have hR : 0 ≤ R := dist_nonneg.trans (mem_ball.mp hw).le
+    refine (InnerProductSpace.harmonicAt_congr_nhds
+      (Filter.eventuallyEq_of_mem (isOpen_ball.mem_nhds hw) fun x hx => ?_)).2
+      (harmonicOnNhd_circleAverage_poissonKernel_smul hu_cont w hw)
+    rw [hball x hx, poissonIntegral_circleMeasure_withDensityᵥ_eq_circleAverage hR hx hu_cont]
+  refine ⟨h, fun x hx => ?_, hharm, hball, hsph⟩
+  rcases (mem_closedBall.1 hx).lt_or_eq with hlt | heq
+  · exact (hharm.continuousOn.continuousAt (isOpen_ball.mem_nhds (mem_ball.2 hlt))).continuousWithinAt
+  · -- At a boundary point, approach separately along the open disc and along the circle.
+    have hxs : x ∈ sphere c R := heq
+    rw [← ball_union_sphere, ContinuousWithinAt, nhdsWithin_union, hsph x hxs]
+    exact Tendsto.sup
+      ((tendsto_poissonIntegral_circleMeasure_nhdsWithin_ball hu_cont hxs).congr'
+        (eventually_nhdsWithin_of_forall fun w hw => (hball w hw).symm))
+      ((hu_cont x hxs).congr' (eventually_nhdsWithin_of_forall fun w hw => (hsph w hw).symm))
 
 /-!
 ### Uniqueness of the boundary measure
@@ -994,24 +1151,26 @@ theorem harmonicOnNhd_hardyNorm_lt_top_iff_exists_memLp_eq_poissonIntegral
       rw [hcongr]
       exact (hardyNorm_poissonIntegral_le hp.le hU).trans_lt hU.eLpNorm_lt_top
 
-/-- **Garnett I.3.5(b), disc form, existence half.** A harmonic function on the unit disc whose
-radial `L¹` means are uniformly bounded is the Poisson integral of a finite signed measure carried
-by the unit circle. -/
-theorem exists_eq_poissonIntegral_of_hardyNorm_lt_top {u : ℂ → ℝ}
-  (hu : InnerProductSpace.HarmonicOnNhd u (ball 0 1)) (hbdd : hardyNorm u 1 < ∞) :
-    ∃ ν : SignedMeasure ℂ, ν.totalVariation (sphere 0 1)ᶜ = 0 ∧
-      ∀ w ∈ ball 0 1, u w = P[0; ν] w := by
-  sorry
-
-/-- **Garnett I.3.5(b), disc form.** The harmonic functions on the unit disc with uniformly bounded
-radial `L¹` means are exactly the Poisson integrals of finite signed measures carried by
-the unit circle. -/
-theorem harmonicOnNhd_hardyNorm_lt_top_iff_exists_eq_poissonIntegral {u : ℂ → ℝ} :
-    (InnerProductSpace.HarmonicOnNhd u (ball 0 1) ∧ hardyNorm u 1 < ∞) ↔
-      ∃ ν : SignedMeasure ℂ, ν.totalVariation (sphere 0 1)ᶜ = 0 ∧
-        ∀ w ∈ ball 0 1, u w = P[0; ν] w := by
-  sorry
-
+/-- **Poisson formula against a positive boundary measure.**  A function harmonic on a
+neighbourhood of the closed disc and nonnegative on its boundary circle is, at every interior
+point, the integral of the Poisson kernel against the circle measure weighted by its boundary
+values. -/
+lemma integral_poissonKernel_withDensity_circleMeasure_eq {v : ℂ → ℝ}
+    (hv : InnerProductSpace.HarmonicOnNhd v (closedBall c R))
+    (hv_nonneg : ∀ z ∈ sphere c R, 0 ≤ v z) (hw : w ∈ ball c R) :
+    ∫ z, poissonKernel c w z ∂((circleMeasure c R).withDensity fun z => ENNReal.ofReal (v z)) =
+      v w := by
+  have hR : 0 ≤ R := dist_nonneg.trans (mem_ball.mp hw).le
+  have hcont : ContinuousOn v (sphere c R) := hv.continuousOn.mono sphere_subset_closedBall
+  have hint : CircleIntegrable (fun z => v z * poissonKernel c w z) c R :=
+    (hcont.mul (continuousOn_poissonKernel_right_of_mem_ball hw)).circleIntegrable hR
+  rw [← integral_withDensity_circleMeasure_eq_circleAverage_mul
+    (hcont.integrable_circleMeasure hR).aemeasurable
+    ((ae_mem_sphere_circleMeasure hR).mono hv_nonneg) hint,
+    ← hv.circleAverage_poissonKernel_smul hw]
+  congr 1
+  funext z
+  simp [smul_eq_mul, mul_comm]
 
 /-- **Garnett I.3.5(c), disc form**: the nonnegative harmonic functions
 on `ball c R` are exactly the Poisson integrals of finite nonnegative measures carried by
@@ -1020,7 +1179,75 @@ theorem harmonicOnNhd_nonneg_iff_exists_eq_poissonIntegral (hR : 0 < R) {u : ℂ
     (InnerProductSpace.HarmonicOnNhd u (ball c R) ∧ ∀ w ∈ ball c R, 0 ≤ u w) ↔
       ∃ (μ : Measure ℂ) (_ : IsFiniteMeasure μ), μ (sphere c R)ᶜ = 0 ∧
         ∀ w ∈ ball c R, u w = P[c; μ.toSignedMeasure] w := by
-  sorry
+  constructor
+  · rintro ⟨hu, hu_nonneg⟩
+    -- The radial dilates `u_r(z) = u (c + r (z - c))` and the boundary measures `u_r dσ`.
+    let ν (r : ℝ) : Measure ℂ :=
+      (circleMeasure c R).withDensity fun z => ENNReal.ofReal (u (c + r * (z - c)))
+    have hur (r : ℝ) (hr : r ∈ Ico (0 : ℝ) 1) :
+        InnerProductSpace.HarmonicOnNhd (fun z : ℂ => u (c + r * (z - c))) (closedBall c R) :=
+      hu.comp_radial hR hr
+    have hur_nonneg (r : ℝ) (hr : r ∈ Ico (0 : ℝ) 1) (z : ℂ) (hz : z ∈ sphere c R) :
+        0 ≤ u (c + r * (z - c)) :=
+      hu_nonneg _ (radial_mem_ball hR hr hz)
+    -- Mean value property: each `ν r` has mass `u c`.
+    have hν_univ (r : ℝ) (hr : r ∈ Ico (0 : ℝ) 1) : ν r univ = ENNReal.ofReal (u c) := by
+      have hcont := (hur r hr).continuousOn.mono sphere_subset_closedBall
+      rw [withDensity_circleMeasure_univ
+        ((ae_mem_sphere_circleMeasure hR.le).mono (hur_nonneg r hr)) (hcont.circleIntegrable hR.le),
+        InnerProductSpace.HarmonicOnNhd.circleAverage_eq (by rw [abs_of_pos hR]; exact hur r hr)]
+      simp
+    have hν_fin (r : ℝ) (hr : r ∈ Ico (0 : ℝ) 1) : IsFiniteMeasure (ν r) :=
+      ⟨by rw [hν_univ r hr]; exact ENNReal.ofReal_lt_top⟩
+    have hν_compl (r : ℝ) : ν r (sphere c R)ᶜ = 0 :=
+      withDensity_absolutelyContinuous _ _ (circleMeasure_compl_sphere hR.le)
+    let μs (r : ℝ) : FiniteMeasure ℂ := if hr : r ∈ Ico (0 : ℝ) 1 then ⟨ν r, hν_fin r hr⟩ else 0
+    have hμs (r : ℝ) (hr : r ∈ Ico (0 : ℝ) 1) : (μs r : Measure ℂ) = ν r := by
+      simp [μs, hr]
+    have hμs_compl (r : ℝ) : μs r (sphere c R)ᶜ = 0 := by
+      by_cases hr : r ∈ Ico (0 : ℝ) 1
+      · rw [FiniteMeasure.null_iff_toMeasure_null, hμs r hr]
+        exact hν_compl r
+      · simp [μs, hr]
+    -- Weak-star compactness: one cluster point `μ` as `r ↑ 1`, chosen before any `w` is fixed.
+    obtain ⟨μ, ⟨-, hμ_compl⟩, hμ⟩ :=
+      (isCompact_setOfPred_finiteMeasure_le_of_isCompact (u c).toNNReal
+        (isCompact_sphere c R)).exists_mapClusterPt (f := 𝓝[<] (1 : ℝ)) (u := μs) (by
+          rw [Filter.le_principal_iff, Filter.mem_map]
+          refine Filter.univ_mem' fun r => ⟨?_, hμs_compl r⟩
+          by_cases hr : r ∈ Ico (0 : ℝ) 1
+          · have h : ((μs r).mass : ℝ≥0∞) = ((u c).toNNReal : ℝ≥0∞) := by
+              rw [FiniteMeasure.ennreal_mass, hμs r hr, hν_univ r hr]
+              rfl
+            exact (ENNReal.coe_inj.1 h).le
+          · simp [μs, hr])
+    obtain ⟨U, hU, hUμ⟩ := mapClusterPt_iff_ultrafilter.1 hμ
+    have hU_mem : ∀ᶠ r in (U : Filter ℝ), r ∈ Ico (0 : ℝ) 1 :=
+      hU (mem_of_superset (Ioo_mem_nhdsLT (show (0 : ℝ) < 1 by norm_num)) Ioo_subset_Ico_self)
+    refine ⟨μ, inferInstance, (FiniteMeasure.null_iff_toMeasure_null μ _).1 hμ_compl,
+      fun w hw => ?_⟩
+    rw [poissonIntegral_toSignedMeasure_apply]
+    -- Test the cluster point against the fixed kernel `P_w`.
+    have hlim := FiniteMeasure.tendsto_integral_of_continuousOn (isCompact_sphere c R)
+      (continuousOn_poissonKernel_right_of_mem_ball hw) hUμ
+      (Filter.Eventually.of_forall hμs_compl) hμ_compl
+    have hint (r : ℝ) (hr : r ∈ Ico (0 : ℝ) 1) :
+        ∫ z, poissonKernel c w z ∂(μs r : Measure ℂ) = u (c + r * (w - c)) := by
+      rw [hμs r hr]
+      exact integral_poissonKernel_withDensity_circleMeasure_eq (hur r hr) (hur_nonneg r hr) hw
+    have hrad : Tendsto (fun r : ℝ => u (c + r * (w - c))) (𝓝[<] 1) (𝓝 (u w)) := by
+      have h : Tendsto (fun r : ℝ => c + (r : ℂ) * (w - c)) (𝓝 1) (𝓝 w) := by
+        simpa using ((Complex.continuous_ofReal.tendsto 1).mul_const (w - c)).const_add c
+      exact ((hu w hw).1.continuousAt.tendsto.comp h).mono_left nhdsWithin_le_nhds
+    exact tendsto_nhds_unique ((hrad.mono_left hU).congr' (hU_mem.mono fun r hr => (hint r hr).symm))
+      hlim
+  · rintro ⟨μ, _, hμ, hu⟩
+    refine ⟨fun w hw => ?_, fun w hw => ?_⟩
+    · refine (InnerProductSpace.harmonicAt_congr_nhds ?_).2
+        (harmonicOnNhd_poissonIntegral_toSignedMeasure hμ w hw)
+      filter_upwards [isOpen_ball.mem_nhds hw] with x hx using hu x hx
+    · rw [hu w hw]
+      exact poissonIntegral_toSignedMeasure_nonneg hμ hw
 
 
 

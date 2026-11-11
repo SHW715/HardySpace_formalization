@@ -142,7 +142,10 @@ and are not verbatim reproductions of the source.
 \begin{theorem}[Dirichlet problem on a disc]
   \label{thm:poisson_extension}
   \uses{def:poisson_integral}
-  \lean{poissonIntegral_continuousOn_closedBall_eq_boundary}
+  \lean{poissonIntegral_continuousOn_closedBall_eq_boundary,
+    tendsto_poissonIntegral_circleMeasure_nhdsWithin_ball,
+    abs_poissonIntegral_circleMeasure_sub_le, poissonKernel_le_of_le_dist,
+    poissonIntegral_circleMeasure_sub_const}
   \leanok
   For continuous real boundary data $u$ on $\partial\D(c,R)$ there is a function
   continuous on $\overline{\D}(c,R)$, harmonic inside, equal to
@@ -151,7 +154,7 @@ and are not verbatim reproductions of the source.
   \begin{proof}
     \proves{thm:poisson_extension}
     \uses{thm:harmonic_poisson_integral, thm:poisson_reproducing}
-    \notready
+    \leanok
     The Poisson kernel has mass one and its mass away from a boundary
     point tends uniformly to zero. Uniform continuity of the boundary data
     gives continuity of the extension; interior harmonicity is already
@@ -604,31 +607,6 @@ and are not verbatim reproductions of the source.
   \end{proof}
 \end{theorem}
 
-\begin{theorem}[Garnett I.3.5(b): bounded radial $L^1$ means, disc form]
-  \label{thm:I_3_5(b)}
-  \uses{def:poisson_integral}
-  \lean{exists_eq_poissonIntegral_of_hardyNorm_lt_top,
-    harmonicOnNhd_hardyNorm_lt_top_iff_exists_eq_poissonIntegral}
-  \leanok
-  \bookref{Garnett}{I.3.5(b)}{Printed pages 17--18, PDF pages 29--30}
-  A real harmonic function $u$ on $\D$ satisfies
-  \[
-    \sup_{0<r<1}\int|u(r\zeta)|\,d\sigma(\zeta)<\infty
-  \]
-  if and only if $u=P[\nu]$ for a finite signed measure on $\partial\D$.
-  \begin{proof}
-    \proves{thm:I_3_5(b)}
-    \uses{thm:poisson_reproducing, lem:poisson_integral_linear, thm:harmonic_poisson_integral}
-    \notready
-    The measures $d\nu_r=u(r\zeta)\,d\sigma$ have uniformly bounded total
-    variation. Take a weak-star cluster point $\nu$ as $r\uparrow1$.
-    In the reproducing identity $u(rz)=\int P_z\,d\nu_r$, test against the
-    fixed continuous kernel $P_z$ and use continuity of $u$ to get $u=P[\nu]$.
-    Conversely, positivity and unit mass of the kernel bound the radial
-    $L^1$ means by the total variation of $\nu$. Both linked proofs are open.
-  \end{proof}
-\end{theorem}
-
 \begin{theorem}[Garnett I.3.5(c): nonnegative harmonic representation, disc form]
   \label{thm:I_3_5(c)}
   \uses{def:poisson_integral}
@@ -641,14 +619,17 @@ and are not verbatim reproductions of the source.
   The measure has total mass $u(0)$.
   \begin{proof}
     \proves{thm:I_3_5(c)}
-    \uses{thm:I_3_5(b), thm:poisson_reproducing, thm:harmonic_poisson_integral,
+    \uses{thm:poisson_reproducing, thm:harmonic_poisson_integral,
       lem:poisson_integral_linear}
-    \notready
-    Use the weak-star construction in the proof of I.3.5(b), as Garnett
-    does: the approximating measures $u(r\zeta)\,d\sigma$ are positive
-    and have common mass $u(0)$ by the mean-value property. Their cluster
-    measure is therefore positive. The converse is positivity and
-    harmonicity of the Poisson integral, already formalized; existence is open.
+    \leanok
+    As in Garnett, the measures $u(r\zeta)\,d\sigma$ are positive and
+    have common mass $u(0)$ by the mean-value property. Take a weak-star
+    cluster point $\mu$ as $r\uparrow1$; it is positive and carried by
+    $\partial\D$. In the reproducing identity
+    $u(rz)=\int P_z(\zeta)\,u(r\zeta)\,d\sigma(\zeta)$, test against the
+    fixed kernel $P_z$, continuous on $\partial\D$, and use continuity of
+    $u$ to get $u=P[\mu]$. The converse is positivity and harmonicity of
+    the Poisson integral.
   \end{proof}
 \end{theorem}
 
@@ -672,7 +653,11 @@ and are not verbatim reproductions of the source.
 
 \begin{theorem}[Garnett I.6.3: harmonic comparison characterization]
   \label{thm:I_6_3}
-  \notready
+  \lean{subharmonicOn_iff_hasLocalSubMeanOn, HasLocalSubMeanOn,
+    SubharmonicOn.of_hasLocalSubMeanOn, SubharmonicOn.hasLocalSubMeanOn,
+    HasLocalSubMeanOn.le_of_le_on_sphere,
+    HasLocalSubMeanOn.le_of_le_on_sphere_of_harmonicOnNhd}
+  \leanok
   \bookref{Garnett}{I.6.3}{Printed pages 34--35, PDF pages 46--47}
   An upper semicontinuous $v:\Omega\to[-\infty,\infty)$ is subharmonic if
   and only if, for every bounded open $W$ compactly contained in $\Omega$
@@ -713,7 +698,8 @@ and are not verbatim reproductions of the source.
 
 \begin{corollary}[Garnett I.6.4: integrability on interior circles]
   \label{cor:I_6_4}
-  \notready
+  \lean{Subharmonic.ae_ne_bot_and_circleIntegrable_unbotD_of_subharmonicOn}
+  \leanok
   \bookref{Garnett}{I.6.4}{Printed page 35, PDF page 47}
   If $v$ is subharmonic on a connected open set $\Omega$ and
   $v\not\equiv-\infty$, then its restriction to every circle bounding a
@@ -784,7 +770,12 @@ and are not verbatim reproductions of the source.
 
 \begin{theorem}[Harnack's convergence theorem]
   \label{thm:harnack_convergence}
-  \notready
+  \lean{InnerProductSpace.exists_harmonicOnNhd_tendstoLocallyUniformlyOn_of_monotone,
+    InnerProductSpace.harnack_le_three_mul, InnerProductSpace.le_three_mul_harnack,
+    InnerProductSpace.bddAbove_range_of_monotone_of_harmonicOnNhd,
+    InnerProductSpace.tendstoLocallyUniformlyOn_iSup_of_monotone_of_harmonicOnNhd,
+    InnerProductSpace.harmonicOnNhd_of_tendstoLocallyUniformlyOn}
+  \leanok
   \bookref{Garnett}{I.6.7, proof}{Invoked on printed page 37, PDF page 49}
   Let $u_n$ be an increasing sequence of real harmonic functions on a
   connected domain. If $\sup_n u_n(z_0)<\infty$ at one interior point,
@@ -792,7 +783,7 @@ and are not verbatim reproductions of the source.
   \begin{proof}
     \proves{thm:harnack_convergence}
     \uses{lem:harnack_inequality, thm:harmonic_mean_value}
-    \notready
+    \leanok
     Apply Harnack's inequality to the nonnegative differences $u_m-u_n$;
     convergence at one point gives uniform Cauchy estimates on compact
     subsets by a chain of discs. Pass the mean-value identity to the local
@@ -804,7 +795,8 @@ and are not verbatim reproductions of the source.
 \begin{theorem}[Harmonic majorants of subharmonic functions, Garnett I.6.7]
   \label{thm:I_6_7}
   \lean{Subharmonic.hasHarmonicMajorant_iff_radialMean_bddAbove,
-    Subharmonic.exists_isLeastHarmonicMajorant_tendsto_poissonModification}
+    Subharmonic.exists_isLeastHarmonicMajorant_tendsto_poissonModification,
+    Subharmonic.poissonModification_le_of_isHarmonicMajorant}
   \leanok
   \mainline
   \bookref{Garnett}{I.6.7}{Chapter I, Section 6, printed pages 36--37, PDF pages 48--49}
@@ -827,7 +819,7 @@ and are not verbatim reproductions of the source.
   \begin{proof}
     \proves{thm:I_6_7}
     \uses{thm:I_6_5, thm:harnack_convergence, thm:I_6_3}
-    \notready
+    \leanok
     The modifications $v_r$ increase and are harmonic on expanding discs.
     If their values at zero are bounded, Harnack's convergence theorem
     gives a finite harmonic limit $u\ge v$. Every harmonic majorant $U$
@@ -1078,34 +1070,39 @@ and are not verbatim reproductions of the source.
 
 \section{Chapter II, Section 4: logarithmic integrability and outer functions}
 
-\begin{theorem}[Garnett II.4.1: logarithmic inequality, $H^\infty$ disc case]
+\begin{theorem}[Garnett II.4.1: logarithmic integrability, $H^\infty$ disc case]
   \label{thm:II_4_1}
-  \uses{def:boundary_function, def:poisson_integral}
-  \notready
+  \uses{def:boundary_function}
+  \lean{HardySpace.MemHpDisc.withBotIntegral_logNormBot_boundaryValue_ne_bot}
+  \leanok
   \mainline
   \bookref{Garnett}{II.4.1 ($p=\infty$)}{Printed page 62, PDF page 74}
   If $f\in H^\infty(\D)$ is not identically zero, then
-  $\log|f^*|\in L^1(\sigma)$, with $\log0=-\infty$, and
-  \[
-    \log|f(z)|\le P[\log|f^*|\,d\sigma](z)\qquad(z\in\D).
-  \]
+  $\log|f^*|\in L^1(\sigma)$, with $\log0=-\infty$.
   \begin{proof}
     \proves{thm:II_4_1}
-    \uses{thm:I_6_7, thm:log_abs_subharmonic, cor:II_3_1(p=∞)}
-    \notready
-    Follow Garnett's proof: apply I.6.7 to $\log|f|$, use dominated
-    convergence for the positive logarithmic parts and Fatou's lemma for
-    the negative parts, then remove a possible zero at the origin.
-    In the bounded case a constant dominates the positive parts.
-    This is the case used below; the full $0<p<\infty$ theorem additionally
-    uses the integrable maximal function of II.3.1 and is not asserted here.
+    \uses{thm:I_6_5, thm:log_abs_subharmonic, cor:II_3_1(p=∞)}
+    \leanok
+    Choose $z_0\in\D$ with $f(z_0)\ne0$ and $M\ge\max(1,\|f\|_\infty)$, and
+    put $h=\log M-\log|f|\ge0$, with $h=\infty$ at the zeros of $f$. For
+    $r_0=(1+|z_0|)/2\le r<1$ there is $c>0$ with $c\le P_{z_0/r}\le1/c$ on
+    $\partial\D$, and Theorem~\ref{thm:I_6_5} gives
+    $\log|f(z_0)|\le\int P_{z_0/r}(\zeta)\log|f(r\zeta)|\,d\sigma(\zeta)$;
+    hence $\int h(f(r\zeta))\,d\sigma\le C$ uniformly in $r$. Since $f$
+    converges radially almost everywhere (Corollary~\ref{cor:II_3_1(p=∞)}),
+    Fatou's lemma gives $\int h(f^*)\,d\sigma\le C$. Thus $f^*\ne0$ almost
+    everywhere and $\log|f^*|=\log M-h(f^*)\in L^1(\sigma)$.
+    This is Garnett's subharmonic argument with I.6.5 at a fixed radius in
+    place of I.6.7; Garnett's inequality (4.2) is not needed in this project
+    and is not formalized.
   \end{proof}
 \end{theorem}
 
 \begin{corollary}[Garnett II.4.2: boundary uniqueness, $H^\infty$ disc case]
   \label{cor:II_4_2}
   \uses{def:boundary_function}
-  \notready
+  \lean{HardySpace.MemHpDisc.eq_zero_of_frequently_boundaryValue_eq_zero}
+  \leanok
   \mainline
   \bookref{Garnett}{II.4.2 ($p=\infty$)}{Printed page 62, PDF page 74}
   If $f\in H^\infty(\D)$ and its boundary value vanishes on a set of
@@ -1114,7 +1111,7 @@ and are not verbatim reproductions of the source.
   \begin{proof}
     \proves{cor:II_4_2}
     \uses{thm:II_4_1}
-    \notready
+    \leanok
     For nonzero $f$, II.4.1 makes the extended boundary logarithm integrable,
     whereas it is $-\infty$ wherever $f^*=0$. Thus that set has measure zero.
     This result precedes and is used by II.5.3; it is not derived from it.
@@ -1162,32 +1159,6 @@ and are not verbatim reproductions of the source.
   \end{proof}
 \end{theorem}
 
-\begin{theorem}[Garnett II.4.4: prescribed bounded boundary modulus, disc form]
-  \label{thm:II_4_4}
-  \uses{def:outer_factor, def:boundary_function}
-  \notready
-  \mainline
-  \bookref{Garnett}{II.4.4 ($p=\infty$)}{Printed page 63, PDF page 75}
-  Let $h\ge0$ be essentially bounded and not zero almost everywhere on
-  $\partial\D$. There is a nonzero $f\in H^\infty(\D)$ with $|f^*|=h$
-  almost everywhere if and only if $\log h\in L^1(\sigma)$, where
-  $\log0=-\infty$. When this holds, the normalized outer function
-  $O_{\log h}$ has the required modulus and satisfies
-  $|O_{\log h}(z)|\le\|h\|_\infty$.
-  \begin{proof}
-    \proves{thm:II_4_4}
-    \uses{thm:II_4_1, thm:outer_function_properties, cor:II_3_1(p=∞), thm:I_5_3_ac,
-      thm:poisson_reproducing}
-    \notready
-    Necessity is II.4.1. For sufficiency use Garnett's construction
-    $\exp(u+iv)$, where $u=P[\log h\,d\sigma]$ and $v$ is its normalized
-    harmonic conjugate. The bound $u\le\log\|h\|_\infty$ gives boundedness.
-    Bounded-analytic Fatou gives complex boundary limits, and Poisson Fatou
-    identifies their moduli with $h$. The finite-$p$ refinement in the book
-    is not needed for the factorization roadmap.
-  \end{proof}
-\end{theorem}
-
 \begin{theorem}[Boundary modulus of an outer function]
   \label{thm:outer_boundary_modulus}
   \uses{def:outer_factor, def:boundary_function}
@@ -1199,13 +1170,15 @@ and are not verbatim reproductions of the source.
   almost everywhere and $|O_k^*|=e^k$ almost everywhere.
   \begin{proof}
     \proves{thm:outer_boundary_modulus}
-    \uses{thm:II_4_4}
+    \uses{thm:outer_function_properties, cor:II_3_1(p=∞), thm:I_5_3_ac}
     \leanok
     The book's outer construction permits arbitrary integrable logarithmic
     data. To justify finite complex boundary limits without II.5.3, write
-    $k=k^+-k^-$ and $O_k=O_{-k^-}/O_{-k^+}$. Apply the bounded construction
-    II.4.4 to $e^{-k^-}$ and $e^{-k^+}$; their boundary moduli are positive
-    almost everywhere. Taking the quotient gives modulus $e^k$.
+    $k=k^+-k^-$ and $O_k=O_{-k^-}/O_{-k^+}$. For integrable $h\ge0$,
+    $|O_{-h}|=e^{P[-h\,d\sigma]}\le1$, so $O_{-h}$ has nontangential limits
+    almost everywhere by Corollary~\ref{cor:II_3_1(p=∞)}, and by
+    Theorem~\ref{thm:I_5_3_ac} their modulus is $e^{-h}>0$ almost everywhere.
+    Taking the quotient gives modulus $e^k$.
     This supplies the disc-form detail behind the boundary assertion after
     the outer definition, independently of Nevanlinna boundary theory.
   \end{proof}
@@ -1304,7 +1277,7 @@ and are not verbatim reproductions of the source.
   \begin{proof}
     \proves{lem:II_5_2}
     \uses{thm:II_5_1, thm:II_2_1, thm:II_2_2, thm:II_2_4, def:Nevanlinna_class, thm:I_6_7}
-    \notready
+    \leanok
     By (5.1), $\log|f|\le\log^+|f|\le U$ for a harmonic $U$, so
     Theorem~\ref{thm:II_2_1} gives the Blaschke condition, and
     Theorem~\ref{thm:I_6_7} gives the least harmonic majorant $u\le U$ of
@@ -1351,7 +1324,7 @@ and are not verbatim reproductions of the source.
     \proves{thm:II_5_3}
     \uses{thm:II_5_1, lem:II_5_2, thm:II_2_2, thm:I_5_3, cor:II_3_1(p=∞),
       thm:poisson_measure_unique, lem:poisson_integral_linear, cor:II_4_2}
-    \notready
+    \leanok
     Let $B$ be the Blaschke product over the zeros of $f$ and $g=f/B$. By
     Theorem~\ref{thm:II_5_1} and Lemma~\ref{lem:II_5_2}, $g$ is zero-free and
     $\log|g|=P[\mu]$ is the least harmonic majorant of $\log|f|$; by
