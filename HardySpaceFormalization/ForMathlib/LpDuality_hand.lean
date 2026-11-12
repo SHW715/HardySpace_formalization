@@ -21,8 +21,6 @@ variable {α 𝕜 E F G : Type*} {m : MeasurableSpace α} {μ : Measure α} {p q
 variable [Fact (1 ≤ p)] [Fact (1 ≤ q)]
 variable [HolderConjugate p q] [NormedSpace ℝ G] [SMulCommClass ℝ 𝕜 G] [CompleteSpace G]
 
-#check Isometry
-#check Function.Surjective
 
 
 namespace MeasureTheory
