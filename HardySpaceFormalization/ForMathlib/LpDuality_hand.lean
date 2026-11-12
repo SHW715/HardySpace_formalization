@@ -51,7 +51,7 @@ theorem norm_lpPairing_le (B : E →L[𝕜] F →L[𝕜] G) : ‖B.lpPairing μ 
 
 
 --1. change '(NormedSpace.inclusionInDoubleDual 𝕜 F).flip.lpPairing μ p q g' to id
---2. shorten the proof of `lemma mul_norm_le_norm_lpPairing_inclusionInDoubleDual_flip_apply_simpleFunc`
+--2. shorten the proof of `lemma mul_norm_le_norm_lpPairing_id_apply_simpleFunc`
 -- by: 1. (s : Lp.simpleFunc (StrongDual 𝕜 F) p μ) to SimpleFunc
 -- by: pull out function g and prove lemmas for g
 
@@ -59,7 +59,7 @@ theorem norm_lpPairing_le (B : E →L[𝕜] F →L[𝕜] G) : ‖B.lpPairing μ 
 -- # Now we'd like to show that `Isometry (B.lpPairing μ q p)` if `Isometry B` (when `SemiFinite μ`).
 
 
-lemma norm_lpPairing_inclusionInDoubleDual_flip_apply_one_top_le (g : Lp (StrongDual 𝕜 F) p μ) :
+lemma norm_lpPairing_id_apply_one_top_le (g : Lp (StrongDual 𝕜 F) p μ) :
     ‖(ContinuousLinearMap.id 𝕜 (F →L[𝕜] 𝕜)).lpPairing μ p q g‖ ≤ ‖g‖ := by
   -- Proof helped by Claude
   calc
@@ -153,7 +153,7 @@ lemma MemLp.of_norm_le_rpow_sub_one {f : α → E} {g : α → F} (hp : p ≠ �
     _ < ∞ := ENNReal.rpow_lt_top_of_nonneg hexp hf.eLpNorm_ne_top
 
 /- # Now we'd like to define a test function which will be used in proving
- # `mul_norm_le_norm_lpPairing_inclusionInDoubleDual_flip_apply_simpleFunc`.-/
+ # `mul_norm_le_norm_lpPairing_id_apply_simpleFunc`.-/
 def LpDual_test (p : ℝ≥0∞) {t : ℝ} (ht : t < 1) (s : SimpleFunc α (StrongDual 𝕜 F)) :
     SimpleFunc α F :=
   s.map fun φ => ((‖φ‖ ^ (p.toReal - 1) : ℝ) : 𝕜) •
@@ -186,7 +186,7 @@ lemma mul_rpow_le_re_LpDual_test_apply (hp0 : p ≠ 0) (hp : p ≠ ∞) {t : ℝ
         gcongr; exact (Classical.choose_spec (exists_norm_le_one_mul_norm_le_re (s x) ht)).2
 
 
-theorem mul_norm_le_norm_lpPairing_inclusionInDoubleDual_flip_apply_simpleFunc
+theorem mul_norm_le_norm_lpPairing_id_apply_simpleFunc
     (hp : p ≠ ∞) (s : Lp.simpleFunc (StrongDual 𝕜 F) p μ) {t : ℝ} (ht : t < 1) :
     t * ‖s‖ ≤ ‖(ContinuousLinearMap.id 𝕜 (F →L[𝕜] 𝕜)).lpPairing μ p q s‖ := by
     -- Proof helped by Claude
@@ -252,30 +252,30 @@ theorem mul_norm_le_norm_lpPairing_inclusionInDoubleDual_flip_apply_simpleFunc
       _ = ‖J s‖ := by rw [mul_assoc, ← Real.rpow_add hs0]; simp
 
 
-theorem norm_le_norm_lpPairing_inclusionInDoubleDual_flip_apply_simpleFunc (hp : p ≠ ∞)
+theorem norm_le_norm_lpPairing_id_apply_simpleFunc (hp : p ≠ ∞)
     (s : Lp.simpleFunc (StrongDual 𝕜 F) p μ) :
     ‖s‖ ≤ ‖(ContinuousLinearMap.id 𝕜 (F →L[𝕜] 𝕜)).lpPairing μ p q s‖ := by
   -- Proof helped by Claude
   by_contra h
   obtain ⟨c, hc1, hc2⟩ := exists_between (not_le.1 h)
   have hpos : 0 < ‖s‖ := ((norm_nonneg _).trans_lt hc1).trans hc2
-  have := mul_norm_le_norm_lpPairing_inclusionInDoubleDual_flip_apply_simpleFunc (q := q) hp s
+  have := mul_norm_le_norm_lpPairing_id_apply_simpleFunc (q := q) hp s
     ((div_lt_one hpos).2 hc2)
   rw [div_mul_cancel₀ c hpos.ne'] at this
   linarith
 
-theorem norm_lpPairing_inclusionInDoubleDual_flip_apply_ne_top (hp : p ≠ ∞) (g : Lp (StrongDual 𝕜 F) p μ) :
+theorem norm_lpPairing_id_apply_ne_top (hp : p ≠ ∞) (g : Lp (StrongDual 𝕜 F) p μ) :
     ‖(ContinuousLinearMap.id 𝕜 (F →L[𝕜] 𝕜)).lpPairing μ p q g‖ = ‖g‖ := by
   -- Proof helped by Claude
   set J := (ContinuousLinearMap.id 𝕜 (F →L[𝕜] 𝕜)).lpPairing μ p q
-  refine le_antisymm (norm_lpPairing_inclusionInDoubleDual_flip_apply_one_top_le g) ?_
+  refine le_antisymm (norm_lpPairing_id_apply_one_top_le g) ?_
   refine (Lp.simpleFunc.denseRange hp).induction_on g ?_ ?_
   . exact isClosed_le continuous_norm (continuous_norm.comp J.continuous)
-  . exact norm_le_norm_lpPairing_inclusionInDoubleDual_flip_apply_simpleFunc hp
+  . exact norm_le_norm_lpPairing_id_apply_simpleFunc hp
 
-theorem isometry_lpPairing_inclusionInDoubleDual_flip_of_ne_top (hp : p ≠ ∞) :
+theorem isometry_lpPairing_id_of_ne_top (hp : p ≠ ∞) :
     Isometry ((ContinuousLinearMap.id 𝕜 (F →L[𝕜] 𝕜)).lpPairing μ p q) :=
-  AddMonoidHomClass.isometry_of_norm _ (norm_lpPairing_inclusionInDoubleDual_flip_apply_ne_top hp)
+  AddMonoidHomClass.isometry_of_norm _ (norm_lpPairing_id_apply_ne_top hp)
 
 -- # Now we'd like to show the case for `1 ≤ p ≤ ∞` with `SemiFinite μ`:
 
@@ -287,10 +287,17 @@ lemma MemLp.norm_toLp_indicator_one {E : Type*} [NormedAddCommGroup E]
   simp_rw [← norm_indicator_eq_indicator_norm]
   exact L1.norm_of_fun_eq_integral_norm (memLp_one_iff_integrable.1 hf)
 
+-- # This might be able to put into Mathlib
+lemma Lp.ae_norm_le_norm_top {E : Type*} [NormedAddCommGroup E] (f : Lp E ∞ μ) :
+    ∀ᵐ x ∂μ, ‖f x‖ ≤ ‖f‖ := by
+  have hne : eLpNormEssSup f μ ≠ ∞ := by
+    simpa [eLpNorm_exponent_top (Lp.aestronglyMeasurable f)] using Lp.eLpNorm_ne_top f
+  filter_upwards [ae_le_eLpNormEssSup (f := f)] with x hx
+  rw [Lp.norm_def, eLpNorm_exponent_top (Lp.aestronglyMeasurable f), ← toReal_enorm]
+  exact ENNReal.toReal_mono hne hx
 
 -- # Note that `hf1` and `hg1` are repetitive, so it might be also useful to put into mathlib.
-
-lemma setAverage_norm_le_norm_lpPairing_inclusionInDoubleDual_flip_apply_top
+lemma setAverage_norm_le_norm_lpPairing_id_apply_top
   (g : Lp (StrongDual 𝕜 F) ∞ μ) (s : Set α) (hsm : MeasurableSet s) (hs : 0 < μ s ∧ μ s < ∞) :
     (μ s).toReal⁻¹ * ∫ x in s, ‖g x‖ ∂μ  ≤ ‖(ContinuousLinearMap.id 𝕜 (F →L[𝕜] 𝕜)).lpPairing μ ∞ 1 g‖ := by
     set J := (ContinuousLinearMap.id 𝕜 (F →L[𝕜] 𝕜)).lpPairing μ ∞ 1
@@ -301,7 +308,7 @@ lemma setAverage_norm_le_norm_lpPairing_inclusionInDoubleDual_flip_apply_top
         (((Lp.memLp g).restrict s).mono_exponent le_top)
     let u : Lp (StrongDual 𝕜 F) 1 μ := hg1.toLp _
     have hJu : ‖J' u‖ = ∫ x in s, ‖g x‖ ∂μ := by
-      rw [norm_lpPairing_inclusionInDoubleDual_flip_apply_ne_top one_ne_top u,
+      rw [norm_lpPairing_id_apply_ne_top one_ne_top u,
        MemLp.norm_toLp_indicator_one hsm hg1]
     have hf1 (f : Lp F ∞ μ) : MemLp (s.indicator f) 1 μ :=
       (memLp_indicator_iff_restrict hsm.nullMeasurableSet).2
@@ -314,13 +321,6 @@ lemma setAverage_norm_le_norm_lpPairing_inclusionInDoubleDual_flip_apply_top
       by_cases hx : x ∈ s <;> simp [hx]
     have hJ'uf (f : Lp F ∞ μ) : ‖J' u f‖ ≤ (μ s).toReal * ‖J g‖ * ‖f‖ := by
       rw [key]
-      -- `hfb` might be a useful lemma to put it outside
-      have hfb : ∀ᵐ x ∂μ, ‖f x‖ ≤ ‖f‖ := by
-        have hne : eLpNormEssSup f μ ≠ ∞ := by
-          simpa [eLpNorm_exponent_top (Lp.aestronglyMeasurable f)] using Lp.eLpNorm_ne_top f
-        filter_upwards [ae_le_eLpNormEssSup (f := f)] with x hx
-        rw [Lp.norm_def, eLpNorm_exponent_top (Lp.aestronglyMeasurable f), ← toReal_enorm]
-        exact ENNReal.toReal_mono hne hx
       have hw : ‖(hf1 f).toLp _‖ ≤ (μ s).toReal * ‖f‖ := by
         rw [MemLp.norm_toLp_indicator_one hsm (hf1 f)]
         calc
@@ -328,7 +328,7 @@ lemma setAverage_norm_le_norm_lpPairing_inclusionInDoubleDual_flip_apply_top
               refine integral_mono_ae ?_ ?_ ?_
               . exact ((Lp.memLp f).norm.restrict s).integrable le_top
               . exact integrable_const _
-              . exact ae_restrict_of_ae hfb
+              . exact ae_restrict_of_ae (Lp.ae_norm_le_norm_top f)
           _ = (μ s).toReal * ‖f‖ := by simp [measureReal_def]
       calc ‖J g ((hf1 f).toLp _)‖ ≤ ‖J g‖ * ‖(hf1 f).toLp _‖ := le_opNorm _ _
         _ ≤ ‖J g‖ * ((μ s).toReal * ‖f‖) := by gcongr
@@ -337,10 +337,16 @@ lemma setAverage_norm_le_norm_lpPairing_inclusionInDoubleDual_flip_apply_top
     rw [← hJu]; grw [hJ'u]
     rw [inv_mul_cancel_left₀ ((ENNReal.toReal_pos hs.1.ne' hs.2.ne).ne') ‖J g‖]
 
+-- # This might be able to put into Mathlib
+lemma Lp.norm_le_of_ae_bound_top {E : Type*} [NormedAddCommGroup E] (f : Lp E ∞ μ) {C : ℝ}
+    (hC : 0 ≤ C) (h : ∀ᵐ x ∂μ, ‖f x‖ ≤ C) : ‖f‖ ≤ C := by
+  refine ENNReal.toReal_le_of_le_ofReal hC ?_
+  rw [eLpNorm_exponent_top (Lp.aestronglyMeasurable f)]
+  exact eLpNormEssSup_le_of_ae_bound h
 
-lemma norm_sub_le_norm_lpPairing_inclusionInDoubleDual_flip_apply_top
+lemma norm_sub_le_norm_lpPairing_id_apply_top
   [SemiFinite μ] (g : Lp (StrongDual 𝕜 F) ∞ μ) {ε : ℝ} (hε : 0 < ε) :
-    ‖g‖ - ε ≤ ‖(NormedSpace.inclusionInDoubleDual 𝕜 F).flip.lpPairing μ ∞ 1 g‖ := by
+    ‖g‖ - ε ≤ ‖(ContinuousLinearMap.id 𝕜 (F →L[𝕜] 𝕜)).lpPairing μ ∞ 1 g‖ := by
   by_cases hnorm : ‖g‖ ≤ ε
   . grw [hnorm]; simp
   . let A := {x : α | ‖g‖ - ε < ‖g x‖}
@@ -348,10 +354,7 @@ lemma norm_sub_le_norm_lpPairing_inclusionInDoubleDual_flip_apply_top
       apply pos_iff_ne_zero.2
       intro h0
       have hae : ∀ᵐ x ∂μ, ‖g x‖ ≤ ‖g‖ - ε := by rw [ae_iff]; simpa
-      have key : eLpNorm g ∞ μ ≤ ENNReal.ofReal (‖g‖ - ε) := by
-        rw [eLpNorm_exponent_top (Lp.aestronglyMeasurable g)]
-        exact eLpNormEssSup_le_of_ae_bound hae
-      have : ‖g‖ ≤ ‖g‖ - ε := ENNReal.toReal_le_of_le_ofReal (by linarith) key
+      have : ‖g‖ ≤ ‖g‖ - ε := Lp.norm_le_of_ae_bound_top g (by linarith) hae
       linarith
     have hAm : MeasurableSet A :=
       measurableSet_lt measurable_const (Lp.stronglyMeasurable g).norm.measurable
@@ -364,28 +367,28 @@ lemma norm_sub_le_norm_lpPairing_inclusionInDoubleDual_flip_apply_top
       ‖g‖ - ε ≤ (μ s).toReal⁻¹ * ∫ x in s, ‖g x‖ ∂μ := by
         rw [le_inv_mul_iff₀ (ENNReal.toReal_pos hs0.ne' hstop.ne), mul_comm]
         exact setIntegral_ge_of_const_le_real hsm hstop.ne (fun x hx => (hgs x hx).le) hint
-      _ ≤  ‖(NormedSpace.inclusionInDoubleDual 𝕜 F).flip.lpPairing μ ∞ 1 g‖ :=
-        setAverage_norm_le_norm_lpPairing_inclusionInDoubleDual_flip_apply_top g s hsm ⟨hs0, hstop⟩
+      _ ≤  ‖(ContinuousLinearMap.id 𝕜 (F →L[𝕜] 𝕜)).lpPairing μ ∞ 1 g‖ :=
+        setAverage_norm_le_norm_lpPairing_id_apply_top g s hsm ⟨hs0, hstop⟩
 
-theorem norm_lpPairing_inclusionInDoubleDual_flip_apply [SemiFinite μ] (g : Lp (StrongDual 𝕜 F) p μ) :
-    ‖(NormedSpace.inclusionInDoubleDual 𝕜 F).flip.lpPairing μ p q g‖ = ‖g‖ := by
-  set J := (NormedSpace.inclusionInDoubleDual 𝕜 F).flip.lpPairing μ p q
+theorem norm_lpPairing_id_apply [SemiFinite μ] (g : Lp (StrongDual 𝕜 F) p μ) :
+    ‖(ContinuousLinearMap.id 𝕜 (F →L[𝕜] 𝕜)).lpPairing μ p q g‖ = ‖g‖ := by
+  set J := (ContinuousLinearMap.id 𝕜 (F →L[𝕜] 𝕜)).lpPairing μ p q
   by_cases hp : p = ∞
   . subst hp
     have hq : q = 1 := (HolderConjugate.eq_top_iff_eq_one ∞ q).1 rfl
     subst hq
-    refine le_antisymm (norm_lpPairing_inclusionInDoubleDual_flip_apply_one_top_le g) ?_
-    exact le_of_forall_sub_le fun _ hε => norm_sub_le_norm_lpPairing_inclusionInDoubleDual_flip_apply_top g hε
-  . exact norm_lpPairing_inclusionInDoubleDual_flip_apply_ne_top hp g
+    refine le_antisymm (norm_lpPairing_id_apply_one_top_le g) ?_
+    exact le_of_forall_sub_le fun _ hε => norm_sub_le_norm_lpPairing_id_apply_top g hε
+  . exact norm_lpPairing_id_apply_ne_top hp g
 
 
-theorem isometry_lpPairing_inclusionInDoubleDual_flip [SemiFinite μ] :
-    Isometry ((NormedSpace.inclusionInDoubleDual 𝕜 F).flip.lpPairing μ p q) :=
-  AddMonoidHomClass.isometry_of_norm _ (norm_lpPairing_inclusionInDoubleDual_flip_apply)
+theorem isometry_lpPairing_id [SemiFinite μ] :
+    Isometry ((ContinuousLinearMap.id 𝕜 (F →L[𝕜] 𝕜)).lpPairing μ p q) :=
+  AddMonoidHomClass.isometry_of_norm _ (norm_lpPairing_id_apply)
 
 
 theorem lpPairing_eq_compLpL :
-  B.lpPairing μ q p = ((NormedSpace.inclusionInDoubleDual 𝕜 F).flip.lpPairing μ q p).comp (B.compLpL q μ) := by
+  B.lpPairing μ q p = ((ContinuousLinearMap.id 𝕜 (F →L[𝕜] 𝕜)).lpPairing μ q p).comp (B.compLpL q μ) := by
   -- Proof helped by Claude
   ext f g
   rw [ContinuousLinearMap.comp_apply, ContinuousLinearMap.lpPairing_eq_integral,
@@ -397,13 +400,13 @@ theorem lpPairing_eq_compLpL :
 theorem lpPairing_isometry_of_isometry_of_ne_top (hq : q ≠ ∞) (hB : Isometry B) :
     Isometry (B.lpPairing μ q p) := by
   rw [lpPairing_eq_compLpL]
-  exact (isometry_lpPairing_inclusionInDoubleDual_flip_of_ne_top hq).comp
+  exact (isometry_lpPairing_id_of_ne_top hq).comp
     (ContinuousLinearMap.isometry_compLpL hB)
 
 theorem lpPairing_isometry_of_isometry [SemiFinite μ] (hB : Isometry B):
   Isometry (B.lpPairing μ q p) := by
   rw [lpPairing_eq_compLpL]
-  exact isometry_lpPairing_inclusionInDoubleDual_flip.comp (ContinuousLinearMap.isometry_compLpL hB)
+  exact isometry_lpPairing_id.comp (ContinuousLinearMap.isometry_compLpL hB)
 
 -- # Here are two corollary for specific case where `B` is standard multipliction:
 
