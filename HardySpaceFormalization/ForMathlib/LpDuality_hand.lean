@@ -1,6 +1,7 @@
 import Mathlib.MeasureTheory.Function.Holder
 import Mathlib.Analysis.Normed.Module.DoubleDual
 import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
+import Mathlib.MeasureTheory.Function.LpSeminorm.LpNorm
 import HardySpaceFormalization.ForMathlib.CompLpIsometry_hand
 import HardySpaceFormalization.ForMathlib.Semifinite_hand
 
@@ -35,6 +36,8 @@ namespace ContinuousLinearMap
 
 -- # We first prove one direction of inequality
 
+-- # This might be able to put into Mathlib
+-- # I'm thinking whether to put it in `Holder.lean` or maybe later with my whole file of isometry properties
 -- This one is missing in `Holder.lean`.
 theorem norm_lpPairing_le (B : E →L[𝕜] F →L[𝕜] G) : ‖B.lpPairing μ p q‖ ≤ ‖B‖ := by
   -- Proof helped by Claude
@@ -45,13 +48,6 @@ theorem norm_lpPairing_le (B : E →L[𝕜] F →L[𝕜] G) : ‖B.lpPairing μ 
   rw [h]
   exact (L1.norm_integral_le _).trans (B.norm_holder_apply_apply_le f g)
 
-
-
-
---1. change '(NormedSpace.inclusionInDoubleDual 𝕜 F).flip.lpPairing μ p q g' to id
---2. shorten the proof of `lemma mul_norm_le_norm_lpPairing_id_apply_simpleFunc`
--- by: 1. (s : Lp.simpleFunc (StrongDual 𝕜 F) p μ) to SimpleFunc
--- by: pull out function g and prove lemmas for g
 
 
 -- # Now we'd like to show that `Isometry (B.lpPairing μ q p)` if `Isometry B` (when `SemiFinite μ`).
@@ -285,14 +281,7 @@ lemma MemLp.norm_toLp_indicator_one {E : Type*} [NormedAddCommGroup E]
   simp_rw [← norm_indicator_eq_indicator_norm]
   exact L1.norm_of_fun_eq_integral_norm (memLp_one_iff_integrable.1 hf)
 
--- # This might be able to put into Mathlib
-lemma Lp.ae_norm_le_norm_top {E : Type*} [NormedAddCommGroup E] (f : Lp E ∞ μ) :
-    ∀ᵐ x ∂μ, ‖f x‖ ≤ ‖f‖ := by
-  have hne : eLpNormEssSup f μ ≠ ∞ := by
-    simpa [eLpNorm_exponent_top (Lp.aestronglyMeasurable f)] using Lp.eLpNorm_ne_top f
-  filter_upwards [ae_le_eLpNormEssSup (f := f)] with x hx
-  rw [Lp.norm_def, eLpNorm_exponent_top (Lp.aestronglyMeasurable f), ← toReal_enorm]
-  exact ENNReal.toReal_mono hne hx
+
 
 -- # Note that `hf1` and `hg1` are repetitive, so it might be also useful to put into mathlib.
 lemma setAverage_norm_le_norm_lpPairing_id_apply_top
@@ -326,7 +315,7 @@ lemma setAverage_norm_le_norm_lpPairing_id_apply_top
               refine integral_mono_ae ?_ ?_ ?_
               . exact ((Lp.memLp f).norm.restrict s).integrable le_top
               . exact integrable_const _
-              . exact ae_restrict_of_ae (Lp.ae_norm_le_norm_top f)
+              . exact ae_restrict_of_ae (ae_le_lpNorm_exponent_top (Lp.memLp f))
           _ = (μ s).toReal * ‖f‖ := by simp [measureReal_def]
       calc ‖J g ((hf1 f).toLp _)‖ ≤ ‖J g‖ * ‖(hf1 f).toLp _‖ := le_opNorm _ _
         _ ≤ ‖J g‖ * ((μ s).toReal * ‖f‖) := by gcongr
@@ -335,7 +324,7 @@ lemma setAverage_norm_le_norm_lpPairing_id_apply_top
     rw [← hJu]; grw [hJ'u]
     rw [inv_mul_cancel_left₀ ((ENNReal.toReal_pos hs.1.ne' hs.2.ne).ne') ‖J g‖]
 
--- # This might be able to put into Mathlib
+-- # This might be able to put into Mathlib (I've already submit the PR)
 lemma Lp.norm_le_of_ae_bound_top {E : Type*} [NormedAddCommGroup E] (f : Lp E ∞ μ) {C : ℝ}
     (hC : 0 ≤ C) (h : ∀ᵐ x ∂μ, ‖f x‖ ≤ C) : ‖f‖ ≤ C := by
   refine ENNReal.toReal_le_of_le_ofReal hC ?_

@@ -1,6 +1,7 @@
 import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
 import Mathlib.Analysis.Normed.Module.Connected
 import Mathlib.Analysis.InnerProductSpace.Harmonic.Basic
+import Mathlib.Analysis.Complex.Harmonic.MeanValue
 
 /-!
 # Maximum and Comparison principles of harmonic functions
@@ -53,7 +54,7 @@ lemma eqOn_closure_of_eqOn_of_continuousOn
 
 
 
-
+#check InnerProductSpace.HarmonicOnNhd.circleAverage_eq
 
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
@@ -64,10 +65,13 @@ def ballAverage (u : E → F) (x : E) (r : ℝ) : F :=
    ((volume (ball x r)).toReal)⁻¹ • ∫ y in ball x r, u y ∂volume
 
 /-- Mean value property for ball averages: a harmonic function on a neighbourhood of the closed
-ball has average over the ball equal to its value at the center. -/
-theorem HarmonicOnNhd.ballAverage_eq {f : E → F} {c : E} {R : ℝ}
-(hf : InnerProductSpace.HarmonicOnNhd f (closedBall c |R|)) :
-  ballAverage f c R = f c := sorry
+ball has average over the ball equal to its value at the center.
+
+The radius must be positive (for `R ≤ 0` the ball is empty and `ballAverage` is `0`), and `F` must
+be complete (otherwise the Bochner integral, hence `ballAverage`, is `0`). -/
+theorem HarmonicOnNhd.ballAverage_eq [CompleteSpace F] {f : E → F} {c : E} {R : ℝ} (hR : 0 < R)
+    (hf : InnerProductSpace.HarmonicOnNhd f (closedBall c R)) :
+    ballAverage f c R = f c := sorry
 
 /-- A local mean-value property implies harmonicity. This is the converse direction to
 `HarmonicOnNhd.ballAverage_eq`. -/
@@ -151,11 +155,8 @@ lemma isOpen_maxLevelSet_of_harmonicOnNhd_isMaxOn_general
   have hy_ball : (y : E) ∈ ball (x : E) r := by
     simpa only [Metric.mem_ball, Subtype.dist_eq] using hy
   have hclosed_sub : closedBall (x : E) r ⊆ s := hr_sub
-  have hmean : ballAverage v (x : E) r = v (x : E) := by
-    have hR : |r| = r := abs_of_pos hr_pos
-    have hclosed_sub_abs : closedBall (x : E) |r| ⊆ s := by
-      simpa [hR] using hclosed_sub
-    simpa [hR] using HarmonicOnNhd.ballAverage_eq (hv.mono hclosed_sub_abs)
+  have hmean : ballAverage v (x : E) r = v (x : E) :=
+    HarmonicOnNhd.ballAverage_eq hr_pos (hv.mono hclosed_sub)
   have hv_le : ∀ z ∈ closedBall (x : E) r, v z ≤ v (x : E) := by
     intro z hz
     have hz_s : z ∈ s := hclosed_sub hz

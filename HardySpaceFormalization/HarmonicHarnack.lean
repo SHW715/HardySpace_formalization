@@ -282,7 +282,7 @@ lemma harmonicOnNhd_of_tendstoLocallyUniformlyOn
   have hunif : TendstoUniformlyOn f g Filter.atTop (closedBall x r) :=
     (tendstoLocallyUniformlyOn_iff_forall_isCompact hs).1 hfg _ hsub (isCompact_closedBall x r)
   have hmean : ∀ n, ballAverage (f n) x r = f n x := fun n =>
-    HarmonicOnNhd.ballAverage_eq ((hf n).mono (by rwa [abs_of_pos hr.1]))
+    HarmonicOnNhd.ballAverage_eq hr.1 ((hf n).mono hsub)
   have hlim : Filter.Tendsto (fun n => f n x) Filter.atTop (𝓝 (g x)) :=
     hunif.tendsto_at (mem_closedBall_self hr.1.le)
   -- Uniform convergence on the closed ball passes to the ball averages.

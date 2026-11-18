@@ -11,6 +11,8 @@ variable {α E F 𝕜 𝕜' : Type*} {m : MeasurableSpace α} {μ : Measure α} 
   [NormedAddCommGroup E] [NormedAddCommGroup F] [NormedSpace 𝕜 E] [NormedSpace 𝕜' F]
   {σ : 𝕜 →+* 𝕜'} [RingHomIsometric σ]
 
+-- # Fo this file, I've already created the PRs.
+
 -- Proof given by Claude
 lemma norm_compLp_of_isometry {L : E →SL[σ] F} (hL : Isometry L) (f : Lp E p μ) :
     ‖L.compLp f‖ = ‖f‖ := by

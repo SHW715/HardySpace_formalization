@@ -442,10 +442,9 @@ theorem hasLocalSubMeanOn_of_harmonicOnNhd (u : E → ℝ) (hs : IsOpen s)
         measure_ball_lt_top.ne
     rw [ballAverageWithBot_coe u x r hu_int]
     refine WithBot.coe_le_coe.mpr ?_
-    have hmean : ballAverage u x r = u x := by
-      simpa [abs_of_pos hr.1] using
-        HarmonicOnNhd.ballAverage_eq
-          ((hu.mono hclosed_sub) : InnerProductSpace.HarmonicOnNhd u (closedBall x |r|))
+    have hmean : ballAverage u x r = u x :=
+      HarmonicOnNhd.ballAverage_eq hr.1
+        (hu.mono (by simpa [abs_of_pos hr.1] using hclosed_sub))
     exact le_of_eq hmean.symm
 
 /-- Equality case of the sub-mean inequality: if `u ≤ a` on a ball and `a` is at most the ball
@@ -658,8 +657,7 @@ lemma exists_le_ballAverageWithBot_of_harmonicAtWithBot {u : E → WithBot ℝ} 
     hv_N y (hρ_v_sub (Metric.closedBall_subset_ball hr_lt_v hy))
   -- Mean value property: ballAverage v x r = v x
   have hmean : ballAverage v x r = v x :=
-    HarmonicOnNhd.ballAverage_eq
-      (show InnerProductSpace.HarmonicOnNhd v (closedBall x |r|) by rwa [abs_of_pos hr_pos])
+    HarmonicOnNhd.ballAverage_eq hr_pos hv_harm
   have hv_int : IntegrableOn v (ball x r) volume :=
     hv_harm.continuousOn.integrableOn_of_subset_isCompact
       (isCompact_closedBall x r) measurableSet_ball ball_subset_closedBall

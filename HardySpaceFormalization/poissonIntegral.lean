@@ -125,6 +125,14 @@ theorem harmonicOnNhd_intervalIntegral_of_harmonicOnNhd
       InnerProductSpace.HarmonicOnNhd (fun w : ℂ => Φ w θ) s) :
     InnerProductSpace.HarmonicOnNhd (fun w : ℂ => ∫ θ in a..b, Φ w θ) s := by
   -- codex without review
+  -- Without completeness every Bochner integral vanishes, so the statement is trivial.
+  by_cases hE : CompleteSpace E
+  swap
+  · have h0 : (fun w : ℂ => ∫ θ in a..b, Φ w θ) = fun _ => 0 := by
+      funext w
+      simp [intervalIntegral, integral_of_not_completeSpace hE]
+    rw [h0]
+    exact InnerProductSpace.harmonicOnNhd_const 0
   have hcont_int : ContinuousOn (fun w : ℂ => ∫ θ in a..b, Φ w θ) s :=
     hcont.intervalIntegral_uIcc
   refine HarmonicOnNhd_of_ballAverage_eq (E := ℂ) (F := E) hs hcont_int ?_
@@ -141,7 +149,8 @@ theorem harmonicOnNhd_intervalIntegral_of_harmonicOnNhd
     simpa [abs_of_pos hr.1] using hy
   have hslice_mean : ∀ θ ∈ uIcc a b, ballAverage (fun w : ℂ => Φ w θ) x r = Φ x θ := by
     intro θ hθ
-    simpa [abs_of_pos hr.1] using HarmonicOnNhd.ballAverage_eq ((hΦ θ hθ).mono hclosed_sub)
+    exact HarmonicOnNhd.ballAverage_eq hr.1
+      ((hΦ θ hθ).mono (by simpa [abs_of_pos hr.1] using hclosed_sub))
   have hswap : ballAverage (fun w : ℂ => ∫ θ in a..b, Φ w θ) x r =
         ∫ θ in a..b, ballAverage (fun w : ℂ => Φ w θ) x r :=
       ballAverage_intervalIntegral_comm (hcont.mono (fun p hp => ⟨hclosed_sub hp.1, hp.2⟩))
