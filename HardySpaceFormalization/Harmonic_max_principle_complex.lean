@@ -4,10 +4,21 @@ import Mathlib.Analysis.Complex.Harmonic.MeanValue
 /-!
 # Mean value property and maximum principles on `ℂ`
 
-The complex case of the ball-average mean value property and its converse, split off from
-`Harmonic_max_principle.lean`, together with `ℂ` versions of that file's maximum and comparison
-principles. These rest on the proved `HarmonicOnNhd.ballAverage_eq_complex` instead of the general
-`HarmonicOnNhd.ballAverage_eq`.
+A `ℂ` copy of `Harmonic_max_principle.lean` that does not depend on the general (still `sorry`)
+`HarmonicOnNhd.ballAverage_eq`: everything here rests on `HarmonicOnNhd.ballAverage_eq_complex`,
+proved from mathlib's circle mean value property in polar coordinates.
+
+Each declaration `foo` (or `foo_general`) of `Harmonic_max_principle.lean` that depends on
+`HarmonicOnNhd.ballAverage_eq` has a counterpart `foo_complex` here, with the same hypotheses for
+`E = ℂ` (minus `[Nontrivial E]`), so code on `ℂ` switches by importing this file and renaming.
+The `sorry`-free parts of that file (`ballAverage`, the topological lemmas,
+`ballAverage_lt_of_forall_le_of_exists_lt`) are used as they are. The converse
+`HarmonicOnNhd_of_ballAverage_eq_complex` lives in `HarmonicMeanValueConverse.lean`, because its
+proof needs the Dirichlet problem from `poissonIntegral.lean`.
+
+Beyond the copy, the strong maximum principle is proved for continuous functions with the local
+ball mean value property (`maximum_minimum_principle_of_ballAverage_eq_complex`), as needed for
+the converse.
 -/
 
 open MeasureTheory Metric Set Real Filter
@@ -105,19 +116,23 @@ theorem HarmonicOnNhd.ballAverage_eq_complex [CompleteSpace F] {f : ℂ → F} {
     ring
   rw [hc, one_smul]
 
-/-- A local mean-value property for ball averages implies harmonicity on `ℂ`. -/
-theorem HarmonicOnNhd_of_ballAverage_eq_complex {u : ℂ → F} {s : Set ℂ}
-    (hs : IsOpen s) (hcont : ContinuousOn u s)
-    (hmean : ∀ x ∈ s, ∃ ε > 0, ∀ r (_ : 0 < r ∧ r < ε), ballAverage u x r = u x) :
-    InnerProductSpace.HarmonicOnNhd u s := by
-  sorry
+/-- Local form of the mean value property on `ℂ`: at every point of an open set where `u` is
+harmonic, the ball averages of `u` over all small balls equal the value at the center. This is
+the hypothesis of the converse `HarmonicOnNhd_of_ballAverage_eq_complex`. -/
+theorem HarmonicOnNhd.exists_ballAverage_eq_complex [CompleteSpace F] {u : ℂ → F} {s : Set ℂ}
+    (hs : IsOpen s) (hu : InnerProductSpace.HarmonicOnNhd u s) :
+    ∀ x ∈ s, ∃ ε > 0, ∀ r (_ : 0 < r ∧ r < ε), ballAverage u x r = u x := by
+  intro x hx
+  rcases Metric.nhds_basis_closedBall.mem_iff.mp (hs.mem_nhds hx) with ⟨ε, hε, hε_sub⟩
+  exact ⟨ε, hε, fun r hr => HarmonicOnNhd.ballAverage_eq_complex hr.1
+    (hu.mono ((closedBall_subset_closedBall hr.2.le).trans hε_sub))⟩
 
 /-! ### Maximum principles on `ℂ`
 
 The strong maximum principle only uses the local ball mean value property, so it is first proved
 for continuous functions having that property. For harmonic functions this property is
-`HarmonicOnNhd.ballAverage_eq_complex`, so the harmonic maximum and comparison principles on `ℂ`
-below do not depend on the general `HarmonicOnNhd.ballAverage_eq`. -/
+`HarmonicOnNhd.exists_ballAverage_eq_complex`, so the harmonic maximum and comparison principles
+on `ℂ` below do not depend on the general `HarmonicOnNhd.ballAverage_eq`. -/
 
 /-- If a continuous real function with the local ball mean value property attains its maximum
 over an open set `s` at `a`, then its maximum level set is open in the subtype topology on `s`. -/
@@ -202,6 +217,17 @@ theorem maximum_minimum_principle_of_ballAverage_eq_complex
     change -u x = c at hcx
     linarith
 
+/-- If a harmonic function on an open set `s ⊆ ℂ` attains its maximum over `s` at `a`, then its
+maximum level set is open in the subtype topology on `s`. -/
+lemma isOpen_maxLevelSet_of_harmonicOnNhd_isMaxOn_complex
+    {v : ℂ → ℝ} {s : Set ℂ} {a : ℂ}
+    (hs_open : IsOpen s)
+    (hv : InnerProductSpace.HarmonicOnNhd v s)
+    (hmax : ∀ y ∈ s, v y ≤ v a) :
+    IsOpen ({x : s | v x = v a} : Set s) :=
+  isOpen_maxLevelSet_of_ballAverage_eq_complex hs_open hv.continuousOn
+    (HarmonicOnNhd.exists_ballAverage_eq_complex hs_open hv) hmax
+
 /-- Strong maximum/minimum principle for real-valued harmonic functions on `ℂ`: if a harmonic
 function on a connected domain attains an interior maximum or minimum, then it is constant on the
 domain. -/
@@ -210,12 +236,9 @@ theorem harmonic_maximum_minimum_principle_complex
     (hs_open : IsOpen s) (hs_conn : IsPreconnected s)
     (hu : InnerProductSpace.HarmonicOnNhd u s)
     (h_extreme : (∃ x ∈ s, ∀ y ∈ s, u y ≤ u x) ∨ (∃ x ∈ s, ∀ y ∈ s, u x ≤ u y)) :
-    ∃ c : ℝ, ∀ x ∈ s, u x = c := by
-  refine maximum_minimum_principle_of_ballAverage_eq_complex hs_open hs_conn hu.continuousOn
-    (fun x hx => ?_) h_extreme
-  rcases Metric.nhds_basis_closedBall.mem_iff.mp (hs_open.mem_nhds hx) with ⟨ε, hε, hε_sub⟩
-  exact ⟨ε, hε, fun r hr => HarmonicOnNhd.ballAverage_eq_complex hr.1
-    (hu.mono ((closedBall_subset_closedBall hr.2.le).trans hε_sub))⟩
+    ∃ c : ℝ, ∀ x ∈ s, u x = c :=
+  maximum_minimum_principle_of_ballAverage_eq_complex hs_open hs_conn hu.continuousOn
+    (HarmonicOnNhd.exists_ballAverage_eq_complex hs_open hu) h_extreme
 
 /-- A harmonic function on a bounded connected domain in `ℂ` achieves its maximum on the
 boundary. -/

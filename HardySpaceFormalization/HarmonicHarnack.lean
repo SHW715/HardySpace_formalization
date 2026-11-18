@@ -1,5 +1,5 @@
 import HardySpaceFormalization.Poisson_lemma
-import HardySpaceFormalization.Harmonic_max_principle
+import HardySpaceFormalization.HarmonicMeanValueConverse
 import Mathlib.Analysis.Complex.Harmonic.Poisson
 import Mathlib.Analysis.Complex.Harmonic.MeanValue
 
@@ -275,14 +275,14 @@ lemma harmonicOnNhd_of_tendstoLocallyUniformlyOn
   have hcont : ContinuousOn g s :=
     hfg.continuousOn (Filter.Frequently.of_forall fun n => (hf n).continuousOn)
   -- It suffices to check the mean value property on small balls.
-  refine HarmonicOnNhd_of_ballAverage_eq hs hcont fun x hx => ?_
+  refine HarmonicOnNhd_of_ballAverage_eq_complex_real hs hcont fun x hx => ?_
   obtain ⟨ε, hε, hεs⟩ := Metric.isOpen_iff.1 hs x hx
   refine ⟨ε, hε, fun r hr => ?_⟩
   have hsub : closedBall x r ⊆ s := (closedBall_subset_ball hr.2).trans hεs
   have hunif : TendstoUniformlyOn f g Filter.atTop (closedBall x r) :=
     (tendstoLocallyUniformlyOn_iff_forall_isCompact hs).1 hfg _ hsub (isCompact_closedBall x r)
   have hmean : ∀ n, ballAverage (f n) x r = f n x := fun n =>
-    HarmonicOnNhd.ballAverage_eq hr.1 ((hf n).mono hsub)
+    HarmonicOnNhd.ballAverage_eq_complex hr.1 ((hf n).mono hsub)
   have hlim : Filter.Tendsto (fun n => f n x) Filter.atTop (𝓝 (g x)) :=
     hunif.tendsto_at (mem_closedBall_self hr.1.le)
   -- Uniform convergence on the closed ball passes to the ball averages.
